@@ -95,6 +95,10 @@
 
 - id: tool-result-pruner
   name: '@deepseek-ai/dsh-compaction-tool-result-pruner'
+  config:
+    thresholdChars: 8192
+    headChars: 4096
+    tailChars: 1024
 
 - id: tool-todo
   name: '@deepseek-ai/dsh-tool-todo'
@@ -177,6 +181,7 @@
   name: '@deepseek-ai/dsh-tool-subagent'
   config:
     provider: spawn
+    toolName: subagent
 
 - id: commands
   name: '@deepseek-ai/dsh-commands'
