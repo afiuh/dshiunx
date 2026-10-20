@@ -38,7 +38,7 @@
   config:
     includeHarnessIdentity: true
     includeRuntimeContext: true
-    personaPrefix: 'You are a helpful software engineer assistant.'
+    personaPrefix: ''
 
 - id: tools
   name: '@deepseek-ai/dsh-tools'
