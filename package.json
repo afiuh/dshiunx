@@ -1,0 +1,22 @@
+{
+  "name": "dshiunx",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "tsx --test tests/*.test.ts",
+    "hello": "tsx examples/hello.ts"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^5.9.0",
+    "@types/node": "^24.0.0"
+  },
+  "dependencies": {
+    "@standard-schema/spec": "^1.1.0",
+    "js-yaml": "^4.1.0",
+    "chokidar": "^4.0.3",
+    "picomatch": "^4.0.2",
+    "@babel/code-frame": "^7.26.2"
+  }
+}
