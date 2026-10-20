@@ -3,11 +3,13 @@
     "target": "ES2024",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "experimentalDecorators": true,
     "allowImportingTsExtensions": true,
     "noEmit": true,
     "skipLibCheck": true,
     "strict": false,
-    "types": ["node"]
+    "types": [
+      "node"
+    ],
+    "useDefineForClassFields": true
   }
 }

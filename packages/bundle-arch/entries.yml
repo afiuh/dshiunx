@@ -1,0 +1,94 @@
+# dshiunx arch bundle — 第一版
+# 22 个保留条目（来自 sdk-minimal 裁剪），Arch 特化：无 pwsh、无 sandbox-local、无 UI、无遥测。
+# 绑定 DeepSeek provider（llm-deepseek-api-key）。
+
+- id: llm
+  name: '@deepseek-ai/dsh-llm'
+
+- id: llm-deepseek
+  name: '@deepseek-ai/dsh-llm-deepseek-api-key'
+  config:
+    apiKeyEnv: DEEPSEEK_API_KEY
+    defaultContextWindow: 1000000
+    streamIdleTimeoutMs: 172800000
+
+- id: llm-retry
+  name: '@deepseek-ai/dsh-llm-retry'
+
+- id: session
+  name: '@deepseek-ai/dsh-session'
+
+- id: sessions
+  name: '@deepseek-ai/dsh-session-persistence-jsonl'
+  config:
+    root: .dshiunx/sessions
+    compression: none
+
+- id: session-projection
+  name: '@deepseek-ai/dsh-session-projection'
+
+- id: token-meter
+  name: '@deepseek-ai/dsh-token-meter'
+
+- id: compaction-basic
+  name: '@deepseek-ai/dsh-compaction-basic'
+
+- id: system-prompt
+  name: '@deepseek-ai/dsh-system-prompt'
+  config:
+    includeHarnessIdentity: false
+    includeRuntimeContext: true
+    personaPrefix: 'You are a helpful software engineer assistant.'
+
+- id: tools
+  name: '@deepseek-ai/dsh-tools'
+
+- id: agent
+  name: '@deepseek-ai/dsh-agent'
+
+- id: agent-loop
+  name: '@deepseek-ai/dsh-agent-loop'
+  config:
+    agents: []
+
+- id: filesystem
+  name: '@deepseek-ai/dsh-fs-local'
+
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+  config:
+    read: true
+    readImage: false
+    write: true
+    edit: true
+
+- id: working-directory
+  name: '@deepseek-ai/dsh-working-directory'
+
+- id: tool-working-directory
+  name: '@deepseek-ai/dsh-tool-working-directory'
+
+- id: subprocess
+  name: '@deepseek-ai/dsh-subprocess-local'
+
+- id: pty
+  name: '@deepseek-ai/dsh-terminal'
+
+- id: terminal-bash
+  name: '@deepseek-ai/dsh-terminal-bash'
+  config:
+    timeoutMs: 300000
+
+- id: persistent-bash
+  name: '@deepseek-ai/dsh-tool-bash-persistent'
+  config:
+    timeoutMs: 300000
+
+- id: timer
+  name: '@deepseek-ai/cordis-plugin-timer'
+
+- id: sandbox-policy
+  name: '@deepseek-ai/dsh-sandbox-policy'
+  config:
+    mode: danger-full-access
+    workspaceRoot: /mnt/data/AI自由工作区/dshiunx

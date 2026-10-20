@@ -1,0 +1,53 @@
+{
+  "name": "@deepseek-ai/dsh-session",
+  "description": "Event-sourced session store for the DeepSeek Harness",
+  "version": "0.2.1-rc.2",
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/core/session"
+  },
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./types": {
+      "types": "./src/types.ts",
+      "default": "./src/types.ts"
+    },
+    "./fork": {
+      "types": "./src/fork.ts",
+      "default": "./src/fork.ts"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json",
+    "./surface": {
+      "types": "./src/surface.ts",
+      "default": "./src/surface.ts"
+    },
+    "./locale/*.json": "./locale/*.json"
+  },
+  "license": "MIT",
+  "peerDependencies": {
+    "@deepseek-ai/dsh-scope": "*",
+    "@deepseek-ai/cordis": "*"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-scope": "*",
+    "@deepseek-ai/dsh-typert-protocol": "*",
+    "@deepseek-ai/dsh-typert-registry": "*",
+    "@deepseek-ai/cordis": "*"
+  },
+  "dependencies": {
+    "@deepseek-ai/dsh-llm": "*",
+    "@deepseek-ai/dsh-brand": "*",
+    "@deepseek-ai/dsh-util-values": "*"
+  }
+}
