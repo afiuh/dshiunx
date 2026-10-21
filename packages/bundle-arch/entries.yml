@@ -846,5 +846,3 @@
     - id: tool-plugin-market
       name: '@deepseek-ai/dsh-plugin-market/tools'
       disabled: '!ctx.get(''profileContext'')'
-- id: mcp-client
-  name: '@deepseek-ai/dsh-mcp-client'
