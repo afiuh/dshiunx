@@ -55,6 +55,9 @@
       "@deepseek-ai/dsh-spill": [
         "packages/dsh-spill/src/index.ts"
       ],
+      "@deepseek-ai/dsh-storage-json": [
+        "packages/dsh-storage-json/src/index.ts"
+      ],
       "@deepseek-ai/dsh-tool-call-timeout-policy": [
         "packages/dsh-tool-call-timeout-policy/src/index.ts"
       ],
@@ -78,6 +81,9 @@
       ],
       "@deepseek-ai/dsh-workflow": [
         "packages/dsh-workflow/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-schedule": [
+        "packages/dsh-schedule/src/index.ts"
       ],
       "@deepseek-ai/dsh-agent-preset": [
         "packages/dsh-agent-preset/src/index.ts"
@@ -133,6 +139,9 @@
       "@deepseek-ai/dsh-session-format-catalog": [
         "packages/dsh-session-format-catalog/src/index.ts"
       ],
+      "@deepseek-ai/dsh-jobs": [
+        "packages/dsh-jobs/src/index.ts"
+      ],
       "@deepseek-ai/dsh-subagent-fork-in-process": [
         "packages/dsh-subagent-fork-in-process/src/index.ts"
       ],
@@ -169,6 +178,9 @@
       "@deepseek-ai/dsh-llm-deepseek-api-key": [
         "packages/dsh-llm-deepseek-api-key/src/index.ts"
       ],
+      "@deepseek-ai/dsh-storage": [
+        "packages/dsh-storage/src/index.ts"
+      ],
       "@deepseek-ai/dsh-tool-fs": [
         "packages/dsh-tool-fs/src/index.ts"
       ],
@@ -196,6 +208,9 @@
       "@deepseek-ai/schemastery": [
         "packages/schemastery/src/index.ts"
       ],
+      "@deepseek-ai/dsh-tool-bash": [
+        "packages/dsh-tool-bash/src/index.ts"
+      ],
       "@deepseek-ai/dsh-shell-env": [
         "packages/dsh-shell-env/src/index.ts"
       ],
@@ -214,17 +229,26 @@
       "@deepseek-ai/dsh-permission-presets": [
         "packages/dsh-permission-presets/src/index.ts"
       ],
+      "@deepseek-ai/dsh-storage-domain": [
+        "packages/dsh-storage-domain/src/index.ts"
+      ],
       "@deepseek-ai/dsh-timeout": [
         "packages/dsh-timeout/src/index.ts"
       ],
       "@deepseek-ai/dsh-token-meter": [
         "packages/dsh-token-meter/src/index.ts"
       ],
+      "@deepseek-ai/dsh-tool-present": [
+        "packages/dsh-tool-present/src/index.ts"
+      ],
       "@deepseek-ai/dsh-time-context": [
         "packages/dsh-time-context/src/index.ts"
       ],
       "@deepseek-ai/dsh-attachment": [
         "packages/dsh-attachment/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-tool-ask-user": [
+        "packages/dsh-tool-ask-user/src/index.ts"
       ],
       "@deepseek-ai/dsh-system-prompt": [
         "packages/dsh-system-prompt/src/index.ts"
@@ -280,6 +304,9 @@
       "@deepseek-ai/dsh-session-persistence-jsonl": [
         "packages/dsh-session-persistence-jsonl/src/index.ts"
       ],
+      "@deepseek-ai/dsh-bash-local": [
+        "packages/dsh-bash-local/src/index.ts"
+      ],
       "@deepseek-ai/dsh-sandbox-windows-acl": [
         "packages/dsh-sandbox-windows-acl/src/index.ts"
       ],
@@ -309,6 +336,9 @@
       ],
       "@deepseek-ai/dsh-repeat-tool-reminder": [
         "packages/dsh-repeat-tool-reminder/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-tool-schedule": [
+        "packages/dsh-tool-schedule/src/index.ts"
       ],
       "@deepseek-ai/dsh-session-format-v1-to-v2": [
         "packages/dsh-session-format-v1-to-v2/src/index.ts"
@@ -354,6 +384,9 @@
       ],
       "@deepseek-ai/dsh-goal": [
         "packages/dsh-goal/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-agent-tool-presentation": [
+        "packages/dsh-agent-tool-presentation/src/index.ts"
       ],
       "@deepseek-ai/dsh-user-approval": [
         "packages/dsh-user-approval/src/index.ts"

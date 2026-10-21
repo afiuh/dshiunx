@@ -32,9 +32,11 @@
     "eventsource-parser": "^3.0.0",
     "semver": "^7.6.0",
     "resolve.exports": "^2.0.3",
-    "execa": "^9.5.0"
+    "execa": "^9.5.0",
+    "@js-temporal/polyfill": "^0.5.1"
   },
   "optionalDependencies": {
     "@deepseek-ai/node-addon-system-linux-x64": "0.1.2"
-  }
+  },
+  "version": "0.2.1-rc.2"
 }

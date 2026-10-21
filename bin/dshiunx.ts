@@ -1,17 +1,12 @@
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
-import yaml from 'js-yaml'
-import { readFileSync } from 'node:fs'
+import { mountRootInclude } from '@deepseek-ai/dsh-app-boot'
+import { pathToFileURL } from 'node:url'
 import { fileURLToPath } from 'node:url'
 
-const entriesFile = fileURLToPath(new URL('../packages/bundle-arch/entries.yml', import.meta.url))
-const entries = yaml.load(readFileSync(entriesFile, 'utf8')) as Array<{
-  id: string
-  name: string
-  config?: any
-}>
-
+const entriesDir = fileURLToPath(new URL('../packages/bundle-arch/', import.meta.url))
 const ctx = new Context()
+ctx.baseUrl = pathToFileURL(entriesDir).href + '/'
 ctx.provide('profileContext', {
   name: 'dshiunx',
   dir: `${process.cwd()}/profiles/default`,
@@ -24,14 +19,11 @@ ctx.provide('profileContext', {
   telemetryDisabledEnv: undefined,
 })
 await ctx.plugin(Loader)
-
-for (const entry of entries) {
-  await ctx.loader.create({ id: entry.id, name: entry.name, config: entry.config })
-}
-await ctx.loader.await()
+await mountRootInclude(ctx, `${entriesDir}entries.yml`, [], undefined, 'dshiunx')
+await ctx.get('loader')?.await()
 
 const loaded = [...ctx.loader.entries()]
-console.log(`loaded ${loaded.length}/${entries.length} entries:`)
+console.log(`loaded ${loaded.length} entries:`)
 for (const entry of loaded) {
   console.log(`  ${entry.id.padEnd(24)} ${entry.options.name}  ${entry.fiber?.state ?? '?'}`)
 }
