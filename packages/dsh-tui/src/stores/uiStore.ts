@@ -10,6 +10,8 @@ let loadedContextOpen = false
 let peekSuppressed: string | null = null
 let unseenCount = 0
 let forceMountRowId: number | null = null
+let subagentDashboardOpen = false
+let subagentDetailId: string | null = null
 const listeners = new Set<() => void>()
 const notify = (): void => { for (const listener of listeners) listener() }
 
@@ -36,6 +38,10 @@ export const uiStore = {
   setUnseenCount(value: number): void { unseenCount = value; notify() },
   getForceMountRowId: (): number | null => forceMountRowId,
   setForceMountRowId(value: number | null): void { forceMountRowId = value; notify() },
+  getSubagentDashboardOpen: (): boolean => subagentDashboardOpen,
+  setSubagentDashboardOpen(value: boolean): void { subagentDashboardOpen = value; notify() },
+  getSubagentDetailId: (): string | null => subagentDetailId,
+  setSubagentDetailId(value: string | null): void { subagentDetailId = value; notify() },
   subscribe(listener: () => void): () => void {
     listeners.add(listener)
     return () => { listeners.delete(listener) }

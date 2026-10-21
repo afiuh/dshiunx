@@ -1679,7 +1679,7 @@ export function Chat({
    */
   const suppressLogoIntroRef = React.useRef(false)
   /** Subagent dashboard (Ctrl+A): displays active/completed subagents. */
-  const [subagentDashboardOpen, setSubagentDashboardOpen] = React.useState(false)
+  const subagentDashboardOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getSubagentDashboardOpen)
   const jobsPanelOpen = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getJobsPanelOpen)
   /** Job id the panel should focus on open: set by a transcript card click
    *  (open the panel AT that job), cleared on close so the keyboard/command
@@ -1728,10 +1728,10 @@ export function Chat({
       sidePanel.openPanel('agents', { focus: true })
       return
     }
-    setSubagentDashboardOpen(true)
+    uiStore.setSubagentDashboardOpen(true)
   }, [])
   /** Detail view for a specific subagent (opened from dashboard). */
-  const [subagentDetailId, setSubagentDetailId] = React.useState<string | null>(null)
+  const subagentDetailId = React.useSyncExternalStore(uiStore.subscribe, uiStore.getSubagentDetailId)
   /**
    * 主屏只读 Agent View：Chat 自己的场景层。父 Chat、Channel 与 PromptInput
    * 保持挂载（草稿经 draftCache 往返），场景只借用屏幕与键盘；Esc 回到打开它
@@ -1766,12 +1766,12 @@ export function Chat({
     const panelReturn = (sidePanel !== null && sidePanel.split && sidePanel.enabledPanelIds.includes('agents'))
     if (source.kind === 'agents-dashboard') {
       if (source.panel === true && panelReturn) sidePanel.openPanel('agents', { focus: true })
-      else setSubagentDashboardOpen(true)
+      else uiStore.setSubagentDashboardOpen(true)
       return
     }
     if (source.kind === 'agent-detail') {
       if (source.panel === true && panelReturn) sidePanel.openPanel('agents', { focus: true })
-      else setSubagentDetailId(source.agentId)
+      else uiStore.setSubagentDetailId(source.agentId)
     }
   }, [])
   /**
@@ -3881,7 +3881,7 @@ export function Chat({
           return true
         }
         if (target === 'agents') {
-          setSubagentDashboardOpen(true)
+          uiStore.setSubagentDashboardOpen(true)
           return true
         }
         if (arg === 'toggle' || arg === 'focus' || arg === 'zoom' || arg === '' || target !== undefined) {
@@ -4523,7 +4523,7 @@ export function Chat({
     }
     if (panelId === 'agents') {
       sidePanelRef.current?.focusChat()
-      setSubagentDashboardOpen(true)
+      uiStore.setSubagentDashboardOpen(true)
       return
     }
     if (panelId === 'trajectory') {
@@ -6613,7 +6613,7 @@ export function Chat({
     const subagent = channel.subagents.find(s => s.agentId === subagentDetailId)
     if (!subagent) {
       // Agent not found, go back to the dashboard (side panel when split).
-      setSubagentDetailId(null)
+      uiStore.setSubagentDetailId(null)
       openSubagentDashboard()
       return null
     }
@@ -6630,8 +6630,8 @@ export function Chat({
         messages={detailMessages}
         {...(detailControl === undefined ? {} : { compose: { control: detailControl, target: detailTarget } })}
         onBack={() => {
-          setSubagentDetailId(null)
-          setSubagentDashboardOpen(true)
+          uiStore.setSubagentDetailId(null)
+          uiStore.setSubagentDashboardOpen(true)
         }}
       />
     )
@@ -6686,12 +6686,12 @@ export function Chat({
         team={channel.team}
         sessionId={channel.sessionId}
         onSelect={(id) => {
-          setSubagentDashboardOpen(false)
-          setSubagentDetailId(id)
+          uiStore.setSubagentDashboardOpen(false)
+          uiStore.setSubagentDetailId(id)
         }}
         onOpenView={(id) => openAgentView(id, { kind: 'agents-dashboard' })}
         messages={channel.subagentControl?.message?.messages()}
-        onClose={() => setSubagentDashboardOpen(false)}
+        onClose={() => uiStore.setSubagentDashboardOpen(false)}
       />
     )
     return withTitle(fullscreen ? dashboard : <AlternateScreen>{dashboard}</AlternateScreen>)
