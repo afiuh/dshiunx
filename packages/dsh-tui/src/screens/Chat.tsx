@@ -62,6 +62,7 @@ import { searchStore } from '../stores/searchStore.js'
 import { panelsStore } from '../stores/panelsStore.js'
 import { migrateStore } from '../stores/migrateStore.js'
 import { uiStore } from '../stores/uiStore.js'
+import { bootStore } from '../stores/bootStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -906,9 +907,9 @@ export function Chat({
    * unmounting component would be lost in exactly the transition it exists
    * to carry.
    */
-  const [launchpadDraft, setLaunchpadDraft] = React.useState('')
-  const [launchpadCaret, setLaunchpadCaret] = React.useState(0)
-  const [launchpadFocus, setLaunchpadFocus] = React.useState(-1)
+  const launchpadDraft = React.useSyncExternalStore(bootStore.subscribe, bootStore.getLaunchpadDraft)
+  const launchpadCaret = React.useSyncExternalStore(bootStore.subscribe, bootStore.getLaunchpadCaret)
+  const launchpadFocus = React.useSyncExternalStore(bootStore.subscribe, bootStore.getLaunchpadFocus)
   const launchpadImagesRef = React.useRef(new Map<string, string>())
   const changeLaunchpadDraft = (text: string, cursor: number): void => {
     const live = new Set(composerImageRefsForText(text, launchpadImagesRef.current).map(image => image.token))
@@ -917,8 +918,8 @@ export function Chat({
       launchpadImagesRef.current.delete(token)
       channel.discardStagedImage(stageId)
     }
-    setLaunchpadDraft(text)
-    setLaunchpadCaret(cursor)
+    bootStore.setLaunchpadDraft(text)
+    bootStore.setLaunchpadCaret(cursor)
   }
   const launchpadBindingGeneration = resolveBindingGeneration(channel)
   // Capture the image epoch with each session binding. Automatic startup keeps
@@ -936,8 +937,8 @@ export function Chat({
     const previous = launchpadSessionRef.current
     launchpadSessionRef.current = { id: channel.agentId, imageGeneration: composerImageGeneration }
     if (previous.id === '' && channel.agentId !== '' && previous.imageGeneration === composerImageGeneration) return
-    setLaunchpadDraft('')
-    setLaunchpadCaret(0)
+    bootStore.setLaunchpadDraft('')
+    bootStore.setLaunchpadCaret(0)
     discardLaunchpadImages()
   }, [channel, channel.agentId, launchpadBindingGeneration])
   /**
@@ -1003,13 +1004,13 @@ export function Chat({
    * 判定，src/update.ts）在启动页第一次挂起时后台探一次——registry 延迟
    * 不许拖慢第一帧；失败/离线静默为 false（绝不放假按钮）。
    */
-  const [launchpadUpdateAvailable, setLaunchpadUpdateAvailable] = React.useState(false)
+  const launchpadUpdateAvailable = React.useSyncExternalStore(bootStore.subscribe, bootStore.getLaunchpadUpdateAvailable)
   const launchpadUpdateProbedRef = React.useRef(false)
   React.useEffect(() => {
     if (!launchpadShown || launchpadUpdateProbedRef.current) return
     launchpadUpdateProbedRef.current = true
     void checkForTuiUpdate().then(update => {
-      setLaunchpadUpdateAvailable(update !== undefined)
+      bootStore.setLaunchpadUpdateAvailable(update !== undefined)
     }).catch(() => undefined)
   }, [launchpadShown])
   const canInstallSdk = onResolveSdkInstall !== undefined
@@ -1024,7 +1025,7 @@ export function Chat({
    * 不进 overlay union）。每次打开独占安装面与进程句柄；浮层关闭或替换时
    * 取消安装并重置步骤，旧预检/安装结果不能落进下一次打开的向导。
    */
-  const [sdkPhase, setSdkPhase] = React.useState<SdkInstallPhase>({ kind: 'idle' })
+  const sdkPhase = React.useSyncExternalStore(bootStore.subscribe, bootStore.getSdkPhase)
   const sdkInstallRef = React.useRef<{ readonly surface: SdkInstallSurface; installer?: SdkInstaller } | undefined>(undefined)
   const sdkOverlay = overlay.kind === 'sdk-install' ? overlay : undefined
   // 安装面在这次打开时快照；宿主回调更新不重启正在进行的安装。
@@ -1039,7 +1040,7 @@ export function Chat({
     sdkInstallRef.current = installation
     const target = surface.resolveTarget()
     if (target.kind === 'profile') {
-      setSdkPhase({
+      bootStore.setSdkPhase({
         kind: 'confirm',
         dir: target.dir,
         version: surface.version,
@@ -1047,12 +1048,12 @@ export function Chat({
         ...(sdkOverlay.foundCli === undefined ? {} : { foundCli: sdkOverlay.foundCli }),
       })
     } else {
-      setSdkPhase({ kind: 'no-target', reason: target.kind === 'standalone' ? 'standalone' : 'no-profile' })
+      bootStore.setSdkPhase({ kind: 'no-target', reason: target.kind === 'standalone' ? 'standalone' : 'no-profile' })
     }
     return () => {
       sdkInstallRef.current = undefined
       installation.installer?.cancel()
-      setSdkPhase({ kind: 'idle' })
+      bootStore.setSdkPhase({ kind: 'idle' })
     }
   }, [sdkOverlay])
   const closeSdkInstallToKernelPicker = (): void => {
@@ -1068,20 +1069,20 @@ export function Chat({
     const { surface } = installation
     const installer = surface.start(dir)
     installation.installer = installer
-    setSdkPhase({ kind: 'running' })
+    bootStore.setSdkPhase({ kind: 'running' })
     void installer.result.then(result => {
       if (sdkInstallRef.current !== installation) return
       installation.installer = undefined
       if (result.kind === 'ok') {
         // 装好了：重探内核（灰行变亮，无需重启进程），停在完成面板。
         reprobeKernels()
-        setSdkPhase({ kind: 'done', rebuiltStore: result.rebuiltStore === true })
+        bootStore.setSdkPhase({ kind: 'done', rebuiltStore: result.rebuiltStore === true })
       } else if (result.kind === 'failed') {
-        setSdkPhase({ kind: 'failed', exitCode: result.exitCode, tail: result.tail, dir, version: surface.version, specifier: surface.specifier })
+        bootStore.setSdkPhase({ kind: 'failed', exitCode: result.exitCode, tail: result.tail, dir, version: surface.version, specifier: surface.specifier })
       } else if (result.kind === 'pnpm-missing') {
-        setSdkPhase({ kind: 'pnpm-missing', dir, version: surface.version, specifier: surface.specifier })
+        bootStore.setSdkPhase({ kind: 'pnpm-missing', dir, version: surface.version, specifier: surface.specifier })
       } else {
-        setSdkPhase({ kind: 'cancelled' })
+        bootStore.setSdkPhase({ kind: 'cancelled' })
       }
     })
   }
@@ -1089,11 +1090,11 @@ export function Chat({
     const installation = sdkInstallRef.current
     if (installation === undefined) return
     const { surface } = installation
-    setSdkPhase({ kind: 'checking' })
+    bootStore.setSdkPhase({ kind: 'checking' })
     void surface.preflight().then(ok => {
       if (sdkInstallRef.current !== installation) return
       if (!ok) {
-        setSdkPhase({ kind: 'pnpm-missing', dir, version: surface.version, specifier: surface.specifier })
+        bootStore.setSdkPhase({ kind: 'pnpm-missing', dir, version: surface.version, specifier: surface.specifier })
         return
       }
       runSdkInstall(dir)
@@ -1193,7 +1194,7 @@ export function Chat({
    * 完成（写进 onboarding.json）之后立刻收掉；跳过刻意保留——没记账，下次启动还会问，
    * 横幅说的正是这件事。
    */
-  const [onboardingPending, setOnboardingPending] = React.useState(onboardingOnBoot === true && !recoveryRemountOnBoot)
+  const onboardingPending = React.useSyncExternalStore(bootStore.subscribe, bootStore.getOnboardingPending)
   /**
    * 品牌档（`branding.ts`）：设置项 `dsh-tui.brand`（`auto` = 跟后端）与当前
    * 后端 id（`backendCapabilities.backendId`，boot 时即定）的合成。开屏词、
@@ -1274,7 +1275,7 @@ export function Chat({
    * 这一轮不弹也**不记账**，留给下一次启动。`starPrompt` 是测试缝：传
    * `null` 显式关闭，传 actions 覆写两个按钮（不跑真 gh、不开真浏览器）。 */
   /** 本次会话是否已经 star 成功（开屏彩蛋标题切「捡到小星星啦」）。 */
-  const [starred, setStarred] = React.useState(false)
+  const starred = React.useSyncExternalStore(bootStore.subscribe, bootStore.getStarred)
   /**
    * 落地页条件位③（投喂一颗 Star）：与开屏求 star 弹窗**同一口径**——
    * `usageStats`（~/.dsh-tui/usage.json）里有未报过的已达档里程碑
@@ -1287,7 +1288,7 @@ export function Chat({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dir 经测试缝注入
     [starred, starPrompt],
   )
-  const [starModal, setStarModal] = React.useState<{ index: number; phase: 'ask' | 'done' } | null>(null)
+  const starModal = React.useSyncExternalStore(bootStore.subscribe, bootStore.getStarModal)
   // 单发闩：只在第一个"安静的开屏视口"上武装定时器。700ms 窗口内整屏
   // 界面打开 → cleanup 掐掉定时器且**不再重臂**（记账只发生在回调里，
   // 所以这一档完好留给下一次启动）；整屏界面随后关闭也不追到聊天视图
@@ -1314,13 +1315,13 @@ export function Chat({
       if (working) return
       if (starModalPreview) {
         const preview = STAR_MILESTONES.findIndex(milestone => milestone.hours === 99)
-        if (preview >= 0) setStarModal({ index: preview, phase: 'ask' })
+        if (preview >= 0) bootStore.setStarModal({ index: preview, phase: 'ask' })
         return
       }
       const index = dueStarModal(starPrompt?.dir)
       if (index === null) return
       markStarAsked(index, starPrompt?.dir)
-      setStarModal({ index, phase: 'ask' })
+      bootStore.setStarModal({ index, phase: 'ask' })
     }, 700)
     return () => { clearTimeout(timer) }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在整屏界面开合时重判；闩保证只武装一次
@@ -1349,14 +1350,14 @@ export function Chat({
         return { kind: 'failed' as const, detail: outcome.detail, url }
       })).then(attempt => {
       if (attempt.kind === 'starred') {
-        setStarred(true)
+        bootStore.setStarred(true)
         // 成功就演一段庆祝（女仆娘接住星星）——`/star`、`Alt+S`、标语点击
         // 都是这一条路。整屏界面开着或回合进行中时弹窗放不下，退回一句
         // 通知，用户至少知道 star 点上了。
         const blocked = channel.working || supervisorOpen || treeOpen || settingsOpen
         const index = STAR_MILESTONES.findIndex(milestone => milestone.hours === 99)
         if (!blocked && index >= 0) {
-          setStarModal({ index, phase: 'done' })
+          bootStore.setStarModal({ index, phase: 'done' })
           return
         }
         channel.notify(t('star-ok'), { color: 'success' })
@@ -1387,7 +1388,7 @@ export function Chat({
       // 多一个微任务会让弹窗"庆祝那一帧"被紧随其后的 Enter 关窗批掉
       //（夹具 C8/C9 实测）。这里只挂副作用、原样返回。
       const afterAttempt = (attempt: StarAttempt): StarAttempt => {
-        if (attempt.kind === 'starred') setStarred(true)
+        if (attempt.kind === 'starred') bootStore.setStarred(true)
         else if (attempt.kind === 'no-gh' || attempt.kind === 'not-authed') openStarPage()
         return attempt
       }
@@ -1411,13 +1412,13 @@ export function Chat({
       return run
     },
     onOpen: () => {
-      setStarModal(null)
+      bootStore.setStarModal(null)
       openStarPage()
     },
   }), [starPrompt, openStarPage])
   /** 弹窗关闭回调：稳定引用（见渲染处的注释）。 */
-  const closeStarModal = React.useCallback((): void => { setStarModal(null) }, [])
-  const [workspaceTargets, setWorkspaceTargets] = React.useState<readonly TuiWorkspaceTarget[]>([])
+  const closeStarModal = React.useCallback((): void => { bootStore.setStarModal(null) }, [])
+  const workspaceTargets = React.useSyncExternalStore(bootStore.subscribe, bootStore.getWorkspaceTargets)
   const workspaceFlowRequestRef = React.useRef(0)
   const workspaceFlowAbortRef = React.useRef<AbortController | null>(null)
   /** `/preset` agent-preset roster (issue #8): loads async, persists. */
@@ -1902,7 +1903,7 @@ export function Chat({
     setOnboardingOpen(false)
     if (outcome === 'done') {
       const written = markOnboardingDone()
-      setOnboardingPending(false)
+      bootStore.setOnboardingPending(false)
       channel.notify(t(written ? 'onboarding-finished' : 'onboarding-write-failed'), {
         color: written ? 'success' : 'warning',
         timeoutMs: written ? 3000 : 6000,
@@ -2571,7 +2572,7 @@ export function Chat({
         channel.notify(t('workspace-none'))
         return
       }
-      setWorkspaceTargets(targets)
+      bootStore.setWorkspaceTargets(targets)
       // open-if: the listing is async — whatever the user opened meanwhile wins.
       overlayStore.dispatch({
         type: 'open-if',
@@ -2872,9 +2873,9 @@ export function Chat({
     // 提交首句后必须把它收掉，否则用户落到浏览器而不是"草稿就在眼前的对话"，
     // 与本函数 doc 承诺的落点直接矛盾。
     setSupervisorOpen(false)
-    setLaunchpadFocus(-1)
-    setLaunchpadDraft('')
-    setLaunchpadCaret(0)
+    bootStore.setLaunchpadFocus(-1)
+    bootStore.setLaunchpadDraft('')
+    bootStore.setLaunchpadCaret(0)
     if (text === '') {
       setLaunchpadOpen(false)
       return
@@ -2917,9 +2918,9 @@ export function Chat({
     launchpadDraftHandoffRef.current = launchpadDraft
     setLaunchpadOpen(false)
     setSupervisorOpen(false)
-    setLaunchpadFocus(-1)
-    setLaunchpadDraft('')
-    setLaunchpadCaret(0)
+    bootStore.setLaunchpadFocus(-1)
+    bootStore.setLaunchpadDraft('')
+    bootStore.setLaunchpadCaret(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the draft is read at the moment of the failure, not tracked
   }, [launchpadOpen, startupFailure])
   React.useEffect(() => {
@@ -5966,7 +5967,7 @@ export function Chat({
                   overlayStore.dispatch({ type: 'close' })
                   const filled = '/' + name + ' '
                   changeLaunchpadDraft(filled, filled.length)
-                  setLaunchpadFocus(-1)
+                  bootStore.setLaunchpadFocus(-1)
                 }}
               />
             </Box>
@@ -6498,7 +6499,7 @@ export function Chat({
           // 草稿/焦点也按 submitLaunchpad 同一口径清掉（进入的是别的会话，旧草稿
           // 不该跟过去）。
           setLaunchpadOpen(false)
-          setLaunchpadFocus(-1)
+          bootStore.setLaunchpadFocus(-1)
           changeLaunchpadDraft('', 0)
           repaintTranscript()
           return result
@@ -6511,7 +6512,7 @@ export function Chat({
             setSupervisorOpen(false)
             // 同 onOpenSession：新建/切工作区会话也是有意导航，落地页一并收。
             setLaunchpadOpen(false)
-            setLaunchpadFocus(-1)
+            bootStore.setLaunchpadFocus(-1)
             changeLaunchpadDraft('', 0)
             repaintTranscript()
           }
@@ -6823,7 +6824,7 @@ export function Chat({
         }}
         onQueryChange={changeLaunchpadDraft}
         onSubmit={submitLaunchpad}
-        onFocusChange={setLaunchpadFocus}
+        onFocusChange={bootStore.setLaunchpadFocus}
         onAction={(action) => {
           // 第八版（用户实测：「刚点帮助，不知道为什么直接进入聊天页面了」）：
           // 帮助**不属于**离开启动页的两条路（Enter 发非命令消息 / 会话浏览
@@ -6868,7 +6869,7 @@ export function Chat({
           // 收回输入框）。选择器内部的点击已被 Launchpad 的浮层包装拦住
           // 冒泡，不会走到这里。
           if (overlay.kind !== 'none') overlayStore.dispatch({ type: 'close' })
-          setLaunchpadFocus(-1)
+          bootStore.setLaunchpadFocus(-1)
         }}
         model={channel.modelDisplay ?? channel.model}
         effort={channel.reasoningEffort}
