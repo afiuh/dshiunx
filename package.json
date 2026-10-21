@@ -47,5 +47,8 @@
   "optionalDependencies": {
     "@deepseek-ai/node-addon-system-linux-x64": "0.1.2"
   },
-  "version": "0.2.1-rc.2"
+  "version": "0.2.1-rc.2",
+  "bin": {
+    "dx": "./bin/dx.ts"
+  }
 }
