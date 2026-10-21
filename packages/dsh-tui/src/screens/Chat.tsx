@@ -55,6 +55,7 @@ import { helpStore } from '../stores/helpStore.js'
 import { timelineStore } from '../stores/timelineStore.js'
 import { modelsStore } from '../stores/modelsStore.js'
 import { selectionStore } from '../stores/selectionStore.js'
+import { overlayStore } from '../stores/overlayStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -729,7 +730,8 @@ export function Chat({
    * it persists across open/close so a reopened picker paints the previous
    * list while the fresh one loads, exactly as the boolean era did.
    */
-  const [overlay, dispatchOverlay] = React.useReducer(chatOverlayReducer, NO_OVERLAY)
+  const overlay = React.useSyncExternalStore(overlayStore.subscribe, overlayStore.get)
+  const dispatchOverlay = overlayStore.dispatch
   // `/migrate` picker rows (null = collecting in the background; the picker
   // shows its empty state until the sub-second scan lands).
   const [migrateRows, setMigrateRows] = React.useState<MigratePickerRow[] | null>(null)
@@ -792,7 +794,7 @@ export function Chat({
       && live.autoConfirmed === overlay.snapshot.autoConfirmed
     ) return
     if (live.availability === 'unavailable' || live.options.length === 0) {
-      dispatchOverlay({ type: 'close-if', kind: 'permission' })
+      overlayStore.dispatch({ type: 'close-if', kind: 'permission' })
       return
     }
     const focusIndex = permissionOverlayFocusRef.current?.overlay === overlay
@@ -805,7 +807,7 @@ export function Chat({
       .find(found => found >= 0) ?? Math.min(1, live.options.length - 1)
     const confirm = overlay.confirm === true && live.options.some(option => option.value === PERMISSION_PRESET_AUTO)
     if (overlay.confirm === true && !confirm) channel.notify(t('permission-auto-unavailable'), { color: 'warning' })
-    dispatchOverlay({
+    overlayStore.dispatch({
       type: 'open-if',
       overlay: { kind: 'permission', index, snapshot: clonePermissionPresetSnapshot(live), ...(confirm ? { confirm } : {}) },
       when: ['permission'],
@@ -834,9 +836,9 @@ export function Chat({
   }
   const modelPicker = useModelPicker({
     channel, models, providers: providerInfos, recents: modelProviderTabs ? modelRecents : undefined, open: overlay.kind === 'model',
-    onCancel: () => dispatchOverlay({ type: 'close-if', kind: 'model' }),
+    onCancel: () => overlayStore.dispatch({ type: 'close-if', kind: 'model' }),
     onPick: (model, effort) => {
-      dispatchOverlay({ type: 'close-if', kind: 'model' })
+      overlayStore.dispatch({ type: 'close-if', kind: 'model' })
       void switchModelRecorded(model.provider, model.id, model.name).then(ok => {
         // Validate/apply on the adopted route; a refused switch leaves both
         // the live effort and its persisted preference untouched.
@@ -1024,7 +1026,7 @@ export function Chat({
     if (sdkOverlay === undefined) return
     const surface = onResolveSdkInstall?.(sdkOverlay.backendId)
     if (surface === undefined) {
-      dispatchOverlay({ type: 'close' })
+      overlayStore.dispatch({ type: 'close' })
       return
     }
     const installation: NonNullable<typeof sdkInstallRef.current> = { surface }
@@ -1048,11 +1050,11 @@ export function Chat({
     }
   }, [sdkOverlay])
   const closeSdkInstallToKernelPicker = (): void => {
-    dispatchOverlay({ type: 'close' })
+    overlayStore.dispatch({ type: 'close' })
     openKernelPicker()
   }
   const closeSdkInstall = (): void => {
-    dispatchOverlay({ type: 'close' })
+    overlayStore.dispatch({ type: 'close' })
   }
   const runSdkInstall = (dir: string): void => {
     const installation = sdkInstallRef.current
@@ -1952,7 +1954,7 @@ export function Chat({
     } catch {
       isDir = false
     }
-    dispatchOverlay({ type: 'open', overlay: { kind: 'file-actions', path: resolved, index: 0, isDir } })
+    overlayStore.dispatch({ type: 'open', overlay: { kind: 'file-actions', path: resolved, index: 0, isDir } })
   }, [])
 
   /** Run one file-action menu row: 0 = open file, 1 = reveal in file
@@ -1971,7 +1973,7 @@ export function Chat({
     const gallery: { image: TranscriptImage; title?: string }[] = channel.rows.flatMap(row => (row.images ?? []).map(image => ({ image })))
     let index = gallery.findIndex(entry => entry.image === image)
     if (index < 0) { index = gallery.length; gallery.push({ image, title }) }
-    dispatchOverlay({
+    overlayStore.dispatch({
       type: 'open',
       overlay: { kind: 'image-preview', image, gallery, index, ...(title === undefined ? {} : { title }) },
     })
@@ -2023,7 +2025,7 @@ export function Chat({
   React.useEffect(() => {
     if (previewGenerationRef.current === previewBindingGeneration) return
     previewGenerationRef.current = previewBindingGeneration
-    dispatchOverlay({ type: 'close-if', kind: 'image-preview' })
+    overlayStore.dispatch({ type: 'close-if', kind: 'image-preview' })
   }, [previewBindingGeneration])
   // A questionnaire/approval/plugin dialog owns the keyboard while pending
   // (their guard runs BEFORE the overlay key chain), so a preview left open
@@ -2034,7 +2036,7 @@ export function Chat({
       overlay.kind === 'image-preview' &&
       previewBlocked
     ) {
-      dispatchOverlay({ type: 'close-if', kind: 'image-preview' })
+      overlayStore.dispatch({ type: 'close-if', kind: 'image-preview' })
     }
   }, [overlay.kind, previewBlocked])
   // Caret-driven preview (Grok Build's chip peek): while the composer caret
@@ -2321,14 +2323,14 @@ export function Chat({
     ? previewGallery.findIndex(entry => entry.image.id === activePreview.image.id && entry.title === activePreview.title)
     : overlay.kind === 'image-preview' ? overlay.index ?? 0 : -1
   const stepPreview = (delta: 1 | -1): void => {
-    if (!activePreview?.peek) { dispatchOverlay({ type: 'image-step', delta }); return }
+    if (!activePreview?.peek) { overlayStore.dispatch({ type: 'image-step', delta }); return }
     const index = previewIndex + delta
     const entry = previewGallery[index]
     if (!entry) return
     // A gallery click promotes the caret peek to a modal without moving or
     // editing the draft. Suppress the original peek so Esc really closes it.
     setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
-    dispatchOverlay({ type: 'open', overlay: { kind: 'image-preview', ...entry, gallery: previewGallery, index } })
+    overlayStore.dispatch({ type: 'open', overlay: { kind: 'image-preview', ...entry, gallery: previewGallery, index } })
   }
   // Publish the external-injection controller (dsh.nvim etc.) every render so
   // the adapter-owned socket can append to the prompt and submit. `submit`
@@ -2489,19 +2491,19 @@ export function Chat({
   const handleWorkspaceResult = (result: TuiWorkspaceCommandResult): void => {
     workspaceFlowAbortRef.current = null
     if (result.kind === 'target') {
-      dispatchOverlay({ type: 'close-if', kind: 'workspace-flow' })
+      overlayStore.dispatch({ type: 'close-if', kind: 'workspace-flow' })
       void channel.switchWorkspace(result.target)
       return
     }
     if (result.choices.length === 0) {
-      dispatchOverlay({ type: 'close-if', kind: 'workspace-flow' })
+      overlayStore.dispatch({ type: 'close-if', kind: 'workspace-flow' })
       channel.notify(t('workspace-command-empty'))
       return
     }
     // open-if: 'workspace-flow' stays allowed so an in-flow action can
     // transition to its next stage; a picker the user opened after leaving
     // the menu wins over a late command result.
-    dispatchOverlay({
+    overlayStore.dispatch({
       type: 'open-if',
       overlay: { kind: 'workspace-flow', flow: result, index: 0, busy: false, input: null },
       when: ['none', 'workspace-flow'],
@@ -2514,7 +2516,7 @@ export function Chat({
     const request = ++workspaceFlowRequestRef.current
     const controller = new AbortController()
     workspaceFlowAbortRef.current = controller
-    dispatchOverlay({ type: 'flow-busy', busy: true })
+    overlayStore.dispatch({ type: 'flow-busy', busy: true })
     void Promise.resolve()
       .then(() => action(controller.signal))
       .then((result) => {
@@ -2523,7 +2525,7 @@ export function Chat({
       .catch((error: unknown) => {
         if (request !== workspaceFlowRequestRef.current) return
         workspaceFlowAbortRef.current = null
-        dispatchOverlay({ type: 'flow-busy', busy: false })
+        overlayStore.dispatch({ type: 'flow-busy', busy: false })
         channel.notify(
           t('workspace-command-failed', { err: error instanceof Error ? error.message : String(error) }),
           { color: 'error', timeoutMs: 8000 },
@@ -2570,7 +2572,7 @@ export function Chat({
       }
       setWorkspaceTargets(targets)
       // open-if: the listing is async — whatever the user opened meanwhile wins.
-      dispatchOverlay({
+      overlayStore.dispatch({
         type: 'open-if',
         overlay: {
           kind: 'workspace-picker',
@@ -2591,7 +2593,7 @@ export function Chat({
    * built-ins dispatch locally, extension commands go through the channel.
    */
   const runWorkspaceMenuOption = (option: { id: string } | undefined): void => {
-    dispatchOverlay({ type: 'close-if', kind: 'workspace-menu' })
+    overlayStore.dispatch({ type: 'close-if', kind: 'workspace-menu' })
     if (option === undefined) return
     if (option.id === 'resume') {
       openWorkspaceResume()
@@ -2881,7 +2883,7 @@ export function Chat({
     // Enter 的那条路）——不收落地页、不进对话页。聊天页里 /help 的行为
     // 不变（那边不走这个回调）。
     if (parsed !== undefined && parsed.name === 'help' && launchpadOpen) {
-      dispatchOverlay({ type: 'open', overlay: { kind: 'help' } })
+      overlayStore.dispatch({ type: 'open', overlay: { kind: 'help' } })
       return
     }
     // 与 composer 的 tryRunCommand 同一条判定：合并命令表（LOCAL_COMMANDS +
@@ -2977,7 +2979,7 @@ export function Chat({
           return true
         }
         helpStore.set(false)
-        dispatchOverlay({
+        overlayStore.dispatch({
           type: 'open',
           overlay: {
             kind: 'activity',
@@ -3014,7 +3016,7 @@ export function Chat({
         // pane — deliberate contrast with /model); the fresh list lands with
         // the authoritative focus. Both loader writes are kind-guarded, so a
         // picker the user already left is not resurrected or re-focused.
-        dispatchOverlay({
+        overlayStore.dispatch({
           type: 'open',
           overlay: {
             kind: 'preset',
@@ -3023,13 +3025,13 @@ export function Chat({
         })
         void channel.listPresets().then((list) => {
           if (list.length === 0) {
-            dispatchOverlay({ type: 'close-if', kind: 'preset' })
+            overlayStore.dispatch({ type: 'close-if', kind: 'preset' })
             channel.notify(t('preset-roster-unmounted'), { color: 'warning' })
             return
           }
           setPresetOptions(list)
           const index = list.findIndex(preset => preset.id === channel.agentPreset)
-          dispatchOverlay({ type: 'set-index', kind: 'preset', index: index >= 0 ? index : 0 })
+          overlayStore.dispatch({ type: 'set-index', kind: 'preset', index: index >= 0 ? index : 0 })
         })
         return true
       }
@@ -3062,7 +3064,7 @@ export function Chat({
           const index = efforts.findIndex(effort => effort.id === current)
           // open-if: a picker the user opened during the round trip wins
           // over this late-arriving slider.
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'open-if',
             overlay: { kind: 'effort', index: index >= 0 ? index : 0 },
             when: ['none'],
@@ -3096,7 +3098,7 @@ export function Chat({
           return true
         }
         helpStore.set(false)
-        dispatchOverlay({
+        overlayStore.dispatch({
           type: 'open',
           overlay: { kind: 'lang', index: getLang() === 'zh' ? 0 : 1 },
         })
@@ -3137,7 +3139,7 @@ export function Chat({
           return true
         }
         helpStore.set(false)
-        dispatchOverlay({
+        overlayStore.dispatch({
           type: 'open',
           overlay: {
             kind: 'theme',
@@ -3154,7 +3156,7 @@ export function Chat({
         helpStore.set(false)
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts.length === 0) {
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'open',
             overlay: {
               kind: 'color',
@@ -3302,7 +3304,7 @@ export function Chat({
           setModelRecents(recordModelUse({ provider: channel.provider, id: channel.model }, undefined, recentsBackend))
         }
         modelPicker.reset()
-        dispatchOverlay({ type: 'open', overlay: { kind: 'model' } })
+        overlayStore.dispatch({ type: 'open', overlay: { kind: 'model' } })
         modelsStore.setLoading(true)
         const generation = ++modelCatalogGeneration.current
         void channel.listModels().then((list) => {
@@ -3346,10 +3348,10 @@ export function Chat({
         }
         helpStore.set(false)
         setSkillsList(null)
-        dispatchOverlay({ type: 'open', overlay: { kind: 'skills', index: 0 } })
+        overlayStore.dispatch({ type: 'open', overlay: { kind: 'skills', index: 0 } })
         void channel.listSkills().then((list) => {
           if (list === undefined) {
-            dispatchOverlay({ type: 'close-if', kind: 'skills' })
+            overlayStore.dispatch({ type: 'close-if', kind: 'skills' })
             channel.notify(t('skills-load-failed'), { color: 'error' })
             return
           }
@@ -3395,7 +3397,7 @@ export function Chat({
       }
       case 'thinking':
         helpStore.set(false)
-        dispatchOverlay({
+        overlayStore.dispatch({
           type: 'open',
           overlay: { kind: 'thinking', focus: thinkingVisible ? 0 : 1 },
         })
@@ -3492,7 +3494,7 @@ export function Chat({
         if (subcommand === '') {
           // Bare `/workspace` opens the action menu (resume / rename / open
           // plus any registered extensions) instead of a text usage line.
-          dispatchOverlay({ type: 'open', overlay: { kind: 'workspace-menu', index: 0 } })
+          overlayStore.dispatch({ type: 'open', overlay: { kind: 'workspace-menu', index: 0 } })
         } else if (subcommand === 'resume') {
           openWorkspaceResume()
         } else if (subcommand === 'rename') {
@@ -3765,7 +3767,7 @@ export function Chat({
             // Esc returns to the picker, and a stale set from an earlier visit
             // would there contradict what the confirmation just showed.
             setMigrateChecked(new Set([row.agentId]))
-            dispatchOverlay({ type: 'open', overlay: { kind: 'migrate-confirm' } })
+            overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate-confirm' } })
           })()
           return true
         }
@@ -3774,7 +3776,7 @@ export function Chat({
         // scanning state until the rows land.
         setMigrateRows(null)
         setMigrateChecked(new Set())
-        dispatchOverlay({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
+        overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
         void collectMigrateRows().then(setMigrateRows)
         return true
       }
@@ -3859,7 +3861,7 @@ export function Chat({
         // 无参 → 面板选择器（overlay 互斥结构内）；有参 → 侧栏命令分发。
         if (rawInput.trim() === '' && sidePanel.splitAvailable && panelPickerRows.length > 0) {
           const current = panelPickerRows.findIndex(row => row.id === sidePanel.activePanelId)
-          dispatchOverlay({ type: 'open', overlay: { kind: 'panel', index: Math.max(0, current) } })
+          overlayStore.dispatch({ type: 'open', overlay: { kind: 'panel', index: Math.max(0, current) } })
           return true
         }
         if (sidePanel.command(rawInput)) return true
@@ -4003,7 +4005,7 @@ export function Chat({
           const index = currentIndex >= 0
             ? currentIndex
             : Math.min(1, snapshot.options.length - 1)
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'open',
             overlay: {
               kind: 'permission',
@@ -4025,7 +4027,7 @@ export function Chat({
         }
         helpStore.set(false)
         if (native.kind === 'status') channel.pushLocal('/permission', native.lines)
-        else if (native.kind === 'picker') dispatchOverlay({ type: 'open', overlay: native.overlay })
+        else if (native.kind === 'picker') overlayStore.dispatch({ type: 'open', overlay: native.overlay })
         else void runBackendModeCommand(native.mode.id, native.mode.name)
         return true
       }
@@ -4048,7 +4050,7 @@ export function Chat({
         const argument = parts.length === 1 && parts[0] === 'on' ? '' : rawInput
         if (mounted && parts.length === 0) {
           helpStore.set(false)
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'open',
             overlay: { kind: 'plan', index: channel.mode.plan === true ? 0 : 1 },
           })
@@ -4216,7 +4218,7 @@ export function Chat({
         // 渠道选择器。/channel 只在声明了 channels 能力的内核下进命令表，
         // 能走到这里就说明可用。与 /kernel 一样，再执行一次就收起。
         helpStore.set(false)
-        if (overlay.kind === 'channel') dispatchOverlay({ type: 'close' })
+        if (overlay.kind === 'channel') overlayStore.dispatch({ type: 'close' })
         else openChannelPicker()
         return true
       }
@@ -4225,7 +4227,7 @@ export function Chat({
         // 确认后由组合根的 onSwitchBackend 记住选择并以新内核重启。与 /help、
         // 参数行一致：选择器已开着就收起，没开才打开。
         helpStore.set(false)
-        if (overlay.kind === 'kernel') dispatchOverlay({ type: 'close' })
+        if (overlay.kind === 'kernel') overlayStore.dispatch({ type: 'close' })
         else openKernelPicker()
         return true
       case 'dsh':
@@ -4347,7 +4349,7 @@ export function Chat({
       }
       case 'tips':
         helpStore.set(false)
-        dispatchOverlay({ type: 'open', overlay: { kind: 'tips' } })
+        overlayStore.dispatch({ type: 'open', overlay: { kind: 'tips' } })
         return true
       case 'connect':
         helpStore.set(false)
@@ -4415,7 +4417,7 @@ export function Chat({
       return
     }
     rewindRequestRef.current += 1
-    dispatchOverlay({
+    overlayStore.dispatch({
       type: 'open',
       overlay: { kind: 'rewind', index: 0, confirm: null, modes: null, modeIndex: 0, busy: false },
     })
@@ -4427,14 +4429,14 @@ export function Chat({
    */
   const requestRewindConfirm = async (row: ChatRow) => {
     const token = ++rewindRequestRef.current
-    dispatchOverlay({ type: 'rewind-busy', busy: true })
+    overlayStore.dispatch({ type: 'rewind-busy', busy: true })
     const decision = await channel.promptRewind(row)
     if (token !== rewindRequestRef.current) return
     if (decision === 'cancel') {
-      dispatchOverlay({ type: 'rewind-busy', busy: false })
+      overlayStore.dispatch({ type: 'rewind-busy', busy: false })
       return
     }
-    dispatchOverlay({ type: 'rewind-decision', confirm: row, modes: decision?.modes ?? null })
+    overlayStore.dispatch({ type: 'rewind-decision', confirm: row, modes: decision?.modes ?? null })
   }
   /** Execute the confirmed rewind; the message comes back into the input. */
   const performRewind = async (row: ChatRow, mode: string | null = null) => {
@@ -4939,9 +4941,9 @@ export function Chat({
       // Modal gallery owns plain left/right. Caret peeks below still leave
       // navigation with PromptInput. Esc/Ctrl+C/Enter keep their close semantics.
       if (key.escape || (key.ctrl && input === 'c') || plainReturn) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       } else if (!key.ctrl && !key.meta && !key.shift && (key.leftArrow || key.rightArrow)) {
-        dispatchOverlay({ type: 'image-step', delta: key.leftArrow ? -1 : 1 })
+        overlayStore.dispatch({ type: 'image-step', delta: key.leftArrow ? -1 : 1 })
       }
       event.stopImmediatePropagation()
       return
@@ -4968,13 +4970,13 @@ export function Chat({
       // Transcript search bar (less-style): edit the query, Enter commits
       // (query persists for n/N), Esc/ctrl+c cancels back to the anchor.
       if (key.escape || (key.ctrl && input === 'c')) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         setHighlight('')
         handle?.scrollTo(searchAnchorRef.current)
       } else if (plainReturn) {
         // Enter commits; 0-match junk queries don't persist.
         if (searchCount === 0) setSearchQuery('')
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       } else if (key.backspace) {
         if (searchCursor > 0) {
           setSearchQuery(searchQuery.slice(0, searchCursor - 1) + searchQuery.slice(searchCursor))
@@ -5029,21 +5031,21 @@ export function Chat({
       } else if (key.end) {
         helpCoverScrollRef.current?.scrollTo(Number.MAX_SAFE_INTEGER)
       } else if (key.escape || (key.ctrl && (input === 'c' || input === 'd')) || plainReturn) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       event.stopImmediatePropagation()
       return
     }
     if (overlay.kind === 'thinking') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
       } else if (plainReturn) {
         const visible = overlay.focus === 0
         setThinkingVisible(visible)
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         channel.notify(t('thinking-toggled', { state: visible ? t('thinking-on') : t('thinking-off') }))
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
@@ -5051,13 +5053,13 @@ export function Chat({
       const { flow, busy, input: flowInput } = overlay
       if (key.escape) {
         if (flowInput !== null && !busy) {
-          dispatchOverlay({ type: 'flow-input', input: null })
+          overlayStore.dispatch({ type: 'flow-input', input: null })
           return
         }
         workspaceFlowAbortRef.current?.abort()
         workspaceFlowAbortRef.current = null
         workspaceFlowRequestRef.current += 1
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         return
       }
       if (busy) return
@@ -5072,31 +5074,31 @@ export function Chat({
             runWorkspaceFlowAction(signal => editor.submit(value, signal))
           }
         } else if (key.backspace && flowInput.cursor > 0) {
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'flow-input-edit',
             value: flowInput.value.slice(0, flowInput.cursor - 1) + flowInput.value.slice(flowInput.cursor),
             cursor: flowInput.cursor - 1,
           })
         } else if (key.delete && flowInput.cursor < flowInput.value.length) {
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'flow-input-edit',
             value: flowInput.value.slice(0, flowInput.cursor) + flowInput.value.slice(flowInput.cursor + 1),
             cursor: flowInput.cursor,
           })
         } else if (key.leftArrow) {
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'flow-input-edit',
             value: flowInput.value,
             cursor: Math.max(0, flowInput.cursor - 1),
           })
         } else if (key.rightArrow) {
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'flow-input-edit',
             value: flowInput.value,
             cursor: Math.min(flowInput.value.length, flowInput.cursor + 1),
           })
         } else if (input.length > 0 && !key.ctrl && !key.meta && !key.super && !key.tab) {
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'flow-input-edit',
             value: flowInput.value.slice(0, flowInput.cursor) + input + flowInput.value.slice(flowInput.cursor),
             cursor: flowInput.cursor + input.length,
@@ -5105,7 +5107,7 @@ export function Chat({
         return
       }
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: flow.choices.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: flow.choices.length })
       } else if (key.tab && !key.shift) {
         const choice = flow.choices[overlay.index]
         if (choice?.input !== undefined) {
@@ -5116,7 +5118,7 @@ export function Chat({
             cursor: value.length,
             ...(choice.input.placeholder === undefined ? {} : { placeholder: choice.input.placeholder }),
           }
-          dispatchOverlay({ type: 'flow-input', input: flowInputNext })
+          overlayStore.dispatch({ type: 'flow-input', input: flowInputNext })
         }
       } else if (plainReturn) {
         const choice = flow.choices[overlay.index]
@@ -5128,25 +5130,25 @@ export function Chat({
     }
     if (overlay.kind === 'workspace-picker') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: workspaceTargets.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: workspaceTargets.length })
       } else if (plainReturn) {
         const target = workspaceTargets[overlay.index]
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         if (target !== undefined) void channel.switchWorkspace(target)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'workspace-menu') {
       const menu = workspaceMenuOptions
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: menu.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: menu.length })
       } else if (plainReturn) {
         const option = menu[overlay.index]
         runWorkspaceMenuOption(option)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
@@ -5154,16 +5156,16 @@ export function Chat({
       const list = skillsList ?? []
       if (key.upArrow || key.downArrow) {
         // count 0 (snapshot still loading) is a no-op inside the reducer.
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: list.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: list.length })
       } else if (plainReturn) {
         const skill = list[overlay.index]
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         // 可直调技能 Enter 填入 `/name `——与 / 菜单选中技能同一条
         // completion-only 分发路径；模型专用技能（userInvocable=false）只关闭。
         // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index on an empty list
         if (skill?.userInvocable) setHistoryFill(`/${skill.name} `)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
@@ -5180,7 +5182,7 @@ export function Chat({
         setMigrateHintAgent(null)
         setMigrateRows(null)
         setMigrateChecked(new Set([agent]))
-        dispatchOverlay({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
+        overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
         void collectMigrateRows().then(setMigrateRows)
         return
       }
@@ -5189,9 +5191,9 @@ export function Chat({
     if (overlay.kind === 'migrate') {
       const rows = migrateRows ?? []
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: rows.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: rows.length })
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       } else if (rows.length > 0) {
         const row = rows[overlay.index]
         if (input === ' ' && row !== undefined) {
@@ -5213,8 +5215,8 @@ export function Chat({
             : row !== undefined ? [row] : []
           if (chosen.length > 0) {
             setMigratePending(chosen)
-            dispatchOverlay({ type: 'close' })
-            dispatchOverlay({ type: 'open', overlay: { kind: 'migrate-confirm' } })
+            overlayStore.dispatch({ type: 'close' })
+            overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate-confirm' } })
           }
         }
       }
@@ -5224,41 +5226,41 @@ export function Chat({
       if (key.escape) {
         // Back to the picker with the checked set preserved (PRD #2's
         // "cancel" reads cheapest as "let me change the selection").
-        dispatchOverlay({ type: 'close' })
-        dispatchOverlay({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
+        overlayStore.dispatch({ type: 'close' })
+        overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
       } else if (plainReturn) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         spawnMigrateSources(migratePending, false)
       } else if (input === 'd' && !key.ctrl && !key.meta) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         spawnMigrateSources(migratePending, true)
       }
       return
     }
     if (overlay.kind === 'activity') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: PRESET_NAMES.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: PRESET_NAMES.length })
       } else if (plainReturn) {
         const name = PRESET_NAMES[overlay.index]
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         if (name) channel.setActivityFrames(name)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'color') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: SESSION_COLOR_NAMES.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: SESSION_COLOR_NAMES.length })
       } else if (plainReturn) {
         const name = SESSION_COLOR_NAMES[overlay.index]
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         if (name) {
           channel.setSessionColor(name)
           channel.notify(t('color-set', { name }), { color: 'success' })
         }
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
@@ -5268,34 +5270,34 @@ export function Chat({
         // The same wrap rule the reducer applies — computed here too so the
         // newly focused level is applied in this very keystroke.
         const next = wrapIndex(overlay.index, delta, effortOptions.length)
-        dispatchOverlay({ type: 'move', delta, count: effortOptions.length })
+        overlayStore.dispatch({ type: 'move', delta, count: effortOptions.length })
         const option = effortOptions[next]
         // Live-apply: the slider IS the control; Esc does not revert.
         if (option) void channel.setEffort(option.id)
       } else if (plainReturn || key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'preset') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: presetOptions.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: presetOptions.length })
       } else if (plainReturn) {
         const option = presetOptions[overlay.index]
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         if (option) void channel.switchPreset(option.id)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'permission' && overlay.confirm === true) {
       if (plainReturn) {
         permissionOverlayFocusRef.current = null
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         void runPermissionCommand(` ${PERMISSION_PRESET_AUTO}`)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'open', overlay: { ...overlay, confirm: false } })
+        overlayStore.dispatch({ type: 'open', overlay: { ...overlay, confirm: false } })
       }
       return
     }
@@ -5306,7 +5308,7 @@ export function Chat({
           : overlay.index
         const nextIndex = wrapIndex(currentIndex, key.upArrow ? -1 : 1, overlay.snapshot.options.length)
         permissionOverlayFocusRef.current = { overlay, index: nextIndex }
-        dispatchOverlay({ type: 'set-index', kind: 'permission', index: nextIndex })
+        overlayStore.dispatch({ type: 'set-index', kind: 'permission', index: nextIndex })
       } else if (plainReturn) {
         const currentIndex = permissionOverlayFocusRef.current?.overlay === overlay
           ? permissionOverlayFocusRef.current.index
@@ -5314,26 +5316,26 @@ export function Chat({
         const option = overlay.snapshot.options[currentIndex]
         permissionOverlayFocusRef.current = null
         if (needsAutoConfirm(overlay.snapshot, option?.value)) {
-          dispatchOverlay({ type: 'open', overlay: { ...overlay, index: currentIndex, confirm: true } })
+          overlayStore.dispatch({ type: 'open', overlay: { ...overlay, index: currentIndex, confirm: true } })
           return
         }
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         if (option !== undefined) void runPermissionCommand(` ${option.value}`)
       } else if (key.escape) {
         permissionOverlayFocusRef.current = null
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'mode') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: overlay.modes.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: overlay.modes.length })
       } else if (plainReturn) {
         const option = overlay.modes[overlay.index]
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         if (option !== undefined) void runBackendModeCommand(option.id, option.name)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
@@ -5341,11 +5343,11 @@ export function Chat({
       // 名册不冻在 overlay 里（kernelOptions 是渲染期派生值）：探测落地后
       // 选择器自己就刷新成完整目录，不需要重开。
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: kernelOptions.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: kernelOptions.length })
       } else if (plainReturn) {
         pickKernel(overlay.index)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
@@ -5439,56 +5441,56 @@ export function Chat({
       // 名册不冻在 overlay 里（channelRows 是渲染期派生值）：切换/导入后
       // 选择器自己就刷新成新状态，不需要重开。
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: channelRows.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: channelRows.length })
       } else if (plainReturn) {
         pickChannel(overlay.index)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'plan') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
       } else if (plainReturn) {
         const on = overlay.index === 0
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         void runExternalCommand('plan', on ? '' : ' off')
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'lang') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
       } else if (plainReturn) {
         const lang = LANGS[overlay.index]
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         if (lang !== undefined) applyLang(lang)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'panel') {
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: panelPickerRows.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: panelPickerRows.length })
       } else if (plainReturn) {
         const row = panelPickerRows[overlay.index]
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         if (row !== undefined) sidePanel.openPanel(row.id, { focus: true })
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'theme') {
       const options = getThemeOptions(themeHost)
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: options.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: options.length })
       } else if (plainReturn) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         const name = options[overlay.index]?.value
         if (name !== undefined) {
           const ok = setTheme(name)
@@ -5498,37 +5500,37 @@ export function Chat({
           )
         }
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'history') {
       const { query, cursor, focus } = overlay
       if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       } else if (key.ctrl && (input === 'c' || input === 'd')) {
         // History search cancels on ctrl+c/ctrl+d too.
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       } else if (plainReturn) {
         const entry = historyMatches[focus]
         // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index on an empty match list
         if (entry) {
           setHistoryFill(entry.text)
-          dispatchOverlay({ type: 'close' })
+          overlayStore.dispatch({ type: 'close' })
         }
       } else if (key.upArrow) {
         if (historyMatches.length > 0) {
-          dispatchOverlay({ type: 'move', delta: -1, count: historyMatches.length })
+          overlayStore.dispatch({ type: 'move', delta: -1, count: historyMatches.length })
         }
       } else if (key.downArrow || actionMatches('history', input, key)) {
         // History search next — ↓ and the history key (default Ctrl+R)
         // walk to the next match.
         if (historyMatches.length > 0) {
-          dispatchOverlay({ type: 'move', delta: 1, count: historyMatches.length })
+          overlayStore.dispatch({ type: 'move', delta: 1, count: historyMatches.length })
         }
       } else if (key.backspace) {
         if (cursor > 0) {
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'history-edit',
             query: query.slice(0, cursor - 1) + query.slice(cursor),
             cursor: cursor - 1,
@@ -5537,7 +5539,7 @@ export function Chat({
         }
       } else if (key.delete) {
         if (cursor < query.length) {
-          dispatchOverlay({
+          overlayStore.dispatch({
             type: 'history-edit',
             query: query.slice(0, cursor) + query.slice(cursor + 1),
             focus: 0,
@@ -5548,19 +5550,19 @@ export function Chat({
         // a mid-pair caret offset would split it in the SearchBox render.
         if (cursor > 0) {
           const ch = [...query.slice(0, cursor)].pop()!
-          dispatchOverlay({ type: 'history-edit', cursor: cursor - ch.length })
+          overlayStore.dispatch({ type: 'history-edit', cursor: cursor - ch.length })
         }
       } else if (key.rightArrow) {
         if (cursor < query.length) {
           const ch = [...query.slice(cursor)][0]!
-          dispatchOverlay({ type: 'history-edit', cursor: cursor + ch.length })
+          overlayStore.dispatch({ type: 'history-edit', cursor: cursor + ch.length })
         }
       } else if (key.home) {
-        dispatchOverlay({ type: 'history-edit', cursor: 0 })
+        overlayStore.dispatch({ type: 'history-edit', cursor: 0 })
       } else if (key.end) {
-        dispatchOverlay({ type: 'history-edit', cursor: query.length })
+        overlayStore.dispatch({ type: 'history-edit', cursor: query.length })
       } else if (!key.ctrl && !key.meta && !key.super && input) {
-        dispatchOverlay({
+        overlayStore.dispatch({
           type: 'history-edit',
           query: query.slice(0, cursor) + input + query.slice(cursor),
           cursor: cursor + input.length,
@@ -5575,7 +5577,7 @@ export function Chat({
       if (overlay.busy) {
         if (key.escape) {
           rewindRequestRef.current += 1
-          dispatchOverlay({ type: 'rewind-busy', busy: false })
+          overlayStore.dispatch({ type: 'rewind-busy', busy: false })
         }
         return
       }
@@ -5586,31 +5588,31 @@ export function Chat({
           // option 0 is always the built-in conversation-only rewind.
           const optionCount = overlay.modes.length + 1
           if (key.upArrow || key.downArrow) {
-            dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: optionCount })
+            overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: optionCount })
           } else if (plainReturn) {
             const mode = overlay.modeIndex === 0 ? null : (overlay.modes[overlay.modeIndex - 1]?.id ?? null)
-            dispatchOverlay({ type: 'close' })
+            overlayStore.dispatch({ type: 'close' })
             void performRewind(row, mode)
           } else if (key.escape) {
-            dispatchOverlay({ type: 'rewind-back' })
+            overlayStore.dispatch({ type: 'rewind-back' })
           }
           return
         }
         // Confirmation state: Enter rewinds, Esc backs out to the list.
         if (plainReturn) {
-          dispatchOverlay({ type: 'close' })
+          overlayStore.dispatch({ type: 'close' })
           void performRewind(row)
         } else if (key.escape) {
-          dispatchOverlay({ type: 'rewind-back' })
+          overlayStore.dispatch({ type: 'rewind-back' })
         }
       } else if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: rewindRows.length })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: rewindRows.length })
       } else if (plainReturn) {
         const row = rewindRows[overlay.index]
         // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index on an empty list
         if (row) void requestRewindConfirm(row)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
@@ -5618,13 +5620,13 @@ export function Chat({
       // Click-to-act file menu: ↑/↓ move, Enter runs the focused action,
       // Esc closes.
       if (key.upArrow || key.downArrow) {
-        dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: FILE_ACTION_COUNT })
+        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: FILE_ACTION_COUNT })
       } else if (plainReturn) {
         const path = overlay.path
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
         runFileAction(overlay.index, path)
       } else if (key.escape) {
-        dispatchOverlay({ type: 'close' })
+        overlayStore.dispatch({ type: 'close' })
       }
       return
     }
@@ -5653,7 +5655,7 @@ export function Chat({
     }
     if (actionMatches('history', input, key) && !helpOpen) {
       setHistoryEntries(loadHistory(channel.cwd))
-      dispatchOverlay({
+      overlayStore.dispatch({
         type: 'open',
         overlay: { kind: 'history', query: '', cursor: 0, focus: 0 },
       })
@@ -5744,7 +5746,7 @@ export function Chat({
         setSearchCursor(0)
         setSearchCurrent(0)
         setSearchCount(0)
-        dispatchOverlay({ type: 'open', overlay: { kind: 'search' } })
+        overlayStore.dispatch({ type: 'open', overlay: { kind: 'search' } })
         event.stopImmediatePropagation()
       }
     } else if (key.ctrl && (input === 'c' || input === 'd')) {
@@ -5960,7 +5962,7 @@ export function Chat({
                 onCommandPick={(name) => {
                   // 点击命令行 = 把 /name 填进落地页草稿（聊天页 Tab 补全的
                   // 鼠标等价），浮层收起、人还在启动页（第八版：不许进对话页）。
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   const filled = '/' + name + ' '
                   changeLaunchpadDraft(filled, filled.length)
                   setLaunchpadFocus(-1)
@@ -5976,7 +5978,7 @@ export function Chat({
                 // 点击行 = 设焦点 + 应用（与 Enter 同一条路径）
                 const visible = index === 0
                 setThinkingVisible(visible)
-                dispatchOverlay({ type: 'close' })
+                overlayStore.dispatch({ type: 'close' })
                 channel.notify(t('thinking-toggled', { state: visible ? t('thinking-on') : t('thinking-off') }))
               }}
             />
@@ -5990,7 +5992,7 @@ export function Chat({
                 onPick={(index) => {
                   // 点击行 = 切换该行目标（与 Enter 同一条路径）
                   const target = workspaceTargets[index]
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   if (target !== undefined) void channel.switchWorkspace(target)
                 }}
               />
@@ -6021,7 +6023,7 @@ export function Chat({
                   // busy/输入态在组件侧禁点
                   const choice = overlay.flow.choices[index]
                   if (choice === undefined) return
-                  dispatchOverlay({ type: 'set-index', kind: 'workspace-flow', index })
+                  overlayStore.dispatch({ type: 'set-index', kind: 'workspace-flow', index })
                   runWorkspaceFlowAction(signal => choice.choose(signal))
                 }}
               />
@@ -6087,7 +6089,7 @@ export function Chat({
                   onPick={(index) => {
                     const skill = skillsList[index]
                     if (!skill) return
-                    dispatchOverlay({ type: 'close' })
+                    overlayStore.dispatch({ type: 'close' })
                     if (skill.userInvocable) setHistoryFill(`/${skill.name} `)
                   }}
                 />
@@ -6100,7 +6102,7 @@ export function Chat({
                 focusIndex={overlay.index}
                 currentPreset={channel.activityFrames}
                 onPick={(index) => {
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   const name = PRESET_NAMES[index]
                   if (name) channel.setActivityFrames(name)
                 }}
@@ -6113,7 +6115,7 @@ export function Chat({
                 focusIndex={overlay.index}
                 currentColor={channel.sessionColor}
                 onPick={(index) => {
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   const name = SESSION_COLOR_NAMES[index]
                   if (name) {
                     channel.setSessionColor(name)
@@ -6131,7 +6133,7 @@ export function Chat({
                 activeId={sidePanel.activePanelId}
                 onPick={(index) => {
                   const row = panelPickerRows[index]
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   if (row !== undefined) sidePanel.openPanel(row.id, { focus: true })
                 }}
               />
@@ -6146,7 +6148,7 @@ export function Chat({
                 levelsFallback={effortLevelsFallback}
                 // 点击档位 = 移到该档并即时应用（与 ←/→ 同语义）
                 onPick={(index) => {
-                  dispatchOverlay({ type: 'set-index', kind: 'effort', index })
+                  overlayStore.dispatch({ type: 'set-index', kind: 'effort', index })
                   const option = effortOptions[index]
                   if (option) void channel.setEffort(option.id)
                 }}
@@ -6160,7 +6162,7 @@ export function Chat({
                 focusIndex={overlay.index}
                 currentPreset={channel.agentPreset}
                 onPick={(index) => {
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   const option = presetOptions[index]
                   if (option) void channel.switchPreset(option.id)
                 }}
@@ -6178,21 +6180,21 @@ export function Chat({
                 onConfirm={() => {
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
                   permissionOverlayFocusRef.current = null
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   void runPermissionCommand(` ${PERMISSION_PRESET_AUTO}`)
                 }}
                 onCancelConfirm={() => {
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
-                  dispatchOverlay({ type: 'open', overlay: { ...overlay, confirm: false } })
+                  overlayStore.dispatch({ type: 'open', overlay: { ...overlay, confirm: false } })
                 }}
                 onPick={(index) => {
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
                   const option = overlay.snapshot.options[index]
                   if (needsAutoConfirm(overlay.snapshot, option?.value)) {
-                    dispatchOverlay({ type: 'open', overlay: { ...overlay, index, confirm: true } })
+                    overlayStore.dispatch({ type: 'open', overlay: { ...overlay, index, confirm: true } })
                     return
                   }
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   if (option !== undefined) void runPermissionCommand(` ${option.value}`)
                 }}
               />
@@ -6207,7 +6209,7 @@ export function Chat({
                 onPick={(index) => {
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
                   const option = overlay.modes[index]
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   if (option !== undefined) void runBackendModeCommand(option.id, option.name)
                 }}
               />
@@ -6259,7 +6261,7 @@ export function Chat({
                 focusIndex={overlay.index}
                 currentOn={channel.mode.plan === true}
                 onPick={(index) => {
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   const on = index === 0
                   void runExternalCommand('plan', on ? '' : ' off')
                 }}
@@ -6274,7 +6276,7 @@ export function Chat({
                 onPick={(index) => {
                   const lang = LANGS[index]
                   if (lang === undefined) return
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   applyLang(lang)
                 }}
               />
@@ -6287,7 +6289,7 @@ export function Chat({
                 currentTheme={themeName}
                 themeHost={themeHost}
                 onPick={(index) => {
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   const name = getThemeOptions(themeHost)[index]?.value
                   if (name !== undefined) {
                     const ok = setTheme(name)
@@ -6312,7 +6314,7 @@ export function Chat({
                   const entry = historyMatches[index]
                   if (entry) {
                     setHistoryFill(entry.text)
-                    dispatchOverlay({ type: 'close' })
+                    overlayStore.dispatch({ type: 'close' })
                   }
                 }}
               />
@@ -6329,13 +6331,13 @@ export function Chat({
                 busy={overlay.busy}
                 onPickRow={(index) => {
                   // 列表页点击只选中：进入确认态保留键盘 Enter 显式触发
-                  dispatchOverlay({ type: 'set-index', kind: 'rewind', index })
+                  overlayStore.dispatch({ type: 'set-index', kind: 'rewind', index })
                 }}
                 onConfirm={() => {
                   // 确认页即显式确认层，点击直接执行（与 Enter 同路径）
                   const row = overlay.confirm
                   if (row === null) return
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   void performRewind(row)
                 }}
                 onPickMode={(index) => {
@@ -6344,7 +6346,7 @@ export function Chat({
                   if (row === null) return
                   // 模式页仅当 modes 非空才渲染，这里空安全取值
                   const mode = index === 0 ? null : (overlay.modes?.[index - 1]?.id ?? null)
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   void performRewind(row, mode)
                 }}
               />
@@ -6359,7 +6361,7 @@ export function Chat({
                 onPick={(index) => {
                   // 点击行直接执行该动作（与 Enter 同路径）
                   const path = overlay.path
-                  dispatchOverlay({ type: 'close' })
+                  overlayStore.dispatch({ type: 'close' })
                   runFileAction(index, path)
                 }}
               />
@@ -6807,14 +6809,14 @@ export function Chat({
           // 再点/再按 Enter = 收起（展开 ↔ 收起，键盘与鼠标同一条 onParamPick）。
           // 点另一段仍直接切换，点空白/Esc 仍收起（上一版契约不回退）。
           if (overlay.kind === segment) {
-            dispatchOverlay({ type: 'close' })
+            overlayStore.dispatch({ type: 'close' })
             return
           }
           // BUG 3（点另一段直接切换）：/effort 的选择器是异步 open-if（when:
           // ['none']），盖着别的选择器时会被丢弃——这就是"点了没反应"的根因。
           // 先把屏上的参数选择器收掉再开新的，一个在屏、且就是点的那段。
           if (overlay.kind !== 'none') {
-            dispatchOverlay({ type: 'close' })
+            overlayStore.dispatch({ type: 'close' })
           }
           void runCommand(segment, '')
         }}
@@ -6827,7 +6829,7 @@ export function Chat({
           // 里选中会话）——它盖在落地页之上（overlay kind 'help'），再点同一
           // 入口 = 收起（与参数段同一条切换语义）。
           if (action.command === 'help') {
-            dispatchOverlay(overlay.kind === 'help'
+            overlayStore.dispatch(overlay.kind === 'help'
               ? { type: 'close' }
               : { type: 'open', overlay: { kind: 'help' } })
             return
@@ -6864,7 +6866,7 @@ export function Chat({
           // 有参数选择器盖在落地页之上时，空白点击先把选择器收掉（焦点照旧
           // 收回输入框）。选择器内部的点击已被 Launchpad 的浮层包装拦住
           // 冒泡，不会走到这里。
-          if (overlay.kind !== 'none') dispatchOverlay({ type: 'close' })
+          if (overlay.kind !== 'none') overlayStore.dispatch({ type: 'close' })
           setLaunchpadFocus(-1)
         }}
         model={channel.modelDisplay ?? channel.model}
@@ -6958,7 +6960,7 @@ export function Chat({
         } : undefined}
         onClose={activePreview.peek
           ? () => setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
-          : () => dispatchOverlay({ type: 'close-if', kind: 'image-preview' })}
+          : () => overlayStore.dispatch({ type: 'close-if', kind: 'image-preview' })}
         region={imagePreviewRegion}
       />
     )
@@ -7257,7 +7259,7 @@ export function Chat({
           />
         ) : overlay.kind === 'tips' ? (
           <Box flexDirection="column" marginTop={1}>
-            <TipsPanel onClose={() => dispatchOverlay({ type: 'close-if', kind: 'tips' })} />
+            <TipsPanel onClose={() => overlayStore.dispatch({ type: 'close-if', kind: 'tips' })} />
           </Box>
         ) : recap !== null && (!recap.auto || recap.expanded) ? (
           <Box flexDirection="column" marginTop={1}>
