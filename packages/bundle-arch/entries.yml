@@ -284,7 +284,7 @@
 - id: sessions
   name: '@deepseek-ai/dsh-session-persistence-jsonl'
   config:
-    root: dshHomePath('sessions')
+    root: /home/ufuish/.dsh/sessions
     compression: none
 - id: agent-preset-registry
   name: '@deepseek-ai/dsh-agent-preset-registry'
@@ -306,16 +306,30 @@
   name: '@deepseek-ai/dsh-storage'
 - id: storage-domain
   name: '@deepseek-ai/dsh-storage-domain'
+  config:
+    backend: json
 - id: storage-json
   name: '@deepseek-ai/dsh-storage-json'
+  config:
+    root: /home/ufuish/.dsh/storages
 - id: settings
   name: '@deepseek-ai/dsh-settings'
 - id: credentials
   name: '@deepseek-ai/dsh-credentials-local'
 - id: session-title
   name: '@deepseek-ai/dsh-session-title'
+  config:
+    fallbackMaxWords: 5
+    fallbackMaxBytes: 40
+    maxTitleBytes: 80
 - id: session-title-llm
   name: '@deepseek-ai/dsh-session-title-first-prompt-llm'
+  config:
+    targetWords: 5
+    targetCjkCharacters: 10
+    maxInputBytes: 4096
+    maxOutputTokens: 4096
+    timeoutMs: 60000
 - id: config-editor
   name: '@deepseek-ai/dsh-config-editor'
 - id: preset-standard
