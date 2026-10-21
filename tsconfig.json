@@ -253,6 +253,9 @@
       "@deepseek-ai/dsh-fs-observation-policy": [
         "packages/dsh-fs-observation-policy/src/index.ts"
       ],
+      "@deepseek-ai/dsh-web-deepseek-api": [
+        "packages/dsh-web-deepseek-api/src/index.ts"
+      ],
       "@deepseek-ai/dsh-output-retention": [
         "packages/dsh-output-retention/src/index.ts"
       ],

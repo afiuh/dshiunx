@@ -251,3 +251,7 @@
           running plugin tree, write new Cordis plugins, and install them into the
           current profile. When a task needs a new capability, prefer creating a small
           plugin over ad-hoc scripting.'
+- id: web-deepseek-api
+  name: '@deepseek-ai/dsh-web-deepseek-api'
+- id: deepseek-llm-api-extensions
+  name: '@deepseek-ai/dsh-deepseek-llm-api-extensions'
