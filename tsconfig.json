@@ -474,6 +474,9 @@
       ],
       "@dshiunx/tui-chat": [
         "packages/tui-chat/src/index.ts"
+      ],
+      "@dshiunx/tui-themes": [
+        "packages/tui-themes/src/index.ts"
       ]
     }
   }
