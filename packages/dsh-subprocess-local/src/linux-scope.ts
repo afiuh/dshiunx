@@ -160,6 +160,8 @@ export function probeLinuxScope(internals: LinuxScopeInternals = {}): LiteralArg
  * @returns the literal-argv scope options when Linux native containment is available, otherwise undefined.
  */
 export function probeLinuxNative(internals: LinuxScopeInternals = {}): LiteralArgvOptions | undefined {
+  // dshiunx: systemd-run --scope does not pass the runner control fd; allow opt-out.
+  if (process.env.DSHIUNX_DISABLE_LINUX_SCOPE === '1') return undefined
   return probeLinuxBootstrap(internals) ? probeLinuxScope(internals) : undefined
 }
 
