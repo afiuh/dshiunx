@@ -2,6 +2,8 @@ import { Renderer } from './renderer.ts'
 import { projectSessionEvent } from './projection.ts'
 import type { ViewEvent } from './view-event.ts'
 import { StatusBar } from './status.ts'
+import { startInput } from './input.ts'
+import { createUserMessage } from '@deepseek-ai/dsh-llm'
 
 export const name = 'tui'
 export const inject = ['agents', 'sessions', 'agentPresets']
@@ -12,6 +14,7 @@ export const inject = ['agents', 'sessions', 'agentPresets']
  */
 export function apply(ctx: any): void {
   const renderer = new Renderer()
+  let currentAgent: any
   const status = new StatusBar()
   const emit = (event: ViewEvent) => {
     if (event.kind === 'text-delta') status.clear()
@@ -34,4 +37,49 @@ export function apply(ctx: any): void {
     })
     return () => off?.()
   }, 'tui.status')
+
+  // 输入接线：Enter 创建/复用 agent 并发送；Ctrl+C 取消；Ctrl+D 退出。
+  const input = startInput({
+    onSubmit(text) {
+      void (async () => {
+        try {
+          if (!currentAgent) {
+            const agents = ctx.get('agents') as any
+            const presets = ctx.get('agentPresets') as any
+            const selection = { provider: 'deepseek-official', model: process.env.DSHIUNX_MODEL ?? 'deepseek-chat' }
+            const { agent } = await agents.create({
+              sessionId: `session-${Date.now()}`,
+              meta: { cwd: process.cwd() },
+              agentOptions: selection,
+              setup: async (agentCtx: any) => {
+                await presets.mount(agentCtx, 'standard')
+              },
+            })
+            currentAgent = agent
+          }
+          status.render({ model: process.env.DSHIUNX_MODEL ?? 'deepseek-chat', working: true })
+          currentAgent.followup(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } }))
+          await currentAgent.whenIdle()
+        } catch (error: any) {
+          renderer.write({ kind: 'error', message: error?.message ?? String(error) })
+        }
+      })()
+    },
+    onCancel() {
+      currentAgent?.interrupt?.()
+    },
+    onExit() {
+      void ctx.fiber.dispose()
+    },
+    onClear() {
+      process.stdout.write('\x1b[2J\x1b[H')
+    },
+    onToggleTools() {
+      // 工具卡展开/折叠：先留空，后续实现
+    },
+    onRewind() {
+      // double-Esc 回滚：先留空，后续实现
+    },
+  })
+  ctx.effect(() => () => input.close(), 'tui.input')
 }
