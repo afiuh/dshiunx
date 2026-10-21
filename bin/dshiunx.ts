@@ -12,6 +12,17 @@ const entries = yaml.load(readFileSync(entriesFile, 'utf8')) as Array<{
 }>
 
 const ctx = new Context()
+ctx.provide('profileContext', {
+  name: 'dshiunx',
+  dir: `${process.cwd()}/profiles/default`,
+  patchPath: `${process.cwd()}/profiles/default/cordis.patch.yml`,
+  installAnchor: process.cwd(),
+  cwd: process.cwd(),
+  home: process.env.HOME ?? '',
+  startedBundles: [],
+  overlays: [],
+  telemetryDisabledEnv: undefined,
+})
 await ctx.plugin(Loader)
 
 for (const entry of entries) {

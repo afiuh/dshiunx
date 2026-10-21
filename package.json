@@ -31,7 +31,8 @@
     "yaml": "^2.8.0",
     "eventsource-parser": "^3.0.0",
     "semver": "^7.6.0",
-    "resolve.exports": "^2.0.3"
+    "resolve.exports": "^2.0.3",
+    "execa": "^9.5.0"
   },
   "optionalDependencies": {
     "@deepseek-ai/node-addon-system-linux-x64": "0.1.2"

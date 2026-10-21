@@ -255,3 +255,5 @@
   name: '@deepseek-ai/dsh-web-deepseek-api'
 - id: deepseek-llm-api-extensions
   name: '@deepseek-ai/dsh-deepseek-llm-api-extensions'
+- id: tool-plugin-manager
+  name: '@deepseek-ai/dsh-plugin-manager/tools'

@@ -32,8 +32,8 @@
       "default": "./src/types/operations.ts"
     },
     "./tools": {
-      "types": "./src/types/tools.ts",
-      "default": "./src/types/tools.ts"
+      "types": "./src/tools.ts",
+      "default": "./src/tools.ts"
     },
     "./tools/locale/*.json": "./locale/tools/*.json",
     "./locale/*.json": "./locale/*.json"

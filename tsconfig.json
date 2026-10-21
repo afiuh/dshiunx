@@ -292,6 +292,9 @@
       "@deepseek-ai/dsh-web-fetch-http": [
         "packages/dsh-web-fetch-http/src/index.ts"
       ],
+      "@deepseek-ai/dsh-host-plugin-inventory": [
+        "packages/dsh-host-plugin-inventory/src/index.ts"
+      ],
       "@deepseek-ai/dsh-session-projection": [
         "packages/dsh-session-projection/src/index.ts"
       ],
