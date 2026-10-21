@@ -17,12 +17,7 @@ import type {
   TranscriptImage,
 } from './types.js'
 
-/** Every visible composer placeholder token, in source order. */
-export const COMPOSER_IMAGE_TOKEN = /\[Image #\d+\]/gu
-
-/** One whole placeholder token; the distinction matters because a mention
- *  reference needs an `@` prefix while an image token must stay verbatim. */
-export const COMPOSER_IMAGE_TOKEN_EXACT = /^\[Image #\d+\]$/u
+export { COMPOSER_IMAGE_TOKEN, COMPOSER_IMAGE_TOKEN_EXACT } from './composer-tokens.js'
 
 export const formatMissingReference = (reference: string): string =>
   COMPOSER_IMAGE_TOKEN_EXACT.test(reference) ? reference : `@${reference}`

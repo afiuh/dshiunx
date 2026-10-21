@@ -1,7 +1,7 @@
 import { extname, isAbsolute, join } from 'node:path'
 import { extractMentions } from '../../utils/mentions.js'
 import { basename } from './paths.js'
-import { COMPOSER_IMAGE_TOKEN } from './composer-images.js'
+import { COMPOSER_IMAGE_TOKEN } from './composer-tokens.js'
 import type { ServiceLookup } from './channel-host.js'
 import type { MentionAttachments, MentionExpansion, MentionFs, MentionImageBlock, MentionImageMediaType, ResolvedMention } from './types.js'
 

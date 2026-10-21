@@ -8,6 +8,14 @@ module.exports = {
       to: { circular: true },
     },
     {
+      // index <-> plugin is type-only (Config) + a dynamic import of the
+      // implementation; it cannot cycle at runtime.
+      name: 'no-circular-index-plugin',
+      severity: 'ignore',
+      from: { path: '^packages/dsh-tui/src/dsh-adapter/(index|plugin)\.ts$' },
+      to: { circular: true },
+    },
+    {
       name: 'tui-core-no-ui',
       severity: 'error',
       comment: 'tui-core（渲染引擎）不得依赖 UI 组件',
