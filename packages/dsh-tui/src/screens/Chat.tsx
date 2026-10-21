@@ -59,6 +59,7 @@ import { overlayStore } from '../stores/overlayStore.js'
 import { settingsStore } from '../stores/settingsStore.js'
 import { sessionStore } from '../stores/sessionStore.js'
 import { searchStore } from '../stores/searchStore.js'
+import { panelsStore } from '../stores/panelsStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -1456,15 +1457,10 @@ export function Chat({
   const [minimizedQuestionKey, setMinimizedQuestionKey] = React.useState<string | null>(null)
   const questionMinimized = questionSnapshot !== null && minimizedQuestionKey === questionSnapshot.key
   /** Fold state for the GoalTodoPanel todo section (ctrl/cmd+q or click). */
-  const [todoCollapsed, setTodoCollapsed] = React.useState(false)
+  const todoCollapsed = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getTodoCollapsed)
   // Dismiss only this idle projection; new goal/todo data or a session switch
   // reveals the footer again without changing the backend's canonical state.
-  const [todoFooterOverride, setTodoFooterOverride] = React.useState<{
-    hidden: boolean
-    agentId: string
-    goal: Channel['goal']
-    todos: Channel['todos']
-  } | undefined>(undefined)
+  const todoFooterOverride = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getTodoFooterOverride)
   const todoFooterOverrideMatches = !channel.working && todoFooterOverride !== undefined
     && todoFooterOverride.agentId === channel.agentId
     && todoFooterOverride.goal === channel.goal
@@ -1483,8 +1479,8 @@ export function Chat({
     && completedTodoSnapshot.current?.todos === channel.todos
   const todoFooterHidden = todoFooterOverrideMatches ? todoFooterOverride!.hidden : completedTodoFooter
   const toggleTodoFooter = (): void => {
-    if (channel.working) setTodoCollapsed(previous => !previous)
-    else setTodoFooterOverride({
+    if (channel.working) panelsStore.setTodoCollapsed(previous => !previous)
+    else panelsStore.setTodoFooterOverride({
       hidden: !todoFooterHidden,
       agentId: channel.agentId, goal: channel.goal, todos: channel.todos,
     })
@@ -1681,11 +1677,11 @@ export function Chat({
   const suppressLogoIntroRef = React.useRef(false)
   /** Subagent dashboard (Ctrl+A): displays active/completed subagents. */
   const [subagentDashboardOpen, setSubagentDashboardOpen] = React.useState(false)
-  const [jobsPanelOpen, setJobsPanelOpen] = React.useState(false)
+  const jobsPanelOpen = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getJobsPanelOpen)
   /** Job id the panel should focus on open: set by a transcript card click
    *  (open the panel AT that job), cleared on close so the keyboard/command
    *  path reopens at the top. */
-  const [jobsPanelFocusId, setJobsPanelFocusId] = React.useState<string | null>(null)
+  const jobsPanelFocusId = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getJobsPanelFocusId)
   // Side-panel routing needs the controller, which is created further down;
   // a ref keeps this identity-stable callback fresh anyway.
   const sidePanelRef = React.useRef<{
@@ -1707,8 +1703,8 @@ export function Chat({
       return
     }
     // Narrow / inline fallback: the full-screen overlay (unchanged).
-    if (typeof focusId === 'string' && focusId !== '') setJobsPanelFocusId(focusId)
-    setJobsPanelOpen(true)
+    if (typeof focusId === 'string' && focusId !== '') panelsStore.setJobsPanelFocusId(focusId)
+    panelsStore.setJobsPanelOpen(true)
   }, [])
   // A job card / the panel keeps its output tail fresh while on screen, when
   // the backend reads output on demand. The control is re-projected on every
@@ -3854,8 +3850,8 @@ export function Chat({
         if (sidePanel.split && sidePanel.enabledPanelIds.includes('jobs')) {
           sidePanel.openPanel('jobs', { focus: true })
         } else {
-          setJobsPanelFocusId(null)
-          setJobsPanelOpen(true)
+          panelsStore.setJobsPanelFocusId(null)
+          panelsStore.setJobsPanelOpen(true)
         }
         return true
       }
@@ -3877,8 +3873,8 @@ export function Chat({
           ? sidePanel.activePanelId
           : arg
         if (target === 'jobs') {
-          setJobsPanelFocusId(null)
-          setJobsPanelOpen(true)
+          panelsStore.setJobsPanelFocusId(null)
+          panelsStore.setJobsPanelOpen(true)
           return true
         }
         if (target === 'agents') {
@@ -4519,7 +4515,7 @@ export function Chat({
   const openPanelFullscreen = React.useCallback((panelId: string): void => {
     if (panelId === 'jobs') {
       sidePanelRef.current?.focusChat()
-      setJobsPanelOpen(true)
+      panelsStore.setJobsPanelOpen(true)
       return
     }
     if (panelId === 'agents') {
@@ -6646,7 +6642,7 @@ export function Chat({
       <JobsPanel
         jobs={channel.backgroundJobs ?? []}
         initialFocusId={jobsPanelFocusId ?? undefined}
-        onClose={() => { setJobsPanelOpen(false); setJobsPanelFocusId(null) }}
+        onClose={() => { panelsStore.setJobsPanelOpen(false); panelsStore.setJobsPanelFocusId(null) }}
         onWatchOutput={watchJobOutput}
         onKill={(id) => {
           // Stub channels (verify harnesses) have no jobControl — surface
