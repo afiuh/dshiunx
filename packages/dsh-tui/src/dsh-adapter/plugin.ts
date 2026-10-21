@@ -1354,7 +1354,7 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
       tuiSettingsNs,
       Schema.object({
         diffLayout: Schema.union(['auto', 'split', 'unified']).default('auto'),
-        thinkingFold: Schema.union(['preview', 'full']).default('preview'),
+        thinkingFold: Schema.union(['preview', 'full']).default('full'),
         jobGroupFold: Schema.union(['auto', 'always', 'never']).default('auto'),
         toolBackground: Schema.union(['none', 'subtle', 'strong']).default('none'),
         scrollGutter: Schema.union(['timeline', 'scrollbar', 'hidden']).default('timeline'),
@@ -1618,7 +1618,7 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
     // live and future render consumers observe the channel version bump.
     const applyDisplay = (value: SettingsValue): void => {
       if (shadow) return
-      channel.setThinkingFold(value.thinkingFold ?? config.thinkingFold ?? 'preview')
+      channel.setThinkingFold(value.thinkingFold ?? config.thinkingFold ?? 'full')
       channel.setJobGroupFold(normalizeJobGroupFold(value.jobGroupFold ?? config.jobGroupFold))
       channel.setToolBackground(normalizeToolBackground(value.toolBackground ?? config.toolBackground))
       channel.setScrollGutter(normalizeScrollGutter(value.scrollGutter ?? config.scrollGutter))

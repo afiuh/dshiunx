@@ -8,10 +8,5 @@
  * the registry imports it from `src/` (see the generator for the whole story).
  */
 import type { BackendEntry } from '../agent/backend-manifest.js'
-import { manifest as claudeManifest } from '../backends/claude/manifest.js'
-import { manifest as codexManifest } from '../backends/codex/manifest.js'
-
-export const GENERATED_BACKENDS: readonly BackendEntry[] = [
-  { manifest: claudeManifest, load: () => import('../backends/claude/index.js') },
-  { manifest: codexManifest, load: () => import('../backends/codex/index.js') },
-]
+// dshiunx: only the built-in DSH backend; Claude/Codex are not shipped.
+export const GENERATED_BACKENDS: readonly BackendEntry[] = []

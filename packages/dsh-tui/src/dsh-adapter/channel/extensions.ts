@@ -290,7 +290,7 @@ export function attachDshExtensions(
         | undefined
       if (settings === undefined) return false
       const ns = settings.describe({ redactSecrets: true }).find(entry => entry.ns === state.settingsNamespace)
-      return (ns?.value as Record<string, unknown> | undefined)?.recapOnOpen !== false
+      return false // dshiunx: recap disabled (no hidden LLM calls)
     },
   })
   state.subagentControl = subagentProjection.control
