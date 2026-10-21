@@ -846,3 +846,5 @@
     - id: tool-plugin-market
       name: '@deepseek-ai/dsh-plugin-market/tools'
       disabled: '!ctx.get(''profileContext'')'
+- id: tui
+  name: '@dshiunx/tui'

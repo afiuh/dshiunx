@@ -456,6 +456,9 @@
       ],
       "@deepseek-ai/dsh-tool-subagent-control/list-agents": [
         "packages/dsh-tool-subagent-control/src/list-agents.ts"
+      ],
+      "@dshiunx/tui": [
+        "packages/dsh-tui/src/index.ts"
       ]
     }
   }
