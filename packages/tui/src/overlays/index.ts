@@ -24,7 +24,6 @@ import { NoGhOverlay } from './no-gh.js'
 import { NoTargetOverlay } from './no-target.js'
 import { NotAuthedOverlay } from './not-authed.js'
 import { PanelOverlay } from './panel.js'
-import { PermissionOverlay } from './permission.js'
 import { PlanOverlay } from './plan.js'
 import { PnpmMissingOverlay } from './pnpm-missing.js'
 import { PresetOverlay } from './preset.js'
@@ -39,9 +38,6 @@ import { ThemeOverlay } from './theme.js'
 import { ThinkingOverlay } from './thinking.js'
 import { TipsOverlay } from './tips.js'
 import { TranscriptCardOverlay } from './transcript-card.js'
-import { WorkspaceFlowOverlay } from './workspace-flow.js'
-import { WorkspaceMenuOverlay } from './workspace-menu.js'
-import { WorkspacePickerOverlay } from './workspace-picker.js'
 import type { OverlayContext, OverlayRenderer } from './types.js'
 
 export type { OverlayContext, OverlayRenderer }
@@ -76,15 +72,11 @@ export const overlays: Record<string, OverlayRenderer> = {
   'thinking': ThinkingOverlay,
   'tips': TipsOverlay,
   'transcript-card': TranscriptCardOverlay,
-  'workspace-flow': WorkspaceFlowOverlay,
-  'workspace-menu': WorkspaceMenuOverlay,
-  'workspace-picker': WorkspacePickerOverlay,
   'model': ModelOverlay,
   'effort': EffortOverlay,
   'theme': ThemeOverlay,
   'help': HelpOverlay,
   'confirm': ConfirmOverlay,
-  'permission': PermissionOverlay,
   'question': QuestionOverlay,
   'image-preview': ImagePreviewOverlay,
   'search': SearchOverlay,
