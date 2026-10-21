@@ -17,6 +17,9 @@ import { MessageList } from '../../tui-components/src/index.js'
 import { PromptInput } from '../../tui-components/src/index.js'
 import { StatusLine } from '../../dsh-tui/src/screens/StatusLine.js'
 import { runCommand } from './commands/index.js'
+import { renderOverlay } from './overlays/index.js'
+import { handleKey } from './keyboard/index.js'
+import { useInput } from '../../dsh-tui/src/ui.js'
 
 export interface TuiProps {
   channel: any
@@ -31,6 +34,9 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
   const expandedRows = useChatStore((s) => s.expandedRows)
   const streamViewToggledRows = useChatStore((s) => s.streamViewToggledRows)
   const statusFields = useChatStore((s) => s.statusFields)
+  const overlay = useChatStore((s) => s.overlay)
+  const approvalSnapshot = useChatStore((s) => s.approvalSnapshot)
+  const questionSnapshot = useChatStore((s) => s.questionSnapshot)
   const showAllMessages = useChatStore((s) => s.showAllMessages)
   const forceMountRowId = useChatStore((s) => s.forceMountRowId)
   const unseenCount = useChatStore((s) => s.unseenCount)
@@ -38,6 +44,10 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
 
   // ── 动作（useChatStore.getState()，不触发重渲染）──────────────
   const store = useChatStore.getState()
+
+  useInput((input: string, key: Record<string, boolean>) => {
+    handleKey({ input, key }, { channel })
+  })
 
   return (
     <Box flexDirection="column" flexGrow={1} width="100%">
@@ -103,6 +113,7 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
         caretPreviewOpen={false}
         onDismissCaretPreview={() => {}}
       />
+      {overlay.kind !== 'none' && renderOverlay(overlay.kind, { channel, overlay, approval: approvalSnapshot, question: questionSnapshot })}
       <StatusLine
         channel={channel}
         activity={undefined}
