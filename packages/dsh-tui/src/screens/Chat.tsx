@@ -54,6 +54,7 @@ import { goalStatusLines, parseGoalCommand } from '../channel/goal-command.js'
 import { helpStore } from '../stores/helpStore.js'
 import { timelineStore } from '../stores/timelineStore.js'
 import { modelsStore } from '../stores/modelsStore.js'
+import { selectionStore } from '../stores/selectionStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -711,17 +712,13 @@ export function Chat({
    * are no turns (header hidden there anyway).
    */
   const timeline = React.useSyncExternalStore(timelineStore.subscribe, timelineStore.get)
-  const [selectionActive, setSelectionActive] = React.useState(false)
-  const [selectedId, setSelectedId] = React.useState<number | null>(null)
-  const [expandedRows, setExpandedRows] = React.useState<ReadonlySet<number>>(
-    () => new Set(),
-  )
+  const selectionActive = React.useSyncExternalStore(selectionStore.subscribe, selectionStore.getActive)
+  const selectedId = React.useSyncExternalStore(selectionStore.subscribe, selectionStore.getSelectedId)
+  const expandedRows = React.useSyncExternalStore(selectionStore.subscribe, selectionStore.getExpanded)
   /** 流式 reasoning 行相对 thinkingFold 默认值的用户切换。与
    *  expandedRows 分开：preview 默认三行、full 默认全文，点击在两者间
    *  翻转；落定后自动回到普通行的折叠语义。 */
-  const [streamViewToggledRows, setStreamViewToggledRows] = React.useState<ReadonlySet<number>>(
-    () => new Set(),
-  )
+  const streamViewToggledRows = React.useSyncExternalStore(selectionStore.subscribe, selectionStore.getToggled)
   /**
    * The transient-dialog layer (every picker/dialog `<OverlayAbove>` hosts,
    * plus /tips) as ONE value: mutual exclusion between the panels is
@@ -1654,9 +1651,9 @@ export function Chat({
     if (lastAgentIdRef.current === id) return
     lastAgentIdRef.current = id
     setExpanded(false)
-    setExpandedRows(new Set())
-    setSelectedId(null)
-    setSelectionActive(false)
+    selectionStore.setExpanded(new Set())
+    selectionStore.setSelectedId(null)
+    selectionStore.setActive(false)
     setShowAllMessages(false)
     setLoadedContextOpen(false)
     setSearchQuery('')
@@ -3203,10 +3200,10 @@ export function Chat({
           // transcript. Reset view-local state, return the ScrollBox to the
           // top, then clear native scrollback and repaint the whale homepage.
           setExpanded(false)
-          setExpandedRows(new Set())
-          setStreamViewToggledRows(new Set())
-          setSelectedId(null)
-          setSelectionActive(false)
+          selectionStore.setExpanded(new Set())
+          selectionStore.setToggled(new Set())
+          selectionStore.setSelectedId(null)
+          selectionStore.setActive(false)
           setShowAllMessages(false)
           setLoadedContextOpen(false)
           handle?.scrollTo(0)
@@ -3225,10 +3222,10 @@ export function Chat({
         channel.clear()
         // channel.clear() resets row ids to 0; stale expanded/selection
         // state would mis-highlight fresh rows (known-limitation fix).
-        setExpandedRows(new Set())
-        setStreamViewToggledRows(new Set())
-        setSelectedId(null)
-        setSelectionActive(false)
+        selectionStore.setExpanded(new Set())
+        selectionStore.setToggled(new Set())
+        selectionStore.setSelectedId(null)
+        selectionStore.setActive(false)
         return true
       case 'compact': {
         // The TUI's own transaction is the primary path: it owns the
@@ -4680,10 +4677,10 @@ export function Chat({
   }, [searchCurrent])
 
   const enterSelection = () => {
-    setSelectionActive(true)
+    selectionStore.setActive(true)
     const last = selectableRows[selectableRows.length - 1]
     // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: empty selectable list
-    setSelectedId(last ? last.id : null)
+    selectionStore.setSelectedId(last ? last.id : null)
   }
   const moveSelection = (delta: 1 | -1) => {
     if (selectedId === null) return
@@ -4691,12 +4688,12 @@ export function Chat({
     if (index < 0) return
     const next = selectableRows[index + delta]
     // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index
-    if (next) setSelectedId(next.id)
+    if (next) selectionStore.setSelectedId(next.id)
   }
   // useCallback: these feed MessageList → MemoRow's shallow compare; fresh
   // closures each render would defeat every row's memo.
   const toggleRowExpanded = React.useCallback((rowId: number) => {
-    setExpandedRows((previous) => {
+    selectionStore.setExpanded((previous) => {
       const next = new Set(previous)
       if (next.has(rowId)) next.delete(rowId)
       else next.add(rowId)
@@ -4704,7 +4701,7 @@ export function Chat({
     })
   }, [])
   const toggleStreamView = React.useCallback((rowId: number) => {
-    setStreamViewToggledRows((previous) => {
+    selectionStore.setToggled((previous) => {
       const next = new Set(previous)
       if (next.has(rowId)) next.delete(rowId)
       else next.add(rowId)
@@ -5672,8 +5669,8 @@ export function Chat({
       } else if (plainReturn && selectedId !== null) {
         toggleRowExpanded(selectedId)
       } else if (key.escape) {
-        setSelectionActive(false)
-        setSelectedId(null)
+        selectionStore.setActive(false)
+        selectionStore.setSelectedId(null)
       }
     } else if (key.escape && promptControllerRef.current?.consumeEscape()) {
       // Local menu/preview/selection/editor Esc stays with the composer even
