@@ -54,7 +54,7 @@ for (const preset of roster) {
   })
   await agent.whenIdle()
 
-  const tools = agent.ctx?.tools?.list?.() ?? []
+  const tools = agent.ctx?.tools?.schemas?.() ?? []
   console.log('tools:', tools.length, tools.map((t: any) => t.name).join(', '))
 
   const firstSeq = agent.session.seq

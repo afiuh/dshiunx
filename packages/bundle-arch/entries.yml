@@ -114,128 +114,6 @@
   name: '@deepseek-ai/dsh-goal'
 - id: sandbox
   name: '@deepseek-ai/dsh-sandbox-local'
-- id: preset-standard
-  name: '@deepseek-ai/dsh-agent-preset'
-  config:
-    id: standard
-    order: 1
-    plugins:
-    - &id001
-      id: persona
-      name: '@deepseek-ai/dsh-persona'
-      config:
-        prefix: You are a coding agent powered by the {{model}} model.
-    - &id002
-      id: tool-fs
-      name: '@deepseek-ai/dsh-tool-fs'
-      config:
-        read: true
-        readImage: false
-        write: true
-        edit: true
-    - &id003
-      id: tool-fs-search
-      name: '@deepseek-ai/dsh-tool-fs-search'
-      config:
-        sampleOverCapGlobResults: false
-    - &id004
-      id: tool-todo
-      name: '@deepseek-ai/dsh-tool-todo'
-      config:
-        allowParallelInProgress: true
-    - &id005
-      id: tool-working-directory
-      name: '@deepseek-ai/dsh-tool-working-directory'
-    - &id006
-      id: tool-goal
-      name: '@deepseek-ai/dsh-tool-goal'
-    - &id007
-      id: skill-filesystem
-      name: '@deepseek-ai/dsh-skill-filesystem'
-    - &id008
-      id: tool-skill
-      name: '@deepseek-ai/dsh-tool-skill'
-    - &id009
-      id: tool-subagent-control
-      name: '@deepseek-ai/dsh-tool-subagent-control'
-    - &id010
-      id: tool-subagent-list
-      name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
-    - &id011
-      id: tool-subagent
-      name: '@deepseek-ai/dsh-tool-subagent'
-      config:
-        provider: spawn
-        toolName: subagent
-    - &id012
-      id: command-compact
-      name: '@deepseek-ai/dsh-command-compact'
-    - &id013
-      id: agent-instructions
-      name: '@deepseek-ai/dsh-agent-instructions'
-      config:
-        maxBytes: 65536
-- id: preset-ptc
-  name: '@deepseek-ai/dsh-agent-preset'
-  config:
-    id: ptc
-    order: 2
-    plugins:
-    - *id001
-    - *id002
-    - *id003
-    - *id004
-    - *id005
-    - *id006
-    - *id007
-    - *id008
-    - *id009
-    - *id010
-    - *id011
-    - *id012
-    - *id013
-- id: preset-minimal
-  name: '@deepseek-ai/dsh-agent-preset'
-  config:
-    id: minimal
-    order: 3
-    plugins:
-    - id: persona
-      name: '@deepseek-ai/dsh-persona'
-      config:
-        prefix: You are a helpful software engineer assistant.
-        complete: true
-        includeRuntimeContext: false
-    - id: tool-fs
-      name: '@deepseek-ai/dsh-tool-fs'
-      config:
-        read: false
-        readImage: true
-        write: false
-        edit: false
-    - id: command-compact
-      name: '@deepseek-ai/dsh-command-compact'
-- id: preset-creator
-  name: '@deepseek-ai/dsh-agent-preset'
-  config:
-    id: creator
-    order: 4
-    plugins:
-    - *id001
-    - *id002
-    - *id003
-    - *id004
-    - *id005
-    - *id006
-    - *id007
-    - *id008
-    - *id009
-    - *id010
-    - *id011
-    - *id012
-    - *id013
-    - id: tool-cordis
-      name: '@deepseek-ai/dsh-tool-cordis'
 - id: plugin-manager
   name: '@deepseek-ai/dsh-plugin-manager'
 - id: ptc-runtime
@@ -248,3 +126,107 @@
   name: '@deepseek-ai/dsh-tool-workflow'
 - id: cordis-host-runner
   name: '@deepseek-ai/dsh-cordis-host-runner'
+- id: tool-bash
+  name: '@deepseek-ai/dsh-tool-bash'
+- id: tool-fs
+  name: '@deepseek-ai/dsh-tool-fs'
+- id: tool-fs-search
+  name: '@deepseek-ai/dsh-tool-fs-search'
+- id: tool-todo
+  name: '@deepseek-ai/dsh-tool-todo'
+- id: tool-goal
+  name: '@deepseek-ai/dsh-tool-goal'
+- id: tool-skill
+  name: '@deepseek-ai/dsh-tool-skill'
+- id: tool-subagent-control
+  name: '@deepseek-ai/dsh-tool-subagent-control'
+- id: tool-subagent-list
+  name: '@deepseek-ai/dsh-tool-subagent-control/list-agents'
+- id: tool-subagent
+  name: '@deepseek-ai/dsh-tool-subagent'
+- id: tool-subagent-fork
+  name: '@deepseek-ai/dsh-tool-subagent'
+- id: tool-working-directory
+  name: '@deepseek-ai/dsh-tool-working-directory'
+- id: preset-standard
+  name: '@deepseek-ai/dsh-agent-preset'
+  config:
+    id: standard
+    order: 1
+    plugins:
+    - id: time-context
+      name: '@deepseek-ai/dsh-time-context'
+    - id: persona
+      name: '@deepseek-ai/dsh-persona'
+      config:
+        prefix: You are a coding agent powered by the {{model}} model. Do not describe
+          yourself as a plugin system or claim you can create plugins unless the user
+          explicitly asks about the harness internals.
+    - id: skill-filesystem
+      name: '@deepseek-ai/dsh-skill-filesystem'
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+    - id: agent-instructions
+      name: '@deepseek-ai/dsh-agent-instructions'
+      config:
+        maxBytes: 65536
+- id: preset-ptc
+  name: '@deepseek-ai/dsh-agent-preset'
+  config:
+    id: ptc
+    order: 2
+    plugins:
+    - id: time-context
+      name: '@deepseek-ai/dsh-time-context'
+    - id: persona
+      name: '@deepseek-ai/dsh-persona'
+      config:
+        prefix: You are a coding agent powered by the {{model}} model. Do not describe
+          yourself as a plugin system or claim you can create plugins unless the user
+          explicitly asks about the harness internals.
+    - id: skill-filesystem
+      name: '@deepseek-ai/dsh-skill-filesystem'
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+    - id: agent-instructions
+      name: '@deepseek-ai/dsh-agent-instructions'
+      config:
+        maxBytes: 65536
+- id: preset-minimal
+  name: '@deepseek-ai/dsh-agent-preset'
+  config:
+    id: minimal
+    order: 3
+    plugins:
+    - id: persona
+      name: '@deepseek-ai/dsh-persona'
+      config:
+        prefix: You are a helpful software engineer assistant.
+        complete: true
+        includeRuntimeContext: false
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+- id: preset-creator
+  name: '@deepseek-ai/dsh-agent-preset'
+  config:
+    id: creator
+    order: 4
+    plugins:
+    - id: time-context
+      name: '@deepseek-ai/dsh-time-context'
+    - id: persona
+      name: '@deepseek-ai/dsh-persona'
+      config:
+        prefix: 'You are a coding agent powered by the {{model}} model. You work inside
+          a Cordis plugin system where everything is a plugin: you can inspect the
+          running plugin tree, write new Cordis plugins, and install them into the
+          current profile. When a task needs a new capability, prefer creating a small
+          plugin over ad-hoc scripting.'
+    - id: skill-filesystem
+      name: '@deepseek-ai/dsh-skill-filesystem'
+    - id: command-compact
+      name: '@deepseek-ai/dsh-command-compact'
+    - id: agent-instructions
+      name: '@deepseek-ai/dsh-agent-instructions'
+      config:
+        maxBytes: 65536
