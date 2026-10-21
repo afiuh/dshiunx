@@ -58,6 +58,7 @@ import { selectionStore } from '../stores/selectionStore.js'
 import { overlayStore } from '../stores/overlayStore.js'
 import { settingsStore } from '../stores/settingsStore.js'
 import { sessionStore } from '../stores/sessionStore.js'
+import { searchStore } from '../stores/searchStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -1660,10 +1661,10 @@ export function Chat({
     selectionStore.setActive(false)
     setShowAllMessages(false)
     setLoadedContextOpen(false)
-    setSearchQuery('')
-    setSearchCursor(0)
-    setSearchCount(0)
-    setSearchCurrent(0)
+    searchStore.setQuery('')
+    searchStore.setCursor(0)
+    searchStore.setCount(0)
+    searchStore.setCurrent(0)
     setBtwOverlayOpen(false)
     repaintTranscript()
   }, [channel.agentId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -2116,10 +2117,10 @@ export function Chat({
    *  Only the bar's open/closed mode lives in `overlay`; the query and match
    *  counters persist past the bar closing so n/N keep walking the matches. */
   const searchActive = overlay.kind === 'search'
-  const [searchQuery, setSearchQuery] = React.useState('')
-  const [searchCursor, setSearchCursor] = React.useState(0)
-  const [searchCount, setSearchCount] = React.useState(0)
-  const [searchCurrent, setSearchCurrent] = React.useState(0)
+  const searchQuery = React.useSyncExternalStore(searchStore.subscribe, searchStore.getQuery)
+  const searchCursor = React.useSyncExternalStore(searchStore.subscribe, searchStore.getCursor)
+  const searchCount = React.useSyncExternalStore(searchStore.subscribe, searchStore.getCount)
+  const searchCurrent = React.useSyncExternalStore(searchStore.subscribe, searchStore.getCurrent)
   const searchAnchorRef = React.useRef(0)
   const rowRefsRef = React.useRef(new Map<number, DOMElement>())
   const { setQuery: setHighlight } = useSearchHighlight()
@@ -4660,9 +4661,9 @@ export function Chat({
     if (!searchActive) return
     setHighlight(searchQuery)
     const count = searchMatches.length
-    setSearchCount(count)
+    searchStore.setCount(count)
     const current = Math.min(searchCurrent, Math.max(0, count - 1))
-    setSearchCurrent(current)
+    searchStore.setCurrent(current)
     const target = searchMatches[current]
     // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index on an empty/filtered list
     if (target) {
@@ -4977,29 +4978,29 @@ export function Chat({
         handle?.scrollTo(searchAnchorRef.current)
       } else if (plainReturn) {
         // Enter commits; 0-match junk queries don't persist.
-        if (searchCount === 0) setSearchQuery('')
+        if (searchCount === 0) searchStore.setQuery('')
         overlayStore.dispatch({ type: 'close' })
       } else if (key.backspace) {
         if (searchCursor > 0) {
-          setSearchQuery(searchQuery.slice(0, searchCursor - 1) + searchQuery.slice(searchCursor))
-          setSearchCursor(searchCursor - 1)
+          searchStore.setQuery(searchQuery.slice(0, searchCursor - 1) + searchQuery.slice(searchCursor))
+          searchStore.setCursor(searchCursor - 1)
         }
       } else if (key.delete) {
         if (searchCursor < searchQuery.length) {
-          setSearchQuery(searchQuery.slice(0, searchCursor) + searchQuery.slice(searchCursor + 1))
+          searchStore.setQuery(searchQuery.slice(0, searchCursor) + searchQuery.slice(searchCursor + 1))
         }
       } else if (key.leftArrow) {
-        setSearchCursor(c => Math.max(0, c - 1))
+        searchStore.setCursor(c => Math.max(0, c - 1))
       } else if (key.rightArrow) {
-        setSearchCursor(c => Math.min(searchQuery.length, c + 1))
+        searchStore.setCursor(c => Math.min(searchQuery.length, c + 1))
       } else if (key.home) {
-        setSearchCursor(0)
+        searchStore.setCursor(0)
       } else if (key.end) {
-        setSearchCursor(searchQuery.length)
+        searchStore.setCursor(searchQuery.length)
       } else if (!key.ctrl && !key.meta && !key.super && input) {
         const next = searchQuery.slice(0, searchCursor) + input + searchQuery.slice(searchCursor)
-        setSearchQuery(next)
-        setSearchCursor(searchCursor + input.length)
+        searchStore.setQuery(next)
+        searchStore.setCursor(searchCursor + input.length)
       }
       event.stopImmediatePropagation()
       return
@@ -5008,12 +5009,12 @@ export function Chat({
     // The query persists across bar open/close so n/N keep working.
     // Transcript mode only — in prompt mode n/N are ordinary input chars.
     if (expanded && input === 'n' && searchQuery && searchCount > 0 && !key.ctrl && !key.meta && !key.super) {
-      setSearchCurrent(i => (i >= searchCount - 1 ? 0 : i + 1))
+      searchStore.setCurrent(i => (i >= searchCount - 1 ? 0 : i + 1))
       event.stopImmediatePropagation()
       return
     }
     if (expanded && input === 'N' && searchQuery && searchCount > 0 && !key.ctrl && !key.meta && !key.super) {
-      setSearchCurrent(i => (i <= 0 ? searchCount - 1 : i - 1))
+      searchStore.setCurrent(i => (i <= 0 ? searchCount - 1 : i - 1))
       event.stopImmediatePropagation()
       return
     }
@@ -5744,10 +5745,10 @@ export function Chat({
       // search is active on the transcript screen where `/` isn't a command).
       if (expanded) {
         searchAnchorRef.current = handle?.getScrollTop() ?? 0
-        setSearchQuery('')
-        setSearchCursor(0)
-        setSearchCurrent(0)
-        setSearchCount(0)
+        searchStore.setQuery('')
+        searchStore.setCursor(0)
+        searchStore.setCurrent(0)
+        searchStore.setCount(0)
         overlayStore.dispatch({ type: 'open', overlay: { kind: 'search' } })
         event.stopImmediatePropagation()
       }
