@@ -308,6 +308,14 @@
   name: '@deepseek-ai/dsh-storage-domain'
 - id: storage-json
   name: '@deepseek-ai/dsh-storage-json'
+- id: settings
+  name: '@deepseek-ai/dsh-settings'
+- id: credentials
+  name: '@deepseek-ai/dsh-credentials-local'
+- id: session-title
+  name: '@deepseek-ai/dsh-session-title'
+- id: session-title-llm
+  name: '@deepseek-ai/dsh-session-title-first-prompt-llm'
 - id: preset-standard
   name: '@deepseek-ai/dsh-agent-preset'
   config:
