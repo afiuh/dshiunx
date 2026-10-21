@@ -1,67 +1,48 @@
-import { Renderer } from './renderer.ts'
-import { projectSessionEvent } from './projection.ts'
-import type { ViewEvent } from './view-event.ts'
-import { StatusBar } from './status.ts'
-import { startInput } from './input.ts'
+import { Text } from '@earendil-works/pi-tui'
 import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import { createTui } from './app.ts'
+import { projectSessionEvent } from './projection.ts'
 
 export const name = 'tui'
 export const inject = ['agents', 'sessions', 'agentPresets']
 
 /**
- * 最小 TUI 插件：订阅 session 事件，投影成 ViewEvent，交给 ANSI renderer。
- * 不弹审批；Ctrl+C 取消当前 turn。
+ * TUI 插件：pi-tui 布局（滚动区 + 编辑器 + 状态栏），
+ * 事件 → ViewEvent → pi-tui 组件。
  */
 export function apply(ctx: any): void {
-  const renderer = new Renderer()
   let currentAgent: any
-  const status = new StatusBar()
-  const emit = (event: ViewEvent) => {
-    if (event.kind === 'text-delta') status.clear()
-    renderer.write(event)
-  }
+  let streamText: Text | undefined
+  let streamBuffer = ''
 
-  ctx.effect(() => {
-    const off = ctx.on('session/event', (_session: any, event: any) => {
-      const view = projectSessionEvent(event)
-      if (view) emit(view)
-    })
-    return () => off?.()
-  }, 'tui.session-events')
-
-  ctx.effect(() => {
-    const off = ctx.on('session/event', (_session: any, event: any) => {
-      if (event?.type === 'turn/end') {
-        status.render({ model: process.env.DSHIUNX_MODEL ?? 'deepseek-chat', working: false })
-      }
-    })
-    return () => off?.()
-  }, 'tui.status')
-
-  // 输入接线：Enter 创建/复用 agent 并发送；Ctrl+C 取消；Ctrl+D 退出。
-  const input = startInput({
+  const app = createTui({
     onSubmit(text) {
       void (async () => {
         try {
           if (!currentAgent) {
             const agents = ctx.get('agents') as any
             const presets = ctx.get('agentPresets') as any
-            const selection = { provider: 'deepseek-official', model: process.env.DSHIUNX_MODEL ?? 'deepseek-chat' }
+            const selection = {
+              provider: 'deepseek-official',
+              model: process.env.DSHIUNX_MODEL ?? 'deepseek-chat',
+            }
             const { agent } = await agents.create({
               sessionId: `session-${Date.now()}`,
               meta: { cwd: process.cwd() },
               agentOptions: selection,
               setup: async (agentCtx: any) => {
-                await presets.mount(agentCtx, 'standard')
+                await presets.mount(agentCtx, process.env.DSHIUNX_PRESET ?? 'standard')
               },
             })
             currentAgent = agent
           }
-          status.render({ model: process.env.DSHIUNX_MODEL ?? 'deepseek-chat', working: true })
+          app.setStatus(`⏺ ${process.env.DSHIUNX_MODEL ?? 'deepseek-chat'} · working`)
           currentAgent.followup(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } }))
           await currentAgent.whenIdle()
+          app.setStatus(`${process.env.DSHIUNX_MODEL ?? 'deepseek-chat'} · idle`)
         } catch (error: any) {
-          renderer.write({ kind: 'error', message: error?.message ?? String(error) })
+          app.append(new Text(`✗ ${error?.message ?? String(error)}`))
+          app.setStatus('error')
         }
       })()
     },
@@ -71,15 +52,40 @@ export function apply(ctx: any): void {
     onExit() {
       process.exit(0)
     },
-    onClear() {
-      process.stdout.write('\x1b[2J\x1b[H')
-    },
-    onToggleTools() {
-      // 工具卡展开/折叠：先留空，后续实现
-    },
-    onRewind() {
-      // double-Esc 回滚：先留空，后续实现
-    },
   })
-  ctx.effect(() => () => input.close(), 'tui.input')
+
+  ctx.effect(() => {
+    const off = ctx.on('session/event', (_session: any, event: any) => {
+      const view = projectSessionEvent(event)
+      if (!view) return
+      if (view.kind === 'text-delta') {
+        if (!streamText) {
+          streamText = new Text('')
+          app.append(streamText)
+        }
+        streamBuffer += view.text
+        streamText.setText(streamBuffer)
+        return
+      }
+      if (view.kind === 'tool-call') {
+        streamText = undefined
+        streamBuffer = ''
+        app.append(new Text(`⏺ ${view.name}`))
+        return
+      }
+      if (view.kind === 'tool-result') {
+        app.append(new Text(`✓ ${view.preview ? view.preview.slice(0, 100) : 'done'}`))
+        return
+      }
+      if (view.kind === 'turn-end') {
+        streamText = undefined
+        streamBuffer = ''
+        return
+      }
+      if (view.kind === 'error') {
+        app.append(new Text(`✗ ${view.message}`))
+      }
+    })
+    return () => off?.()
+  }, 'tui.events')
 }
