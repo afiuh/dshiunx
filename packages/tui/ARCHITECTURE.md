@@ -7,11 +7,22 @@
 
 ```
 @dshiunx/tui
-├── main-screen   布局：ScrollBox + MessageList + PromptInput + StatusLine
-├── messages      消息列表（MessageList + 工具卡）
-├── composer      输入（PromptInput）
-├── status        状态栏（StatusLine）
-├── overlays      弹窗（41 个，逐步补）
+├── index.tsx     主入口（Tui：ScrollBox + MessageList + PromptInput + StatusLine）
+├── commands/     75 个命令（按类别 6 个文件）
+│   ├── index.ts  分发（合并 6 个表）
+│   ├── ui.ts      /help /settings /theme /color /lang /tips
+│   ├── session.ts /new /resume /rewind /fork /rename /tree /clear
+│   ├── model.ts   /model /effort /preset /provider /permission /thinking
+│   ├── system.ts  /exit /reload /update /status /doctor /compact /context /cost /tokens /export /import /init /setup /terminal-setup
+│   ├── workspace.ts /workspace /migrate /add-dir /jobs /agents /agentview /subagent /btw /goal /todo /panel
+│   └── misc.ts    /activity /balance /recap /star /skills /... /home /invalid
+├── overlays/     41 个弹窗（每个一个文件）
+│   ├── index.ts  注册表
+│   ├── generic.tsx 通用覆盖层
+│   └── *.tsx     具体/通用实现
+├── keyboard/     18 个快捷键（每个一个文件）
+│   ├── index.ts  注册表
+│   └── *.ts      具体实现
 └── state         useChatStore（107 字段，已解耦）
 ```
 
