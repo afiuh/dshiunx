@@ -1,12 +1,14 @@
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import { mountRootInclude } from '@deepseek-ai/dsh-app-boot'
+import { dshHomePath } from '@deepseek-ai/dsh-home-paths'
 import { pathToFileURL } from 'node:url'
 import { fileURLToPath } from 'node:url'
 
 const entriesDir = fileURLToPath(new URL('../packages/bundle-arch/', import.meta.url))
 const ctx = new Context()
 ctx.baseUrl = pathToFileURL(entriesDir).href + '/'
+ctx.provide('dshHomePath', dshHomePath)
 ctx.provide('profileContext', {
   name: 'dshiunx',
   dir: `${process.cwd()}/profiles/default`,
