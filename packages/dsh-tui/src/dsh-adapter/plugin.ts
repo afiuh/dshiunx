@@ -2755,7 +2755,8 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
   // box sizes itself to the real terminal rows, while PageMargin reports
   // content-box dimensions to everything below it.
   const buildTree = (): React.ReactElement => {
-    const chat = buildChat()
+    // dshiunx: tui-chat can replace the content slot.
+    const chat = (ctx.get('tuiChat') as { build?: () => React.ReactElement } | undefined)?.build?.() ?? buildChat()
     const marginChildren = bootedFullscreen
       ? React.createElement(AlternateScreen, null, React.createElement(PageMargin, null, chat))
       : React.createElement(PageMargin, null, chat)
@@ -2764,6 +2765,8 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
       children: marginChildren,
     })
   }
+  // dshiunx: expose the default content builder for tui-chat.
+  ctx.provide('tuiChat', { build: buildChat })
   const tree = buildTree()
   // Kernel-switch replacement: send the ready ACK once the first frame after
   // adoption is flushed. Does nothing on an ordinary boot.
