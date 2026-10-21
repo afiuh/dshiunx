@@ -2618,6 +2618,7 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
   const liveThemeHost = (): TuiThemeHost | undefined => getHostThemes(ctx.get('tuiThemes') as TuiThemeRuntime | undefined)
   // dshiunx: props are a slot value so tui-chat can build its own Chat.
   const chatProps = {
+    statusSlot: (p: Record<string, unknown>) => (ctx.get('tuiStatus') as ((p: Record<string, unknown>) => React.ReactElement) | undefined)?.(p),
     channel,
     renderScene: createChannelSceneOutlet(() => rawChannel.pluginScene),
     questionStore,

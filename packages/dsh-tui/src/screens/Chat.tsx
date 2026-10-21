@@ -434,6 +434,7 @@ export function Chat({
   launchpadOnBoot,
   onboardingOnBoot,
   starPrompt,
+  statusSlot,
 }: {
   channel: Channel
   renderScene?: (id: string, channel: Channel) => React.ReactNode
@@ -7361,33 +7362,41 @@ export function Chat({
           caretPreviewOpen={peekPreview !== null}
           onDismissCaretPreview={dismissPeek}
         />
-        <StatusLine
-          channel={channel}
-          activity={workingActivity}
-          selectionActive={selectionActive}
-          helpOpen={helpOpen}
-          pluginFields={statusFields}
-          // Backend-native permission modes: the footer mode segment always
-          // shows (the base mode included) and clicks into the same
-          // /permission picker the command opens (the launchpad param row's
-          // route). DSH answers an empty list here — no prop, byte-identical
-          // rendering.
-          backendMode={backendModeStatus}
-          // 模型段/思考档位段：能力位在才可点，点击走既有 /model · /effort
-          // 命令（与模式段打开 /permission 完全同构）。
-          modelPicker={modelPickerStatus}
-          effortPicker={effortPickerStatus}
-          wake={
-            wakeBand === undefined
-              ? undefined
-              : {
-                  band: wakeBand,
-                  hint: trajectorySeen ? undefined : primaryComboString('trajectory'),
-                  onOpen: openScene,
-                  hoverHint: primaryComboString('trajectory'),
-                }
-          }
-        />
+        {statusSlot !== undefined ? statusSlot({
+          channel,
+          activity: workingActivity,
+          selectionActive,
+          helpOpen,
+          pluginFields: statusFields,
+          backendMode: backendModeStatus,
+          modelPicker: modelPickerStatus,
+          effortPicker: effortPickerStatus,
+          wake: wakeBand === undefined
+            ? undefined
+            : {
+                band: wakeBand,
+                hint: trajectorySeen ? undefined : primaryComboString('trajectory'),
+                onOpen: openScene,
+                hoverHint: primaryComboString('trajectory'),
+              },
+        }) : (
+          <StatusLine
+            channel={channel}
+            activity={workingActivity}
+            selectionActive={selectionActive}
+            helpOpen={helpOpen}
+            pluginFields={statusFields}
+            backendMode={backendModeStatus}
+            modelPicker={modelPickerStatus}
+            effortPicker={effortPickerStatus}
+            wake={wakeBand === undefined ? undefined : {
+              band: wakeBand,
+              hint: trajectorySeen ? undefined : primaryComboString('trajectory'),
+              onOpen: openScene,
+              hoverHint: primaryComboString('trajectory'),
+            }}
+          />
+        )}
         {/* 瞬态面板浮层：absolute + bottom:'100%' 钉在输入簇 Box 顶边（=
             输入行顶边），紧贴输入框向上覆盖其上 todo/spinner/转录尾部行，
             自身零布局高度。in-flow 挂载会让帧高随面板开关涨落，把帧顶行滚进

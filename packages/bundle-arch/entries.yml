@@ -854,3 +854,5 @@
     name: '@dshiunx/tui-protocol'
   - id: tui-chat
     name: '@dshiunx/tui-chat'
+  - id: tui-status
+    name: '@dshiunx/tui-status'
