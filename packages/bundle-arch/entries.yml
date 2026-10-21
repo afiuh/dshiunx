@@ -316,6 +316,8 @@
   name: '@deepseek-ai/dsh-session-title'
 - id: session-title-llm
   name: '@deepseek-ai/dsh-session-title-first-prompt-llm'
+- id: config-editor
+  name: '@deepseek-ai/dsh-config-editor'
 - id: preset-standard
   name: '@deepseek-ai/dsh-agent-preset'
   config:

@@ -178,6 +178,9 @@
       "@deepseek-ai/dsh-fs-local": [
         "packages/dsh-fs-local/src/index.ts"
       ],
+      "@deepseek-ai/dsh-config-editor": [
+        "packages/dsh-config-editor/src/index.ts"
+      ],
       "@deepseek-ai/dsh-pwsh-local": [
         "packages/dsh-pwsh-local/src/index.ts"
       ],
