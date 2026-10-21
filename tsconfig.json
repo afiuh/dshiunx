@@ -55,6 +55,9 @@
       "@deepseek-ai/dsh-spill": [
         "packages/dsh-spill/src/index.ts"
       ],
+      "@deepseek-ai/dsh-session-query": [
+        "packages/dsh-session-query/src/index.ts"
+      ],
       "@deepseek-ai/dsh-storage-json": [
         "packages/dsh-storage-json/src/index.ts"
       ],
@@ -138,6 +141,12 @@
       ],
       "@deepseek-ai/dsh-session-title-llm": [
         "packages/dsh-session-title-llm/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-deque": [
+        "packages/dsh-deque/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-api-session-controller": [
+        "packages/dsh-api-session-controller/src/index.ts"
       ],
       "@deepseek-ai/cordis-plugin-hmr": [
         "packages/cordis-plugin-hmr/src/index.ts"
@@ -405,6 +414,9 @@
       ],
       "@deepseek-ai/dsh-agent-tool-presentation": [
         "packages/dsh-agent-tool-presentation/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-native-command": [
+        "packages/dsh-native-command/src/index.ts"
       ],
       "@deepseek-ai/dsh-user-approval": [
         "packages/dsh-user-approval/src/index.ts"

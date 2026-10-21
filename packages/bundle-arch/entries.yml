@@ -23,10 +23,6 @@
   name: '@deepseek-ai/dsh-jobs-local'
 - id: llm-retry
   name: '@deepseek-ai/dsh-llm-retry'
-- id: session-persistence-jsonl
-  name: '@deepseek-ai/dsh-session-persistence-jsonl'
-  config:
-    root: dshHomePath('sessions')
 - id: attachment-local
   name: '@deepseek-ai/dsh-attachment-local'
 - id: working-directory
@@ -42,8 +38,8 @@
 - id: sandbox-policy
   name: '@deepseek-ai/dsh-sandbox-policy'
   config:
-    mode: process.env.DSH_PERMISSION_MODE ?? 'workspace-write'
-    workspaceRoot: process.cwd()
+    mode: workspace-write
+    workspaceRoot: /mnt/data/AI自由工作区/dshiunx
 - id: bash-sandbox
   name: '@deepseek-ai/dsh-bash-sandbox'
   config:
@@ -52,21 +48,7 @@
 - id: approval
   name: '@deepseek-ai/dsh-user-approval'
   config:
-    policy: '(process.env.DSH_PERMISSION_MODE ?? ''workspace-write'') === ''danger-full-access''
-      ? ''never'' : ''ask'''
-- id: permission
-  name: '@deepseek-ai/dsh-permission-presets'
-  config:
-    presets:
-      read-only:
-        sandbox: read-only
-        approval: ask
-      workspace-write:
-        sandbox: workspace-write
-        approval: ask
-      danger-full-access:
-        sandbox: danger-full-access
-        approval: never
+    policy: ask
 - id: shell-env
   name: '@deepseek-ai/dsh-shell-env'
 - id: tool-bash
@@ -246,8 +228,6 @@
   name: '@deepseek-ai/dsh-agent-loop'
   config:
     agents: []
-- id: fs-sandbox
-  name: '@deepseek-ai/dsh-fs-sandbox'
 - id: llm-deepseek
   name: '@deepseek-ai/dsh-llm-deepseek-api-key'
   config:
@@ -294,14 +274,10 @@
   name: '@deepseek-ai/dsh-agent-preset-registry'
   config:
     default: standard
-- id: schedule
-  name: '@deepseek-ai/dsh-schedule'
 - id: tool-schedule
   name: '@deepseek-ai/dsh-tool-schedule'
 - id: tool-subagent-model-selection
   name: '@deepseek-ai/dsh-tool-subagent/model-selection-settings'
-- id: bash-local
-  name: '@deepseek-ai/dsh-bash-local'
 - id: web
   name: '@deepseek-ai/dsh-web'
   config:
