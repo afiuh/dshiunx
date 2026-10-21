@@ -13,6 +13,9 @@
     "useDefineForClassFields": true,
     "baseUrl": ".",
     "paths": {
+      "@deepseek-ai/dsh-tool-workflow": [
+        "packages/dsh-tool-workflow/src/index.ts"
+      ],
       "@deepseek-ai/dsh-chunked-list": [
         "packages/dsh-chunked-list/src/index.ts"
       ],
@@ -30,6 +33,9 @@
       ],
       "@deepseek-ai/dsh-workspace": [
         "packages/dsh-workspace/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-cordis-host-runner": [
+        "packages/dsh-cordis-host-runner/src/index.ts"
       ],
       "@deepseek-ai/dsh-llm": [
         "packages/dsh-llm/src/index.ts"
@@ -64,6 +70,9 @@
       "@deepseek-ai/dsh-launch-environment": [
         "packages/dsh-launch-environment/src/index.ts"
       ],
+      "@deepseek-ai/dsh-workflow": [
+        "packages/dsh-workflow/src/index.ts"
+      ],
       "@deepseek-ai/dsh-agent-preset": [
         "packages/dsh-agent-preset/src/index.ts"
       ],
@@ -75,6 +84,9 @@
       ],
       "@deepseek-ai/dsh-skill-filesystem": [
         "packages/dsh-skill-filesystem/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-ptc-runtime-node": [
+        "packages/dsh-ptc-runtime-node/src/index.ts"
       ],
       "@deepseek-ai/cordis-plugin-include": [
         "packages/cordis-plugin-include/src/index.ts"
@@ -178,6 +190,9 @@
       "@deepseek-ai/dsh-command-goal": [
         "packages/dsh-command-goal/src/index.ts"
       ],
+      "@deepseek-ai/dsh-workflow-ptc": [
+        "packages/dsh-workflow-ptc/src/index.ts"
+      ],
       "@deepseek-ai/dsh-tool-working-directory": [
         "packages/dsh-tool-working-directory/src/index.ts"
       ],
@@ -229,6 +244,9 @@
       "@deepseek-ai/dsh-home-paths": [
         "packages/dsh-home-paths/src/index.ts"
       ],
+      "@deepseek-ai/dsh-sandbox-local": [
+        "packages/dsh-sandbox-local/src/index.ts"
+      ],
       "@deepseek-ai/dsh-goal-round-driver": [
         "packages/dsh-goal-round-driver/src/index.ts"
       ],
@@ -238,8 +256,14 @@
       "@deepseek-ai/dsh-session-persistence-jsonl": [
         "packages/dsh-session-persistence-jsonl/src/index.ts"
       ],
+      "@deepseek-ai/dsh-sandbox-windows-acl": [
+        "packages/dsh-sandbox-windows-acl/src/index.ts"
+      ],
       "@deepseek-ai/dsh-tool-subagent": [
         "packages/dsh-tool-subagent/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-tool-cordis": [
+        "packages/dsh-tool-cordis/src/index.ts"
       ],
       "@deepseek-ai/dsh-session-projection": [
         "packages/dsh-session-projection/src/index.ts"
@@ -273,6 +297,9 @@
       ],
       "@deepseek-ai/dsh-agent": [
         "packages/dsh-agent/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-plugin-manager": [
+        "packages/dsh-plugin-manager/src/index.ts"
       ],
       "@deepseek-ai/dsh-terminal": [
         "packages/dsh-terminal/src/index.ts"

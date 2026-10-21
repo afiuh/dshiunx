@@ -1,0 +1,7 @@
+{
+  "name": "@deepseek-ai/dsh-sandbox-windows-acl",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts"
+}

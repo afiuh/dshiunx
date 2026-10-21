@@ -1,0 +1,21 @@
+{
+  "name": "@deepseek-ai/dsh-tool-cordis",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./host": {
+      "types": "./lib/types/host.d.ts",
+      "default": "./lib/types/host.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json",
+    "./host/locale/*.json": "./locale/host/*.json",
+    "./locale/*.json": "./locale/*.json"
+  }
+}

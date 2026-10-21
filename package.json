@@ -32,5 +32,8 @@
     "eventsource-parser": "^3.0.0",
     "semver": "^7.6.0",
     "resolve.exports": "^2.0.3"
+  },
+  "optionalDependencies": {
+    "@deepseek-ai/node-addon-system-linux-x64": "0.1.2"
   }
 }
