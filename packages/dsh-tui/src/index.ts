@@ -69,7 +69,7 @@ export function apply(ctx: any): void {
       currentAgent?.interrupt?.()
     },
     onExit() {
-      void ctx.fiber.dispose()
+      process.exit(0)
     },
     onClear() {
       process.stdout.write('\x1b[2J\x1b[H')

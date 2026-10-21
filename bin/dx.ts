@@ -79,9 +79,11 @@ if (flag('-r') || flag('--resume')) process.env.DSHIUNX_RESUME = '1'
 if (option('--fork')) process.env.DSHIUNX_FORK = option('--fork')
 
 const task = option('-p') ?? positional()
-if (task) {
-  // 非交互：把任务交给 agent（TUI 插件已接线，这里直接走 followup）
-  process.env.DSHIUNX_TASK = task
-}
+if (task) process.env.DSHIUNX_TASK = task
 
+// 保持进程运行；TUI 的 onExit 会 process.exit(0)。
+await new Promise<void>((resolve) => {
+  process.on('SIGINT', resolve)
+  process.on('SIGTERM', resolve)
+})
 await ctx.fiber.dispose()
