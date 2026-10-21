@@ -16,6 +16,7 @@ import { useChatStore } from '../../tui-store/src/index.js'
 import { MessageList } from '../../tui-components/src/index.js'
 import { PromptInput } from '../../tui-components/src/index.js'
 import { StatusLine } from '../../dsh-tui/src/screens/StatusLine.js'
+import { runCommand } from './commands.js'
 
 export interface TuiProps {
   channel: any
@@ -87,7 +88,7 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
         channel={channel}
         helpOpen={helpOpen}
         onToggleHelp={() => store.toggleHelp()}
-        onRunCommand={() => true}
+        onRunCommand={(name: string, rawInput?: string) => runCommand(name, rawInput ?? '', { channel })}
         suspended={false}
         cursorParking={true}
         draftCache={undefined}
