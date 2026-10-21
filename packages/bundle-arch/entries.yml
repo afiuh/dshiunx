@@ -847,4 +847,8 @@
       name: '@deepseek-ai/dsh-plugin-market/tools'
       disabled: '!ctx.get(''profileContext'')'
 - id: tui
-  name: '@dshiunx/tui'
+  name: cordis:group
+  group: true
+  config:
+  - id: tui-protocol
+    name: '@dshiunx/tui-protocol'

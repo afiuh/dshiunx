@@ -465,6 +465,15 @@
       ],
       "@deepseek-ai/dsh-cmdline": [
         "packages/dsh-cmdline/src/index.ts"
+      ],
+      "@dshiunx/tui-protocol": [
+        "packages/tui-protocol/src/index.ts"
+      ],
+      "@dshiunx/tui-core": [
+        "packages/tui-core/src/index.ts"
+      ],
+      "@dshiunx/tui-chat": [
+        "packages/tui-chat/src/index.ts"
       ]
     }
   }
