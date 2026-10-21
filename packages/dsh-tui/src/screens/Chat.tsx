@@ -52,6 +52,8 @@ import { backendModeStatus as modeStatus, backendPermissionCommand, parseMcpComm
 import { PermissionStore, type PermissionPanelSource } from '../channel/permissions.js'
 import { goalStatusLines, parseGoalCommand } from '../channel/goal-command.js'
 import { helpStore } from '../stores/helpStore.js'
+import { timelineStore } from '../stores/timelineStore.js'
+import { modelsStore } from '../stores/modelsStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -708,13 +710,7 @@ export function Chat({
    * rail's ▲/▼. Null activeId while pinned to the bottom only when there
    * are no turns (header hidden there anyway).
    */
-  const [timeline, setTimeline] = React.useState<TimelineSnapshot>({
-    turns: [],
-    activeId: null,
-    pinnedId: null,
-    upId: null,
-    downId: null,
-  })
+  const timeline = React.useSyncExternalStore(timelineStore.subscribe, timelineStore.get)
   const [selectionActive, setSelectionActive] = React.useState(false)
   const [selectedId, setSelectedId] = React.useState<number | null>(null)
   const [expandedRows, setExpandedRows] = React.useState<ReadonlySet<number>>(
@@ -818,8 +814,8 @@ export function Chat({
       when: ['permission'],
     })
   })
-  const [models, setModels] = React.useState<readonly LlmModelInfo[]>([])
-  const [modelsLoading, setModelsLoading] = React.useState(false)
+  const models = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.get)
+  const modelsLoading = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.isLoading)
   const modelCatalogGeneration = React.useRef(0)
   /** Provider display identities for the /model tabs; refreshed alongside `models`. */
   const [providerInfos, setProviderInfos] = React.useState<readonly LlmProviderInfo[]>([])
@@ -3310,15 +3306,15 @@ export function Chat({
         }
         modelPicker.reset()
         dispatchOverlay({ type: 'open', overlay: { kind: 'model' } })
-        setModelsLoading(true)
+        modelsStore.setLoading(true)
         const generation = ++modelCatalogGeneration.current
         void channel.listModels().then((list) => {
           if (generation !== modelCatalogGeneration.current) return
-          setModels(list)
-          setModelsLoading(false)
+          modelsStore.set(list)
+          modelsStore.setLoading(false)
         }).catch(() => {
           if (generation !== modelCatalogGeneration.current) return
-          setModelsLoading(false)
+          modelsStore.setLoading(false)
           channel.notify(t('model-load-failed'), { color: 'error' })
         })
         if (modelProviderTabs) void channel.listProviders().then(list => {
@@ -3391,7 +3387,7 @@ export function Chat({
           if (outcome === 'added' || outcome === 'updated'
             || outcome === 'deleted' || outcome === 'signed-out') {
             channel.invalidateModelCompletion()
-            void channel.listModels().then(setModels)
+            void channel.listModels().then(modelsStore.set)
             void channel.listProviders().then(setProviderInfos).catch(() => setProviderInfos([]))
           }
         }).catch(() => {
@@ -7090,7 +7086,7 @@ export function Chat({
           forceMountRowId={forceMountRowId}
           newSinceRowId={isSticky ? null : lastSeenRowIdRef.current}
           onUnseenCount={setUnseenCount}
-          onTimeline={setTimeline}
+          onTimeline={timelineStore.set}
           onOpenSubagent={setSubagentDetailId}
           onOpenSubagentView={openSubagentViewFromCard}
           onOpenJobs={openJobsPanel}
