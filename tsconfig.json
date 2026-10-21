@@ -459,6 +459,12 @@
       ],
       "@dshiunx/tui": [
         "packages/dsh-tui/src/index.ts"
+      ],
+      "@deepseek-harness-tui/dsh-tui": [
+        "packages/dsh-tui/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-cmdline": [
+        "packages/dsh-cmdline/src/index.ts"
       ]
     }
   }

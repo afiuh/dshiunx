@@ -11,5 +11,6 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
-  }
+  },
+  "version": "4.0.5"
 }

@@ -1,7 +1,12 @@
 {
-  "name": "@dshiunx/tui",
+  "name": "@deepseek-harness-tui/dsh-tui",
   "private": true,
   "type": "module",
   "main": "src/index.ts",
-  "types": "src/index.ts"
+  "types": "src/index.ts",
+  "imports": {
+    "#tui-profile/tui-channel": "./tui-profile/protocols/tui-channel.js",
+    "#tui-profile/profile-definitions": "./tui-profile/protocols/profile-definitions.js",
+    "#tui-profile/tui-contributions": "./tui-profile/protocols/tui-contributions.js"
+  }
 }

@@ -15,6 +15,7 @@
  */
 import { boot } from '@deepseek-ai/dsh-app-boot'
 import { fileURLToPath } from 'node:url'
+import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
 
 const args = process.argv.slice(2)
 
@@ -64,6 +65,10 @@ const ctx = await boot('dx', configPath, [], (hostCtx) => {
     startedBundles: [],
     overlays: [],
     telemetryDisabledEnv: undefined,
+  })
+  provideCmdline(hostCtx, {
+    args: process.argv.slice(2),
+    exit: (code: number) => process.exit(code),
   })
 })
 

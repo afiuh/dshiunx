@@ -1,0 +1,6 @@
+{
+  "name": "dshiunx-profile-default",
+  "private": true,
+  "version": "0.2.1-rc.2",
+  "dsh": { "profile": { "bundles": [] } }
+}
