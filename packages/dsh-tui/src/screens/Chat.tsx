@@ -53,6 +53,7 @@ import { PermissionStore, type PermissionPanelSource } from '../channel/permissi
 import { goalStatusLines, parseGoalCommand } from '../channel/goal-command.js'
 import { useChatStore } from '../../../tui-store/src/index.js'
 import { ChatView } from '../../../tui-view/src/index.tsx'
+import { Tui } from '../../../tui/src/index.tsx'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -405,7 +406,10 @@ function peekKey(image: TranscriptImage, title: string | undefined): string {
   return `${title ?? ''} ${image.id}`
 }
 
-export function Chat({
+export function Chat(props: Record<string, any>): React.ReactNode {
+  return <Tui channel={props.channel} />
+}
+export function useChatControllerLegacy({
   channel,
   questionStore,
   approvalStore,
@@ -7033,7 +7037,7 @@ export function Chat({
     watchJobOutput,
     workingActivity,
   }
-  return <ChatView state={chatState} withTitle={withTitle} PinnedTurnHeader={PinnedTurnHeader} />
+  return { ...chatState, withTitle, PinnedTurnHeader }
 
 }
 
