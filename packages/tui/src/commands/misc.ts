@@ -1,0 +1,35 @@
+/** 其他命令：/activity /balance /recap /star /skills /hooks /mcp /plugin /team /channel /deepseek /dsh /kernel /login /logout /pause /plan /background /bg /restart /set /config /connect /continue /tool /trace /vim /home /agents /invalid */
+import { useChatStore } from '../../../tui-store/src/index.js'
+import type { CommandHandler } from './types.js'
+
+export const miscCommands: Record<string, CommandHandler> = {
+  activity: () => { useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'activity', index: 0 } } as never); return true },
+  balance: () => { useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'balance', index: 0 } } as never); return true },
+  recap: () => { useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'recap', index: 0 } } as never); return true },
+  star: () => { useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'starred', index: 0 } } as never); return true },
+  skills: () => { useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'skills', index: 0 } } as never); return true },
+  hooks: (_i, { channel }) => { channel.notify?.('hooks: not implemented'); return true },
+  mcp: (_i, { channel }) => { channel.notify?.('mcp: not implemented'); return true },
+  plugin: (_i, { channel }) => { channel.notify?.('plugin: not implemented'); return true },
+  team: (_i, { channel }) => { channel.notify?.('team: not implemented'); return true },
+  channel: (_i, { channel }) => { channel.notify?.('channel: not implemented'); return true },
+  deepseek: (_i, { channel }) => { channel.notify?.('deepseek: not implemented'); return true },
+  dsh: (_i, { channel }) => { channel.notify?.('dsh: not implemented'); return true },
+  kernel: (_i, { channel }) => { channel.notify?.('kernel: not implemented'); return true },
+  login: (_i, { channel }) => { void channel.login?.(); return true },
+  logout: (_i, { channel }) => { void channel.logout?.(); return true },
+  pause: () => { useChatStore.getState().setTodoCollapsed(true); return true },
+  plan: () => { useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'plan', index: 0 } } as never); return true },
+  background: () => { useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'confirm', message: 'Background session?' } } as never); return true },
+  bg: () => { useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'confirm', message: 'Background session?' } } as never); return true },
+  restart: (_i, { channel }) => { void channel.restart?.(); return true },
+  set: (_i, { channel }) => { channel.notify?.('set: not implemented'); return true },
+  config: () => { useChatStore.getState().setSettingsOpen(true); return true },
+  connect: (_i, { channel }) => { void channel.login?.(); return true },
+  continue: (_i, { channel }) => { void channel.continue?.(); return true },
+  tool: (_i, { channel }) => { channel.notify?.('tool: not implemented'); return true },
+  trace: () => { useChatStore.getState().setSceneOpen(true); return true },
+  vim: (_i, { channel }) => { channel.notify?.('vim: not implemented'); return true },
+  home: () => { useChatStore.getState().setSceneOpen(true); return true },
+  invalid: (_i, { channel }) => { channel.notify?.('invalid command'); return true },
+}

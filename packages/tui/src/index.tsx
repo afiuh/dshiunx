@@ -16,7 +16,7 @@ import { useChatStore } from '../../tui-store/src/index.js'
 import { MessageList } from '../../tui-components/src/index.js'
 import { PromptInput } from '../../tui-components/src/index.js'
 import { StatusLine } from '../../dsh-tui/src/screens/StatusLine.js'
-import { runCommand } from './commands.js'
+import { runCommand } from './commands/index.js'
 
 export interface TuiProps {
   channel: any
