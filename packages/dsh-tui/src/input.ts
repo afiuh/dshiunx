@@ -1,4 +1,5 @@
 import { createInterface, emitKeypressEvents } from 'node:readline'
+import { resolveAction } from './keybindings.ts'
 
 /**
  * 终端输入：readline + 快捷键。
@@ -32,23 +33,30 @@ export function startInput(handlers: InputHandlers): { close(): void } {
 
   process.stdin.on('keypress', (_str, key) => {
     if (!key) return
-    if (key.name === 'escape') {
-      const now = Date.now()
-      if (now - lastEsc < 400) handlers.onRewind()
-      lastEsc = now
-      return
-    }
-    if (key.ctrl && key.name === 'c') { handlers.onCancel(); return }
-    if (key.ctrl && key.name === 'd') { handlers.onExit(); return }
-    if (key.ctrl && key.name === 'l') { handlers.onClear(); return }
-    if (key.ctrl && key.name === 'o') { handlers.onToggleTools(); return }
-    if (key.name === 'up' && history.length) {
-      historyIndex = Math.max(0, historyIndex - 1)
-      rl.write(history[historyIndex] ?? '')
-    }
-    if (key.name === 'down' && history.length) {
-      historyIndex = Math.min(history.length - 1, historyIndex + 1)
-      rl.write(history[historyIndex] ?? '')
+    const action = resolveAction(key)
+    switch (action) {
+      case 'rewind': {
+        const now = Date.now()
+        if (now - lastEsc < 400) handlers.onRewind()
+        lastEsc = now
+        return
+      }
+      case 'cancel': handlers.onCancel(); return
+      case 'exit': handlers.onExit(); return
+      case 'clear': handlers.onClear(); return
+      case 'toggle-tools': handlers.onToggleTools(); return
+      case 'history-prev':
+        if (history.length) {
+          historyIndex = Math.max(0, historyIndex - 1)
+          rl.write(history[historyIndex] ?? '')
+        }
+        return
+      case 'history-next':
+        if (history.length) {
+          historyIndex = Math.min(history.length - 1, historyIndex + 1)
+          rl.write(history[historyIndex] ?? '')
+        }
+        return
     }
   })
 
