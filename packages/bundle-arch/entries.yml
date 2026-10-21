@@ -854,5 +854,3 @@
     name: '@dshiunx/tui-protocol'
   - id: tui-chat
     name: '@dshiunx/tui-chat'
-  - id: tui-themes
-    name: '@dshiunx/tui-themes'
