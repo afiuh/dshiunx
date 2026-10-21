@@ -36,7 +36,8 @@
     "@js-temporal/polyfill": "^0.5.1",
     "ipaddr.js": "^2.2.0",
     "mime-types": "^2.1.35",
-    "@vscode/ripgrep": "^1.17.0"
+    "@vscode/ripgrep": "^1.17.0",
+    "@modelcontextprotocol/client": "2.2.0"
   },
   "optionalDependencies": {
     "@deepseek-ai/node-addon-system-linux-x64": "0.1.2"

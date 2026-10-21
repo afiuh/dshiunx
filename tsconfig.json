@@ -409,6 +409,9 @@
       "@deepseek-ai/dsh-goal": [
         "packages/dsh-goal/src/index.ts"
       ],
+      "@deepseek-ai/dsh-mcp-client": [
+        "packages/dsh-mcp-client/src/index.ts"
+      ],
       "@deepseek-ai/dsh-session-title-first-prompt-llm": [
         "packages/dsh-session-title-first-prompt-llm/src/index.ts"
       ],
