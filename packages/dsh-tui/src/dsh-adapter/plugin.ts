@@ -2766,7 +2766,7 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
     })
   }
   // dshiunx: expose the default content builder for tui-chat.
-  ctx.provide('tuiChat', { build: buildChat })
+  ctx.provide('tuiChat', { build: buildChat, default: buildChat })
   const tree = buildTree()
   // Kernel-switch replacement: send the ready ACK once the first frame after
   // adoption is flushed. Does nothing on an ordinary boot.
