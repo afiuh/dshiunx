@@ -204,8 +204,13 @@
         prefix: You are a helpful software engineer assistant.
         complete: true
         includeRuntimeContext: false
-    - id: command-compact
-      name: '@deepseek-ai/dsh-command-compact'
+    - id: tool-fs
+      name: '@deepseek-ai/dsh-tool-fs'
+      config:
+        read: false
+        readImage: true
+        write: false
+        edit: false
 - id: preset-creator
   name: '@deepseek-ai/dsh-agent-preset'
   config:
