@@ -552,6 +552,7 @@ function scopeArgs(
     '--scope',
     '--quiet',
     '--collect',
+    '--pipe',
     ...literalArgv,
     `--unit=${unitBase}`,
     '--',
