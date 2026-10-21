@@ -864,3 +864,9 @@
     name: '@dshiunx/tui/plugins/overlays'
   - id: tui-keyboard
     name: '@dshiunx/tui/plugins/keyboard'
+  - id: cordis-plugin-hmr
+    name: '@deepseek-ai/cordis-plugin-hmr'
+    config:
+      root:
+      - packages/tui/src
+      debounce: 200
