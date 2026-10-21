@@ -60,6 +60,7 @@ import { settingsStore } from '../stores/settingsStore.js'
 import { sessionStore } from '../stores/sessionStore.js'
 import { searchStore } from '../stores/searchStore.js'
 import { panelsStore } from '../stores/panelsStore.js'
+import { migrateStore } from '../stores/migrateStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -738,15 +739,15 @@ export function Chat({
   const dispatchOverlay = overlayStore.dispatch
   // `/migrate` picker rows (null = collecting in the background; the picker
   // shows its empty state until the sub-second scan lands).
-  const [migrateRows, setMigrateRows] = React.useState<MigratePickerRow[] | null>(null)
+  const migrateRows = React.useSyncExternalStore(migrateStore.subscribe, migrateStore.getRows)
   // Multi-select state (PRD): checked agent ids + the confirmation layer's
   // frozen snapshot of the checked rows.
-  const [migrateChecked, setMigrateChecked] = React.useState<ReadonlySet<string>>(new Set())
-  const [migratePending, setMigratePending] = React.useState<readonly MigratePickerRow[]>([])
+  const migrateChecked = React.useSyncExternalStore(migrateStore.subscribe, migrateStore.getChecked)
+  const migratePending = React.useSyncExternalStore(migrateStore.subscribe, migrateStore.getPending)
   // Smart-hint arming: while the migration hint notification is up, a bare
   // Enter (empty prompt, no overlay) jumps straight into the picker with
   // that source pre-checked (PRD #4). Any other key disarms.
-  const [migrateHintAgent, setMigrateHintAgent] = React.useState<string | null>(null)
+  const migrateHintAgent = React.useSyncExternalStore(migrateStore.subscribe, migrateStore.getHintAgent)
   // Chat and PromptInput both receive one parsed stdin batch. Keep the
   // permission focus synchronous so arrow+Enter in the same batch uses the
   // post-arrow row rather than the previous render's index.
@@ -2408,7 +2409,7 @@ export function Chat({
   const migrateHintShownRef = React.useRef(false)
   React.useEffect(() => {
     // A replaced Channel must not retain the old hint's Enter shortcut.
-    setMigrateHintAgent(null)
+    migrateStore.setHintAgent(null)
     if (migrateHintShownRef.current) return
     let disposed = false
     let hintTimer: ReturnType<typeof setTimeout> | undefined
@@ -2428,8 +2429,8 @@ export function Chat({
           // PRD #4: while the hint is up, a bare Enter (empty prompt, no
           // overlay) jumps into the picker with this source pre-checked;
           // the global key layer below consumes it, anything else disarms.
-          setMigrateHintAgent(top.agentId)
-          hintTimer = setTimeout(() => setMigrateHintAgent(current => current === top.agentId ? null : current), 10_000)
+          migrateStore.setHintAgent(top.agentId)
+          hintTimer = setTimeout(() => migrateStore.setHintAgent(current => current === top.agentId ? null : current), 10_000)
         }
       })()
     }, 12_000)
@@ -3761,11 +3762,11 @@ export function Chat({
               spawnMigrateSources([row], true)
               return
             }
-            setMigratePending([row])
+            migrateStore.setPending([row])
             // Pin the checked set to the source this confirmation is about:
             // Esc returns to the picker, and a stale set from an earlier visit
             // would there contradict what the confirmation just showed.
-            setMigrateChecked(new Set([row.agentId]))
+            migrateStore.setChecked(new Set([row.agentId]))
             overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate-confirm' } })
           })()
           return true
@@ -3773,8 +3774,8 @@ export function Chat({
         // Bare `/migrate` starts a NEW flow: drop the previous run's checks
         // (only Esc-out-of-confirm keeps them) and let the picker show its
         // scanning state until the rows land.
-        setMigrateRows(null)
-        setMigrateChecked(new Set())
+        migrateStore.setRows(null)
+        migrateStore.setChecked(new Set())
         overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
         void collectMigrateRows().then(setMigrateRows)
         return true
@@ -5178,14 +5179,14 @@ export function Chat({
       if (plainReturn && !(promptControllerRef.current?.hasText() ?? false)) {
         const agent = migrateHintAgent
         event.stopImmediatePropagation()
-        setMigrateHintAgent(null)
-        setMigrateRows(null)
-        setMigrateChecked(new Set([agent]))
+        migrateStore.setHintAgent(null)
+        migrateStore.setRows(null)
+        migrateStore.setChecked(new Set([agent]))
         overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
         void collectMigrateRows().then(setMigrateRows)
         return
       }
-      setMigrateHintAgent(null)
+      migrateStore.setHintAgent(null)
     }
     if (overlay.kind === 'migrate') {
       const rows = migrateRows ?? []
@@ -5196,7 +5197,7 @@ export function Chat({
       } else if (rows.length > 0) {
         const row = rows[overlay.index]
         if (input === ' ' && row !== undefined) {
-          setMigrateChecked(current => {
+          migrateStore.setChecked(current => {
             const next = new Set(current)
             if (next.has(row.agentId)) next.delete(row.agentId)
             else next.add(row.agentId)
@@ -5204,7 +5205,7 @@ export function Chat({
           })
         } else if (input === 'a' && !key.ctrl && !key.meta) {
           // All/none toggle: a checked-everything state collapses to none.
-          setMigrateChecked(current =>
+          migrateStore.setChecked(current =>
             current.size >= rows.length ? new Set() : new Set(rows.map(candidate => candidate.agentId)))
         } else if (plainReturn) {
           // Checked set wins; the focused row acts as a single selection
@@ -5213,7 +5214,7 @@ export function Chat({
             ? rows.filter(candidate => migrateChecked.has(candidate.agentId))
             : row !== undefined ? [row] : []
           if (chosen.length > 0) {
-            setMigratePending(chosen)
+            migrateStore.setPending(chosen)
             overlayStore.dispatch({ type: 'close' })
             overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate-confirm' } })
           }
@@ -6062,7 +6063,7 @@ export function Chat({
                 onPick={(index) => {
                   const row = (migrateRows ?? [])[index]
                   if (!row) return
-                  setMigrateChecked(current => {
+                  migrateStore.setChecked(current => {
                     const next = new Set(current)
                     if (next.has(row.agentId)) next.delete(row.agentId)
                     else next.add(row.agentId)
