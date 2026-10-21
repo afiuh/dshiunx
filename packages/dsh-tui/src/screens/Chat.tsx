@@ -56,6 +56,8 @@ import { timelineStore } from '../stores/timelineStore.js'
 import { modelsStore } from '../stores/modelsStore.js'
 import { selectionStore } from '../stores/selectionStore.js'
 import { overlayStore } from '../stores/overlayStore.js'
+import { settingsStore } from '../stores/settingsStore.js'
+import { sessionStore } from '../stores/sessionStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -1202,12 +1204,12 @@ export function Chat({
   /** `/tree` opens the session family tree (pi's Session Tree): every rewind
    *  fork stitched back onto the message it diverged from, hover previews,
    *  and per-node rewind/fork/adopt actions. Like the supervisor, a screen. */
-  const [treeOpen, setTreeOpen] = React.useState(false)
+  const treeOpen = React.useSyncExternalStore(sessionStore.subscribe, sessionStore.getTreeOpen)
   /**
    * The session backgrounded when the screen opened via ←/`/bg` (the "Esc
    *  returns to that conversation" return target), cleared on close.
    */
-  const [agentViewReturnId, setAgentViewReturnId] = React.useState<string | undefined>(undefined)
+  const agentViewReturnId = React.useSyncExternalStore(sessionStore.subscribe, sessionStore.getAgentViewReturnId)
   /** Live agent-view rows: the prompt footer's "← N agents" hint reads the
    *  needs-input count from here (cached snapshot in the channel). The
    *  `?.()` fallbacks keep pre-agent-view test stubs (channel facades in
@@ -1235,7 +1237,7 @@ export function Chat({
     }
     void channel.backgroundCurrent().then((result) => {
       if (result.ok) {
-        setAgentViewReturnId(result.backgroundedSessionId)
+        sessionStore.setAgentViewReturnId(result.backgroundedSessionId)
         agentViewOpenSessionRef.current = channel.agentId
         setSupervisorOpen(true)
       }
@@ -1244,7 +1246,7 @@ export function Chat({
   /** `/settings` opens the plugin settings screen (issue #165) — like the
    *  browser, a screen rather than a panel: it owns its own focus, staged
    *  drafts and keyboard; Chat only opens it. */
-  const [settingsOpen, setSettingsOpen] = React.useState(false)
+  const settingsOpen = React.useSyncExternalStore(settingsStore.subscribe, settingsStore.get)
   // The held boot screens open once the session is adopted, unless the user
   // went to another screen; a failed startup never opens them.
   const channelReady = channel.ready
@@ -1735,13 +1737,13 @@ export function Chat({
    * 保持挂载（草稿经 draftCache 往返），场景只借用屏幕与键盘；Esc 回到打开它
    * 的地方（对话 / 代理面板 / 详情 / 转录卡）。不建第二个 Channel。
    */
-  const [agentView, setAgentView] = React.useState<{ agentId: string; source: AgentViewSource } | null>(null)
+  const agentView = React.useSyncExternalStore(sessionStore.subscribe, sessionStore.getAgentView)
   const openAgentView = React.useCallback((agentId: string, source: AgentViewSource): void => {
-    setAgentView({ agentId, source })
+    sessionStore.setAgentView({ agentId, source })
   }, [])
   /** 工作台里切到同级或父代理：原地换被查看的代理，Esc 仍回最初的入口。 */
   const switchViewedAgent = React.useCallback((agentId: string): void => {
-    setAgentView(prev => prev === null ? prev : { ...prev, agentId })
+    sessionStore.setAgentView(prev => prev === null ? prev : { ...prev, agentId })
   }, [])
   /** 转录卡入口的稳定句柄：MessageList 的 memo 行按 props 身份比较，内联
    *  箭头会让每个流式 tick 重渲染全部落定行（verify-tool-history-window）。 */
@@ -1755,11 +1757,11 @@ export function Chat({
     const source: AgentViewSource = request.source === 'agents-dashboard'
       ? { kind: 'agents-dashboard', ...(request.panel ? { panel: true as const } : {}) }
       : { kind: 'agent-detail', agentId: request.agentId, ...(request.panel ? { panel: true as const } : {}) }
-    setAgentView({ agentId: request.agentId, source })
+    sessionStore.setAgentView({ agentId: request.agentId, source })
   }), [])
   /** Esc 的返回路由：面板来源回面板（路由经模块记忆保真），整屏来源回整屏。 */
   const exitAgentView = React.useCallback((source: AgentViewSource): void => {
-    setAgentView(null)
+    sessionStore.setAgentView(null)
     const sidePanel = sidePanelRef.current
     const panelReturn = (sidePanel !== null && sidePanel.split && sidePanel.enabledPanelIds.includes('agents'))
     if (source.kind === 'agents-dashboard') {
@@ -1876,7 +1878,7 @@ export function Chat({
     suppressLogoIntroRef.current = true
     markHomeSeen()
     const returnTo = agentViewReturnId
-    setAgentViewReturnId(undefined)
+    sessionStore.setAgentViewReturnId(undefined)
     setSupervisorOpen(false)
     if (returnTo !== undefined && returnTo !== channel.agentId) {
       void channel.resumeTo(returnTo).then((result) => {
@@ -3543,7 +3545,7 @@ export function Chat({
         // The session family tree (pi's Session Tree): every fork branch
         // stitched back, hover previews, per-node rewind/fork/adopt.
         helpStore.set(false)
-        setTreeOpen(true)
+        sessionStore.setTreeOpen(true)
         return true
       }
       case 'fork': {
@@ -3649,7 +3651,7 @@ export function Chat({
         // Plugin settings screen (issue #165): opens immediately; the screen
         // reads sections + namespaces from the channel itself.
         helpStore.set(false)
-        setSettingsOpen(true)
+        settingsStore.set(true)
         return true
       }
       case 'continue': {
@@ -3681,7 +3683,7 @@ export function Chat({
             }
             channel.notify(t('resume-resumed'))
             suppressLogoIntroRef.current = true
-            setAgentViewReturnId(undefined)
+            sessionStore.setAgentViewReturnId(undefined)
             repaintTranscript()
           })
           .catch(() => {
@@ -6489,7 +6491,7 @@ export function Chat({
           if (!result.ok) return result
           channel.notify(t('resume-resumed'))
           suppressLogoIntroRef.current = true
-          setAgentViewReturnId(undefined)
+          sessionStore.setAgentViewReturnId(undefined)
           setSupervisorOpen(false)
           // 第七版：明确选中一个会话 = 有意导航（与 Esc「退出」相对）——浏览页
           // 与盖在它底下的落地页**一起收**，人落在那个会话的聊天页。只收浏览页
@@ -6506,7 +6508,7 @@ export function Chat({
           const ok = await channel.switchWorkspace(target)
           if (ok) {
             suppressLogoIntroRef.current = true
-            setAgentViewReturnId(undefined)
+            sessionStore.setAgentViewReturnId(undefined)
             setSupervisorOpen(false)
             // 同 onOpenSession：新建/切工作区会话也是有意导航，落地页一并收。
             setLaunchpadOpen(false)
@@ -6549,7 +6551,7 @@ export function Chat({
       <SessionTree
         channel={channel}
         currentSessionId={channel.agentId}
-        onClose={() => setTreeOpen(false)}
+        onClose={() => sessionStore.setTreeOpen(false)}
         onRestoreText={(text) => {
           // The tree rewound to a node and is handing that turn's prompt back,
           // exactly like the picker does. It belongs to the binding the tree
@@ -6566,7 +6568,7 @@ export function Chat({
   // conversation (an early return after every hook above has run), so there
   // is no transcript underneath to be repainted or bled through.
   if (settingsOpen && launchpadGate()) {
-    const screen = <Settings channel={channel} onClose={() => setSettingsOpen(false)} statusFields={statusFields} />
+    const screen = <Settings channel={channel} onClose={() => settingsStore.set(false)} statusFields={statusFields} />
     return withTitle(fullscreen ? screen : <AlternateScreen>{screen}</AlternateScreen>)
   }
 
@@ -6579,7 +6581,7 @@ export function Chat({
     const viewSubagent = channel.subagents.find(s => s.agentId === agentView.agentId)
     if (!viewSubagent) {
       // The roster lost this child (session switch): pop the view, don't crash.
-      setAgentView(null)
+      sessionStore.setAgentView(null)
       return null
     }
     // Headless stubs mount Chat without a subagentControl at all.
