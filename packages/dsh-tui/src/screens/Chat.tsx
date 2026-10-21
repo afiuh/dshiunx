@@ -51,14 +51,12 @@ import { useBackendChannels } from './chat/useBackendChannels.js'
 import { backendModeStatus as modeStatus, backendPermissionCommand, parseMcpCommand } from './chat/backendCommands.js'
 import { PermissionStore, type PermissionPanelSource } from '../channel/permissions.js'
 import { goalStatusLines, parseGoalCommand } from '../channel/goal-command.js'
-import { helpStore } from '../stores/helpStore.js'
+import { useChatStore } from '../../../tui-store/src/index.js'
 import { timelineStore } from '../stores/timelineStore.js'
 import { modelsStore } from '../stores/modelsStore.js'
 import { selectionStore } from '../stores/selectionStore.js'
 import { overlayStore } from '../stores/overlayStore.js'
-import { settingsStore } from '../stores/settingsStore.js'
 import { sessionStore } from '../stores/sessionStore.js'
-import { searchStore } from '../stores/searchStore.js'
 import { panelsStore } from '../stores/panelsStore.js'
 import { migrateStore } from '../stores/migrateStore.js'
 import { uiStore } from '../stores/uiStore.js'
@@ -708,7 +706,7 @@ export function Chat({
     })
   }, [extensionShortcuts, channel])
   const [expanded, setExpanded] = React.useState(false)
-  const helpOpen = React.useSyncExternalStore(helpStore.subscribe, helpStore.get)
+  const helpOpen = useChatStore((state) => state.helpOpen)
   const [handle, setHandle] = React.useState<ScrollBoxHandle | null>(null)
   /**
    * Conversation timeline snapshot (reported by MessageList): one entry
@@ -1209,7 +1207,7 @@ export function Chat({
   /** `/tree` opens the session family tree (pi's Session Tree): every rewind
    *  fork stitched back onto the message it diverged from, hover previews,
    *  and per-node rewind/fork/adopt actions. Like the supervisor, a screen. */
-  const treeOpen = React.useSyncExternalStore(sessionStore.subscribe, sessionStore.getTreeOpen)
+  const treeOpen = useChatStore((state) => state.treeOpen)
   /**
    * The session backgrounded when the screen opened via ←/`/bg` (the "Esc
    *  returns to that conversation" return target), cleared on close.
@@ -1251,7 +1249,7 @@ export function Chat({
   /** `/settings` opens the plugin settings screen (issue #165) — like the
    *  browser, a screen rather than a panel: it owns its own focus, staged
    *  drafts and keyboard; Chat only opens it. */
-  const settingsOpen = React.useSyncExternalStore(settingsStore.subscribe, settingsStore.get)
+  const settingsOpen = useChatStore((state) => state.settingsOpen)
   // The held boot screens open once the session is adopted, unless the user
   // went to another screen; a failed startup never opens them.
   const channelReady = channel.ready
@@ -1660,10 +1658,10 @@ export function Chat({
     selectionStore.setActive(false)
     uiStore.setShowAllMessages(false)
     uiStore.setLoadedContextOpen(false)
-    searchStore.setQuery('')
-    searchStore.setCursor(0)
-    searchStore.setCount(0)
-    searchStore.setCurrent(0)
+    useChatStore.getState().setSearchQuery('')
+    useChatStore.getState().setSearchCursor(0)
+    useChatStore.getState().setSearchCount(0)
+    useChatStore.getState().setSearchCurrent(0)
     uiStore.setBtwOverlayOpen(false)
     repaintTranscript()
   }, [channel.agentId]) // eslint-disable-line react-hooks/exhaustive-deps
@@ -2116,10 +2114,10 @@ export function Chat({
    *  Only the bar's open/closed mode lives in `overlay`; the query and match
    *  counters persist past the bar closing so n/N keep walking the matches. */
   const searchActive = overlay.kind === 'search'
-  const searchQuery = React.useSyncExternalStore(searchStore.subscribe, searchStore.getQuery)
-  const searchCursor = React.useSyncExternalStore(searchStore.subscribe, searchStore.getCursor)
-  const searchCount = React.useSyncExternalStore(searchStore.subscribe, searchStore.getCount)
-  const searchCurrent = React.useSyncExternalStore(searchStore.subscribe, searchStore.getCurrent)
+  const searchQuery = useChatStore((state) => state.searchQuery)
+  const searchCursor = useChatStore((state) => state.searchCursor)
+  const searchCount = useChatStore((state) => state.searchCount)
+  const searchCurrent = useChatStore((state) => state.searchCurrent)
   const searchAnchorRef = React.useRef(0)
   const rowRefsRef = React.useRef(new Map<number, DOMElement>())
   const { setQuery: setHighlight } = useSearchHighlight()
@@ -2953,7 +2951,7 @@ export function Chat({
         // ~/.dsh-tui/working-activity.json and survives restarts.
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts[0] === 'status') {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           channel.pushLocal('/activity', [
             t('activity-current-preset', { name: channel.activityFrames ?? 'moon8' }),
             t('activity-switch-hint'),
@@ -2962,7 +2960,7 @@ export function Chat({
           return true
         }
         if (parts[0] === 'frames') {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           if (parts[1]) {
             channel.setActivityFrames(parts[1].toLowerCase())
             return true
@@ -2980,7 +2978,7 @@ export function Chat({
           channel.notify(t('activity-usage'), { color: 'warning' })
           return true
         }
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         overlayStore.dispatch({
           type: 'open',
           overlay: {
@@ -2999,7 +2997,7 @@ export function Chat({
         // default for future sessions (~/.dsh-tui/agent-preset.json).
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts[0] === 'status') {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           channel.pushLocal('/preset', [
             t('preset-current', { name: channel.agentPreset ?? t('preset-roster-missing') }),
             t('preset-switch-hint'),
@@ -3009,11 +3007,11 @@ export function Chat({
           return true
         }
         if (parts.length > 0) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           void channel.switchPreset(parts[0])
           return true
         }
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // The picker opens immediately over the cached roster (no loading
         // pane — deliberate contrast with /model); the fresh list lands with
         // the authoritative focus. Both loader writes are kind-guarded, so a
@@ -3044,7 +3042,7 @@ export function Chat({
         // the current level. The choice persists to ~/.dsh-tui/effort.json.
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts[0] === 'status') {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           channel.pushLocal('/effort', [
             t('effort-current', { name: channel.reasoningEffort ?? '—' }),
             t('effort-usage'),
@@ -3052,11 +3050,11 @@ export function Chat({
           return true
         }
         if (parts.length > 0) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           void channel.setEffort(parts[0])
           return true
         }
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         void channel.listEfforts().then(({ efforts, defaultEffort, levelsFallback }) => {
           // 0/1-tier routes were already notified by listEfforts.
           if (efforts.length <= 1) return
@@ -3082,7 +3080,7 @@ export function Chat({
         // choice.
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts[0] === 'status') {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           channel.pushLocal('/lang', [
             t('lang-current', { lang: getLang() }),
             t('lang-switch-hint'),
@@ -3091,7 +3089,7 @@ export function Chat({
           return true
         }
         if (parts.length > 0) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           if (isLang(parts[0])) {
             applyLang(parts[0])
           } else {
@@ -3099,7 +3097,7 @@ export function Chat({
           }
           return true
         }
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         overlayStore.dispatch({
           type: 'open',
           overlay: { kind: 'lang', index: getLang() === 'zh' ? 0 : 1 },
@@ -3115,7 +3113,7 @@ export function Chat({
         // ThemeProvider setter (DSH_TUI_THEME still wins on next launch).
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts[0] === 'status') {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           channel.pushLocal('/theme', [
             t('theme-current', { name: themeName }),
             // `auto` resolves through terminal-background detection; show
@@ -3130,7 +3128,7 @@ export function Chat({
           return true
         }
         if (parts.length > 0) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           // setTheme rejects unknown names via isThemeAvailable, so pass the
           // raw argument instead of resolving it against the catalog first.
           const ok = setTheme(parts[0])
@@ -3140,7 +3138,7 @@ export function Chat({
           )
           return true
         }
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         overlayStore.dispatch({
           type: 'open',
           overlay: {
@@ -3155,7 +3153,7 @@ export function Chat({
         // `/color <name>` 直接设置，`/color status` 显示当前，`/color
         // reset` 清除回主题默认。颜色经 `session/color` 事件按会话保存
         // ——resume/rewind 后仍是这个会话自己的颜色（见 channel.ts）。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts.length === 0) {
           overlayStore.dispatch({
@@ -3197,7 +3195,7 @@ export function Chat({
         // One-shot `/new` (issue #25): the old session stays persisted and
         // is recoverable via /resume, so discarding the live view is
         // non-destructive — no second confirmation is required.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         void channel.newSession().then((ok) => {
           if (!ok) return
           // A new session is a fresh terminal page, not merely an emptied
@@ -3254,11 +3252,11 @@ export function Chat({
       case 'trace':
         // `/trace` is kept as the discoverable spelling of Ctrl+T: the
         // command menu is where a user finds out the trajectory exists.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         openScene()
         return true
       case 'context': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const context = channel.loadedContext
         if (context === undefined) {
           channel.notify(t('context-unavailable'), { color: 'warning' })
@@ -3268,14 +3266,14 @@ export function Chat({
         return true
       }
       case 'help':
-        helpStore.set(true)
+        useChatStore.getState().setHelpOpen(true)
         return true
       case 'model': {
         // `/model <provider/model>` switches directly (same in-session route
         // switch as the picker's Enter), bare `/model` opens the picker.
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts.length > 0) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           const spec = parts[0]!
           const slash = spec.indexOf('/')
           // Backend model routes accept an unqualified model id.
@@ -3296,7 +3294,7 @@ export function Chat({
           })
           return true
         }
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // Opening counts the live route as the latest use, including when
         // restoring a session whose model already exists later in recents.
         // Refresh the catalog without overriding navigation made meanwhile.
@@ -3332,7 +3330,7 @@ export function Chat({
         // `/skills <name>` 直达同一个填回动作，跳过选择器。
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts.length > 0) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           void channel.listSkills().then((list) => {
             if (list === undefined) {
               channel.notify(t('skills-load-failed'), { color: 'error' })
@@ -3348,7 +3346,7 @@ export function Chat({
           })
           return true
         }
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         modelsStore.setSkillsList(null)
         overlayStore.dispatch({ type: 'open', overlay: { kind: 'skills', index: 0 } })
         void channel.listSkills().then((list) => {
@@ -3365,7 +3363,7 @@ export function Chat({
         // Interactive add-provider wizard (/provider): drives the shared
         // question panel, persists profile + key via the channel's settings/
         // credentials seams. No picker state — AskUserQuestionPanel renders it.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const host = channel.providerSetup()
         if (!host) {
           channel.notify(t('provider-unavailable'), { color: 'warning', timeoutMs: 8000 })
@@ -3398,7 +3396,7 @@ export function Chat({
         return true
       }
       case 'thinking':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         overlayStore.dispatch({
           type: 'open',
           overlay: { kind: 'thinking', focus: thinkingVisible ? 0 : 1 },
@@ -3449,7 +3447,7 @@ export function Chat({
        * of them lands here, on the same runtime.
        */
       case 'home': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // Split-aware, like /trace and /jobs: while the sidebar is rendering
         // and the workspace panel is enabled, the workspace view opens THERE.
         // The panel's own ⤢ goes back to the full-screen home. The panel reads
@@ -3471,7 +3469,7 @@ export function Chat({
         return true
       }
       case 'agentview': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // The screen opens immediately and loads its own list. Waiting for the
         // listing here would make it feel slower the more history a project
         // has, which is exactly backwards.
@@ -3483,12 +3481,12 @@ export function Chat({
       case 'background': {
         // DSH parks the attached session before opening the supervisor;
         // other backends open it over their still-attached session.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         backgroundToAgentView()
         return true
       }
       case 'workspace': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const trimmed = rawInput.trim()
         const separator = trimmed.search(/\s/u)
         const subcommand = (separator < 0 ? trimmed : trimmed.slice(0, separator)).toLowerCase()
@@ -3522,7 +3520,7 @@ export function Chat({
         return true
       }
       case 'rename': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const title = rawInput.trim()
         if (title.length === 0) {
           channel.pushLocal('/rename', [
@@ -3538,21 +3536,21 @@ export function Chat({
       case 'rewind':
         // Same picker as PromptInput's double-Esc on an empty input;
         // `openRewind` notifies when there is nothing to rewind.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         openRewind()
         return true
       case 'tree': {
         // The session family tree (pi's Session Tree): every fork branch
         // stitched back, hover previews, per-node rewind/fork/adopt.
-        helpStore.set(false)
-        sessionStore.setTreeOpen(true)
+        useChatStore.getState().setHelpOpen(false)
+        useChatStore.getState().setTreeOpen(true)
         return true
       }
       case 'fork': {
         // Tip fork (kimi-code semantics): a persisted copy of the whole
         // conversation the user enters via /resume — the live session and
         // its running turn stay untouched.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         void channel.forkSession()
         return true
       }
@@ -3585,7 +3583,7 @@ export function Chat({
         const occupancyLine = contextOccupancyLine(channel)
         if (occupancyLine !== undefined) lines.push(occupancyLine)
         if (channel.sessionTitle) lines.push(t('status-title', { title: channel.sessionTitle }))
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         channel.pushLocal('/status', lines)
         return true
       }
@@ -3608,7 +3606,7 @@ export function Chat({
         const report = channel.costReport
         if (report !== undefined) {
           lines.push(`${formatCostReport(report)} · ${t(report.source === 'backend' ? 'cost-source-backend' : 'status-cost-note')}`)
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           channel.pushLocal('/cost', lines)
           return true
         }
@@ -3634,7 +3632,7 @@ export function Chat({
           }
         }
         lines.push(t(hasAmount ? 'cost-note' : 'cost-note-no-amount'))
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         channel.pushLocal('/cost', lines)
         return true
       }
@@ -3643,15 +3641,15 @@ export function Chat({
         // channel resolves DEEPSEEK_API_KEY through the credentials seam and
         // queries api.deepseek.com/user/balance. The result renders as the
         // interactive BalanceReportRow (hover for details, click to refresh).
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         runBalance()
         return true
       }
       case 'settings': {
         // Plugin settings screen (issue #165): opens immediately; the screen
         // reads sections + namespaces from the channel itself.
-        helpStore.set(false)
-        settingsStore.set(true)
+        useChatStore.getState().setHelpOpen(false)
+        useChatStore.getState().setSettingsOpen(true)
         return true
       }
       case 'continue': {
@@ -3659,7 +3657,7 @@ export function Chat({
         // 数据是真的——`agentViewRows`（含持久化名册，listing 落地后含全部历史）
         // 里挑 updatedAt 最新的非当前行；没有可继续的就去会话名册挑，失败也不
         // 静默（notify + 打开 supervisor 让用户自己挑），绝不点了个没反应。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const candidates = agentViewRows.filter(row =>
           !row.current && row.id !== channel.agentId && row.title.trim() !== '')
         const latest = candidates.reduce<(typeof candidates)[number] | undefined>(
@@ -3700,14 +3698,14 @@ export function Chat({
         // 第七版：向导的 early-return 在落地页**之前**，天然盖在落地页之上；
         // 不再收掉落地页——Esc/跳过/完成都回到启动页（旧姿态收掉落地页后，
         // 向导关掉就落到对话页，正是用户报的 bug 形态之一）。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         setOnboardingOpen(true)
         return true
       }
       case 'star': {
         // 一键 star：**只有用户主动敲 /star 才会跑**（绝不自动）。动作用
         // runStarAction（与开屏弹窗共用），异步执行、结果用 notify 报。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         runStarAction()
         return true
       }
@@ -3720,12 +3718,12 @@ export function Chat({
           t('doctor-launch-hint'),
           t('doctor-route-hint'),
         ]
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         channel.pushLocal('/config', lines)
         return true
       }
       case 'doctor':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         channel.pushLocal('/doctor', channel.doctorInfo())
         return true
       case 'migrate': {
@@ -3736,7 +3734,7 @@ export function Chat({
         // never the picker's row cache: on a fresh mount that cache is empty,
         // and deriving the answer from it made every `/migrate <agent>` report
         // an unknown source until the picker had been opened once.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const command = resolveMigrateCommand(rawInput, MIGRATION_ADAPTERS.map(adapter => adapter.id))
         if (command.kind === 'unknown') {
           channel.notify(t('migrate-unknown-agent', { agent: command.agentId }), { color: 'error', timeoutMs: 8000 })
@@ -3786,7 +3784,7 @@ export function Chat({
         // Plugin diagnostics (C-070): trust banner first, then descriptor /
         // grant matrix / ledger tail — or validate+negotiate for
         // `/plugin check <path>` (rawInput carries the subcommand).
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // `/plugin install <spec>` is the one form that needs a flow of its own
         // (C-4). Anything else — and any launch whose entry has no service to
         // install through — falls through to the read-only report below.
@@ -3812,7 +3810,7 @@ export function Chat({
       case 'team': {
         // `/team` 只报告团队状态（team-mode.ts）；开关是 /plugin enable|disable。
         // 服务未挂载时这一行不在命令表里，但手敲仍会走到这里，拿回开启提示。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         if (onTeamCommand === undefined) {
           channel.pushLocal('/team', [t('team-cmd-unavailable')])
           return true
@@ -3847,7 +3845,7 @@ export function Chat({
         return true
       }
       case 'jobs': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // Split mode routes to the side panel; narrow terminals keep the
         // full-screen overlay.
         if (sidePanel.split && sidePanel.enabledPanelIds.includes('jobs')) {
@@ -3859,7 +3857,7 @@ export function Chat({
         return true
       }
       case 'panel': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // 无参 → 面板选择器（overlay 互斥结构内）；有参 → 侧栏命令分发。
         if (rawInput.trim() === '' && sidePanel.splitAvailable && panelPickerRows.length > 0) {
           const current = panelPickerRows.findIndex(row => row.id === sidePanel.activePanelId)
@@ -3891,7 +3889,7 @@ export function Chat({
         return false
       }
       case 'agents': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // The roster comes from the host subagents service, so the report is
         // async. Two fences, each for a window of its own: the generation guard
         // drops an answer that raced a session switch (`pushLocal` writes the
@@ -3907,7 +3905,7 @@ export function Chat({
         return true
       }
       case 'login': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         if (runBackendLogin()) return true
         void channel.describeCredential('DEEPSEEK_API_KEY')
           .catch(() => undefined)
@@ -3977,7 +3975,7 @@ export function Chat({
         const reachable = mounted || serviceUsable
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (reachable && parts[0] === 'status') {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           const snapshot = channel.permissionPresets()
           if (snapshot.options.some(option => option.value === 'status')) {
             return runPermissionCommand(rawInput, images)
@@ -3995,7 +3993,7 @@ export function Chat({
           return true
         }
         if (reachable && parts.length === 0) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           const snapshot = channel.permissionPresets()
           if (snapshot.availability === 'unavailable' || snapshot.options.length === 0) {
             return runPermissionCommand(rawInput, images)
@@ -4018,7 +4016,7 @@ export function Chat({
           return true
         }
         if (reachable) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           return runPermissionCommand(rawInput, images)
         }
         const native = backendPermissionCommand(channel.backendModes?.()?.snapshot(), rawInput, modeDisplayName(channel.mode))
@@ -4027,7 +4025,7 @@ export function Chat({
           channel.notify(t('permission-mode-unknown', { id: native.id }), { color: 'error' })
           return true
         }
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         if (native.kind === 'status') channel.pushLocal('/permission', native.lines)
         else if (native.kind === 'picker') overlayStore.dispatch({ type: 'open', overlay: native.overlay })
         else void runBackendModeCommand(native.mode.id, native.mode.name)
@@ -4051,7 +4049,7 @@ export function Chat({
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         const argument = parts.length === 1 && parts[0] === 'on' ? '' : rawInput
         if (mounted && parts.length === 0) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           overlayStore.dispatch({
             type: 'open',
             overlay: { kind: 'plan', index: channel.mode.plan === true ? 0 : 1 },
@@ -4059,27 +4057,27 @@ export function Chat({
           return true
         }
         if (mounted) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           return runExternalCommand('plan', argument, images)
         }
         return false
       }
       case 'add-dir':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         channel.pushLocal('/add-dir', [
           t('permission-root-hint', { cwd: channel.cwd }),
           t('permission-path-hint'),
         ])
         return true
       case 'hooks':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         channel.pushLocal('/hooks', [
           t('hooks-not-mounted'),
           t('hooks-mount-hint'),
         ])
         return true
       case 'mcp': {
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const control = channel.backendMcp?.()
         const request = parseMcpCommand(rawInput)
         if (control !== undefined && request.kind !== 'status') {
@@ -4092,7 +4090,7 @@ export function Chat({
         return true
       }
       case 'update':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         if (onUpdate === undefined) {
           channel.notify(t('update-unavailable'), { color: 'warning' })
         } else if (channel.working) {
@@ -4111,7 +4109,7 @@ export function Chat({
         // the platform watcher hot-reloads settings.yaml itself. What no
         // reload can re-read (cordis.yml root config, frozen fullscreen,
         // newly built code) is listed in the footer and served by /restart.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const tuiNamespace = channel.settingsHost()
           ?.listNamespaces()
           .find(entry => entry.ns === channel.settingsNamespace)
@@ -4179,7 +4177,7 @@ export function Chat({
         // DSH: the `dsh-command-goal` registry row owns /goal, exactly as the
         // default branch below would dispatch it.
         if (channel.commandList.some(command => command.external && command.name === 'goal')) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           // Bare `/goal` is DSH's status query. Print it as a transcript
           // block: inline mode sees no pointer events, so the hover tooltip
           // cannot carry the objective there, and the toast truncates it to
@@ -4193,7 +4191,7 @@ export function Chat({
         // as unavailable (isUnavailableLocalCommand).
         const goals = channel.backendGoals?.()
         if (goals === undefined) return false
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         // The capability calls settle like registry commands: the draft is
         // consumed only once the backend took the change (a failure is
         // reported by the host and leaves the line editable). An invalid
@@ -4219,7 +4217,7 @@ export function Chat({
       case 'channel': {
         // 渠道选择器。/channel 只在声明了 channels 能力的内核下进命令表，
         // 能走到这里就说明可用。与 /kernel 一样，再执行一次就收起。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         if (overlay.kind === 'channel') overlayStore.dispatch({ type: 'close' })
         else openChannelPicker()
         return true
@@ -4228,14 +4226,14 @@ export function Chat({
         // 内核选择器，每个内核下都可用。
         // 确认后由组合根的 onSwitchBackend 记住选择并以新内核重启。与 /help、
         // 参数行一致：选择器已开着就收起，没开才打开。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         if (overlay.kind === 'kernel') overlayStore.dispatch({ type: 'close' })
         else openKernelPicker()
         return true
       case 'dsh':
       case 'codex':
       case 'claude':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         return pickKernelById(name).then(() => true)
       case 'restart':
         // pi-style reload tail: /reload cannot re-read boot-time-only state
@@ -4249,7 +4247,7 @@ export function Chat({
         // exit funnel owns the visible copy (and says what the restart
         // interrupts); this toast only covers embedders whose onRestart does
         // not tear the screen down.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         if (onRestart === undefined) {
           channel.notify(t('restart-unavailable'), { color: 'warning' })
         } else {
@@ -4264,13 +4262,13 @@ export function Chat({
         // `/vim`：切换输入框的 vim 编辑开关。状态在
         // PromptInput 内部（controllerRef.toggleVim），每次切换落回 insert
         // 子模式；Esc 进 normal、i/a/o 回 insert。会话级、不持久化。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const on = promptControllerRef.current?.toggleVim() ?? false
         channel.notify(t(on ? 'vim-on' : 'vim-off'))
         return true
       }
       case 'terminal-setup':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         channel.pushLocal('/terminal-setup', [
           t('terminal-setup-hint'),
           t('terminal-paste-hint', { keys: effectiveComboDisplay('paste') }),
@@ -4280,7 +4278,7 @@ export function Chat({
         // `/recap`（pi-recap 语义）：对会话最近活动做一次无工具单轮
         // 调用，生成一行摘要 + 建议标题。摘要是纯 UI 状态（不进 transcript
         // 也不进 session log）；建议标题经「应用」按钮走 /rename 路径。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         recapAbortRef.current?.abort()
         const controller = new AbortController()
         recapAbortRef.current = controller
@@ -4313,7 +4311,7 @@ export function Chat({
         // splitEnabled=false 都会把它掩掉，issue #1631）。屏被别的浮层或
         // 整屏界面占着时两个表面都不抢开，只发通知。同一个问答只出现在
         // 一处。
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         const question = rawInput.trim()
         if (!question) {
           channel.notify(t('btw-usage'), { timeoutMs: 3000 })
@@ -4340,7 +4338,7 @@ export function Chat({
         // Hidden easter egg: replay the logo header's whale spout + text
         // shimmer. The command is intentionally not in the suggestion/help
         // catalogs; PromptInput recognizes it through HIDDEN_COMMAND_NAMES.
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         suppressLogoIntroRef.current = false
         uiStore.setLogoNonce(n => n + 1)
         // Bring the logo back into view if the transcript has scrolled.
@@ -4350,11 +4348,11 @@ export function Chat({
         return true
       }
       case 'tips':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         overlayStore.dispatch({ type: 'open', overlay: { kind: 'tips' } })
         return true
       case 'connect':
-        helpStore.set(false)
+        useChatStore.getState().setHelpOpen(false)
         channel.pushLocal('/connect', [t('connect-none')])
         return true
       default: {
@@ -4366,7 +4364,7 @@ export function Chat({
           command => command.external && command.name === name,
         )
         if (external) {
-          helpStore.set(false)
+          useChatStore.getState().setHelpOpen(false)
           return runExternalCommand(name, rawInput, images)
         }
         return false
@@ -4660,9 +4658,9 @@ export function Chat({
     if (!searchActive) return
     setHighlight(searchQuery)
     const count = searchMatches.length
-    searchStore.setCount(count)
+    useChatStore.getState().setSearchCount(count)
     const current = Math.min(searchCurrent, Math.max(0, count - 1))
-    searchStore.setCurrent(current)
+    useChatStore.getState().setSearchCurrent(current)
     const target = searchMatches[current]
     // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index on an empty/filtered list
     if (target) {
@@ -4977,29 +4975,29 @@ export function Chat({
         handle?.scrollTo(searchAnchorRef.current)
       } else if (plainReturn) {
         // Enter commits; 0-match junk queries don't persist.
-        if (searchCount === 0) searchStore.setQuery('')
+        if (searchCount === 0) useChatStore.getState().setSearchQuery('')
         overlayStore.dispatch({ type: 'close' })
       } else if (key.backspace) {
         if (searchCursor > 0) {
-          searchStore.setQuery(searchQuery.slice(0, searchCursor - 1) + searchQuery.slice(searchCursor))
-          searchStore.setCursor(searchCursor - 1)
+          useChatStore.getState().setSearchQuery(searchQuery.slice(0, searchCursor - 1) + searchQuery.slice(searchCursor))
+          useChatStore.getState().setSearchCursor(searchCursor - 1)
         }
       } else if (key.delete) {
         if (searchCursor < searchQuery.length) {
-          searchStore.setQuery(searchQuery.slice(0, searchCursor) + searchQuery.slice(searchCursor + 1))
+          useChatStore.getState().setSearchQuery(searchQuery.slice(0, searchCursor) + searchQuery.slice(searchCursor + 1))
         }
       } else if (key.leftArrow) {
-        searchStore.setCursor(c => Math.max(0, c - 1))
+        useChatStore.getState().setSearchCursor(c => Math.max(0, c - 1))
       } else if (key.rightArrow) {
-        searchStore.setCursor(c => Math.min(searchQuery.length, c + 1))
+        useChatStore.getState().setSearchCursor(c => Math.min(searchQuery.length, c + 1))
       } else if (key.home) {
-        searchStore.setCursor(0)
+        useChatStore.getState().setSearchCursor(0)
       } else if (key.end) {
-        searchStore.setCursor(searchQuery.length)
+        useChatStore.getState().setSearchCursor(searchQuery.length)
       } else if (!key.ctrl && !key.meta && !key.super && input) {
         const next = searchQuery.slice(0, searchCursor) + input + searchQuery.slice(searchCursor)
-        searchStore.setQuery(next)
-        searchStore.setCursor(searchCursor + input.length)
+        useChatStore.getState().setSearchQuery(next)
+        useChatStore.getState().setSearchCursor(searchCursor + input.length)
       }
       event.stopImmediatePropagation()
       return
@@ -5008,12 +5006,12 @@ export function Chat({
     // The query persists across bar open/close so n/N keep working.
     // Transcript mode only — in prompt mode n/N are ordinary input chars.
     if (expanded && input === 'n' && searchQuery && searchCount > 0 && !key.ctrl && !key.meta && !key.super) {
-      searchStore.setCurrent(i => (i >= searchCount - 1 ? 0 : i + 1))
+      useChatStore.getState().setSearchCurrent(i => (i >= searchCount - 1 ? 0 : i + 1))
       event.stopImmediatePropagation()
       return
     }
     if (expanded && input === 'N' && searchQuery && searchCount > 0 && !key.ctrl && !key.meta && !key.super) {
-      searchStore.setCurrent(i => (i <= 0 ? searchCount - 1 : i - 1))
+      useChatStore.getState().setSearchCurrent(i => (i <= 0 ? searchCount - 1 : i - 1))
       event.stopImmediatePropagation()
       return
     }
@@ -5744,10 +5742,10 @@ export function Chat({
       // search is active on the transcript screen where `/` isn't a command).
       if (expanded) {
         searchAnchorRef.current = handle?.getScrollTop() ?? 0
-        searchStore.setQuery('')
-        searchStore.setCursor(0)
-        searchStore.setCurrent(0)
-        searchStore.setCount(0)
+        useChatStore.getState().setSearchQuery('')
+        useChatStore.getState().setSearchCursor(0)
+        useChatStore.getState().setSearchCurrent(0)
+        useChatStore.getState().setSearchCount(0)
         overlayStore.dispatch({ type: 'open', overlay: { kind: 'search' } })
         event.stopImmediatePropagation()
       }
@@ -6551,7 +6549,7 @@ export function Chat({
       <SessionTree
         channel={channel}
         currentSessionId={channel.agentId}
-        onClose={() => sessionStore.setTreeOpen(false)}
+        onClose={() => useChatStore.getState().setTreeOpen(false)}
         onRestoreText={(text) => {
           // The tree rewound to a node and is handing that turn's prompt back,
           // exactly like the picker does. It belongs to the binding the tree
@@ -6568,7 +6566,7 @@ export function Chat({
   // conversation (an early return after every hook above has run), so there
   // is no transcript underneath to be repainted or bled through.
   if (settingsOpen && launchpadGate()) {
-    const screen = <Settings channel={channel} onClose={() => settingsStore.set(false)} statusFields={statusFields} />
+    const screen = <Settings channel={channel} onClose={() => useChatStore.getState().setSettingsOpen(false)} statusFields={statusFields} />
     return withTitle(fullscreen ? screen : <AlternateScreen>{screen}</AlternateScreen>)
   }
 
@@ -7324,7 +7322,7 @@ export function Chat({
           toastSuppressed={petSaysNotices}
           draftCache={promptDraftRef.current}
           helpOpen={helpOpen}
-          onToggleHelp={() =>{  helpStore.toggle() }}
+          onToggleHelp={() =>{  useChatStore.getState().toggleHelp() }}
           onRunCommand={runCommand}
           selectionActive={promptSelectionActive}
           fillText={historyFill}
