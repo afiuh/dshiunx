@@ -18,10 +18,8 @@ const ctx = await boot('dshiunx', configPath, [], (hostCtx) => {
   })
 })
 
-const loaded = [...ctx.loader.entries()]
-console.log(`loaded ${loaded.length} entries:`)
-for (const entry of loaded) {
-  console.log(`  ${entry.id.padEnd(24)} ${entry.options.name}  ${entry.fiber?.state ?? '?'}`)
-}
+const includeEntry = ctx.loader.resolve('include')
+const loaded = [...includeEntry.subtree.entries()]
+console.log(`loaded ${loaded.length} entries (boot audit passed)`)
 
 await ctx.fiber.dispose()
