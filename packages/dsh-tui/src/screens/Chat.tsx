@@ -61,6 +61,7 @@ import { sessionStore } from '../stores/sessionStore.js'
 import { searchStore } from '../stores/searchStore.js'
 import { panelsStore } from '../stores/panelsStore.js'
 import { migrateStore } from '../stores/migrateStore.js'
+import { uiStore } from '../stores/uiStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -1452,10 +1453,10 @@ export function Chat({
    */
   const helpCoverScrollRef = React.useRef<ScrollBoxHandle | null>(null)
   const helpCoverViewportHeight = Math.max(3, Math.min(terminalRows - 7, 15))
-  const [showAllMessages, setShowAllMessages] = React.useState(false)
+  const showAllMessages = React.useSyncExternalStore(uiStore.subscribe, uiStore.getShowAllMessages)
   /** Scope the fold to this question: an aborted ask can promote its queued
    *  successor without ever publishing an idle (null) snapshot. */
-  const [minimizedQuestionKey, setMinimizedQuestionKey] = React.useState<string | null>(null)
+  const minimizedQuestionKey = React.useSyncExternalStore(uiStore.subscribe, uiStore.getMinimizedQuestionKey)
   const questionMinimized = questionSnapshot !== null && minimizedQuestionKey === questionSnapshot.key
   /** Fold state for the GoalTodoPanel todo section (ctrl/cmd+q or click). */
   const todoCollapsed = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getTodoCollapsed)
@@ -1486,7 +1487,7 @@ export function Chat({
       agentId: channel.agentId, goal: channel.goal, todos: channel.todos,
     })
   }
-  const [thinkingVisible, setThinkingVisible] = React.useState(true)
+  const thinkingVisible = React.useSyncExternalStore(uiStore.subscribe, uiStore.getThinkingVisible)
   /** ctrl+r history-search entries (loaded on open, persists). */
   const [historyEntries, setHistoryEntries] = React.useState<readonly HistoryEntry[]>([])
   const [historyFill, setHistoryFill] = React.useState<string | null>(null)
@@ -1500,9 +1501,9 @@ export function Chat({
    *  panel, otherwise the floating overlay in the conversation. This flag
    *  records that the fallback is wanted; `btwOverlayVisible` decides whether
    *  it actually owns the screen. */
-  const [btwOverlayOpen, setBtwOverlayOpen] = React.useState(false)
+  const btwOverlayOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getBtwOverlayOpen)
   /** ⤢ fullscreen thread scene (openPanelFullscreen 'btw' route). */
-  const [btwSceneOpen, setBtwSceneOpen] = React.useState(false)
+  const btwSceneOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getBtwSceneOpen)
   // Only the fallback overlay reads the thread here. With the overlay closed
   // the snapshot stays undefined, so an answer streaming into the sidebar
   // panel does not re-render the whole Chat on every delta.
@@ -1514,7 +1515,7 @@ export function Chat({
     // Fallback parity with the pre-thread overlay: closing cancels the
     // in-flight ask (completed turns stay in the thread).
     btwThreads.abortActive(String(channel.agentId))
-    setBtwOverlayOpen(false)
+    uiStore.setBtwOverlayOpen(false)
   }
   /** 有模态或整屏界面时，/btw 的回答不抢着打开面板，只标未读。 */
   const btwSurfaceFree = () =>
@@ -1656,13 +1657,13 @@ export function Chat({
     selectionStore.setExpanded(new Set())
     selectionStore.setSelectedId(null)
     selectionStore.setActive(false)
-    setShowAllMessages(false)
-    setLoadedContextOpen(false)
+    uiStore.setShowAllMessages(false)
+    uiStore.setLoadedContextOpen(false)
     searchStore.setQuery('')
     searchStore.setCursor(0)
     searchStore.setCount(0)
     searchStore.setCurrent(0)
-    setBtwOverlayOpen(false)
+    uiStore.setBtwOverlayOpen(false)
     repaintTranscript()
   }, [channel.agentId]) // eslint-disable-line react-hooks/exhaustive-deps
   /** The session attached when the agent view opened; a close on a
@@ -1776,7 +1777,7 @@ export function Chat({
    * Hidden `/deepseek` easter egg: each invocation bumps this key so the
    * logo header remounts and replays the whale spout + text shimmer.
    */
-  const [logoNonce, setLogoNonce] = React.useState(0)
+  const logoNonce = React.useSyncExternalStore(uiStore.subscribe, uiStore.getLogoNonce)
   React.useEffect(() => () => recapAbortRef.current?.abort(), [])
   /**
    * The trajectory scene (issue #80 evolution). Unlike every other overlay
@@ -1785,7 +1786,7 @@ export function Chat({
    * it the keyboard. Chat itself stays mounted, so scroll position, pickers
    * and in-flight turn state survive the round trip untouched.
    */
-  const [sceneOpen, setSceneOpen] = React.useState(false)
+  const sceneOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getSceneOpen)
   /**
    * Close the scene.
    *
@@ -1794,7 +1795,7 @@ export function Chat({
    * that happened while the scene was open.
    */
   const closeScene = React.useCallback(() => {
-    setSceneOpen(false)
+    uiStore.setSceneOpen(false)
   }, [])
 
   /**
@@ -1854,7 +1855,7 @@ export function Chat({
       controller.openPanel('trajectory', { focus: true })
       return
     }
-    setSceneOpen(true)
+    uiStore.setSceneOpen(true)
   }, [channel])
 
   /**
@@ -1915,9 +1916,9 @@ export function Chat({
   /** The startup summary gives way to transcript rows after the first local command or message. */
   const loadedContextVisible = channel.rows.length === 0 && channel.loadedContext !== undefined
   /** Startup context panel: collapsed by default, toggled with Ctrl+P. */
-  const [loadedContextOpen, setLoadedContextOpen] = React.useState(false)
+  const loadedContextOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getLoadedContextOpen)
   const toggleLoadedContext = React.useCallback(() => {
-    setLoadedContextOpen(previous => !previous)
+    uiStore.setLoadedContextOpen(previous => !previous)
   }, [])
   const renderedLoadedContextOpen = React.useRef(loadedContextOpen)
   React.useLayoutEffect(() => {
@@ -2050,7 +2051,7 @@ export function Chat({
   const [caretPreview, setCaretPreview] = React.useState<
     { image: TranscriptImage; title?: string } | null
   >(null)
-  const [peekSuppressed, setPeekSuppressed] = React.useState<string | null>(null)
+  const peekSuppressed = React.useSyncExternalStore(uiStore.subscribe, uiStore.getPeekSuppressed)
   const handleCaretImage = React.useCallback((
     image: TranscriptImage | undefined,
     title: string | undefined,
@@ -2058,12 +2059,12 @@ export function Chat({
   ): void => {
     if (image === undefined) {
       setCaretPreview(null)
-      setPeekSuppressed(null)
+      uiStore.setPeekSuppressed(null)
       return
     }
     setCaretPreview({ image, ...(title === undefined ? {} : { title }) })
     const key = peekKey(image, title)
-    setPeekSuppressed(current => reason === 'click' || current !== key ? null : current)
+    uiStore.setPeekSuppressed(current => reason === 'click' || current !== key ? null : current)
   }, [])
   const peekPreview =
     !previewBlocked && overlay.kind === 'none' && caretPreview !== null
@@ -2074,7 +2075,7 @@ export function Chat({
    *  caret leaves it. PromptInput's Esc arm calls this first — its listener
    *  runs before Chat's and the prompt stays live under a peek. */
   const dismissPeek = (): void => {
-    if (peekPreview !== null) setPeekSuppressed(peekKey(peekPreview.image, peekPreview.title))
+    if (peekPreview !== null) uiStore.setPeekSuppressed(peekKey(peekPreview.image, peekPreview.title))
   }
   /** The card on screen, if any: the modal overlay first, else the peek. */
   const activePreview: { image: TranscriptImage; title?: string; peek: boolean } | null =
@@ -2171,11 +2172,11 @@ export function Chat({
   // a rows.length index); MessageList owns the row offsets, so it computes
   // how many rows past that anchor lie below the viewport and reports it.
   const lastSeenRowIdRef = React.useRef<number | null>(null)
-  const [unseenCount, setUnseenCount] = React.useState(0)
+  const unseenCount = React.useSyncExternalStore(uiStore.subscribe, uiStore.getUnseenCount)
   React.useEffect(() => {
     if (isSticky) {
       lastSeenRowIdRef.current = null
-      setUnseenCount(0)
+      uiStore.setUnseenCount(0)
     } else if (lastSeenRowIdRef.current === null) {
       lastSeenRowIdRef.current = channel.rows.length
         ? channel.rows[channel.rows.length - 1]!.id
@@ -2329,7 +2330,7 @@ export function Chat({
     if (!entry) return
     // A gallery click promotes the caret peek to a modal without moving or
     // editing the draft. Suppress the original peek so Esc really closes it.
-    setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
+    uiStore.setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
     overlayStore.dispatch({ type: 'open', overlay: { kind: 'image-preview', ...entry, gallery: previewGallery, index } })
   }
   // Publish the external-injection controller (dsh.nvim etc.) every render so
@@ -3206,8 +3207,8 @@ export function Chat({
           selectionStore.setToggled(new Set())
           selectionStore.setSelectedId(null)
           selectionStore.setActive(false)
-          setShowAllMessages(false)
-          setLoadedContextOpen(false)
+          uiStore.setShowAllMessages(false)
+          uiStore.setLoadedContextOpen(false)
           handle?.scrollTo(0)
           channel.notify(t('new-session-started'))
           const ink = instances.get(process.stdout) ?? instances.values().next().value
@@ -4325,7 +4326,7 @@ export function Chat({
         const btwPanelEnabled = sidePanel.enabledPanelIds.includes('btw')
         if (btwSurfaceFree()) {
           if (btwPanelEnabled && sidePanel.splitAvailable) sidePanel.openPanel('btw')
-          else setBtwOverlayOpen(true)
+          else uiStore.setBtwOverlayOpen(true)
         } else {
           // 屏被别的浮层/整屏界面占着：侧问照常发出，但只在通知通道里说一
           // 句——既不把答案静默塞进看不见的地方，也不挂一个既看不见、又
@@ -4340,7 +4341,7 @@ export function Chat({
         // catalogs; PromptInput recognizes it through HIDDEN_COMMAND_NAMES.
         helpStore.set(false)
         suppressLogoIntroRef.current = false
-        setLogoNonce(n => n + 1)
+        uiStore.setLogoNonce(n => n + 1)
         // Bring the logo back into view if the transcript has scrolled.
         setTimeout(() => {
           handle?.scrollTo(0)
@@ -4539,7 +4540,7 @@ export function Chat({
       // ⤢ 进整屏线程场景：Esc 返回侧栏，不清 thread/draft（面板
       // mountPolicy=enabled 保挂载，路由/焦点/滚动原样恢复）。
       sidePanelRef.current?.focusChat()
-      setBtwSceneOpen(true)
+      uiStore.setBtwSceneOpen(true)
     }
   }, [openScene])
   // openJobsPanel（在上方、identity 稳定）经 ref 读取最新控制器。
@@ -4606,14 +4607,14 @@ export function Chat({
   // Row seeking under layout virtualization: a mounted row seeks directly;
   // an unmounted one is force-mounted first, then sought by the completion
   // effect below once its ref lands.
-  const [forceMountRowId, setForceMountRowId] = React.useState<number | null>(null)
+  const forceMountRowId = React.useSyncExternalStore(uiStore.subscribe, uiStore.getForceMountRowId)
   const seekRow = (rowId: number): void => {
     const el = rowRefsRef.current.get(rowId)
     if (el) {
       handle?.scrollToElement(el)
       return
     }
-    setForceMountRowId(rowId)
+    uiStore.setForceMountRowId(rowId)
   }
   /**
    * Reveal-and-seek for a row folded behind the recent-rows window (the
@@ -4624,7 +4625,7 @@ export function Chat({
    * for an already-revealed row is harmless.
    */
   const revealAndSeekRow = (rowId: number): void => {
-    if (!showAllMessages) setShowAllMessages(true)
+    if (!showAllMessages) uiStore.setShowAllMessages(true)
     seekRow(rowId)
   }
   React.useLayoutEffect(() => {
@@ -4637,7 +4638,7 @@ export function Chat({
       // the row BEFORE the renderer's deferred pass reads its Yoga top
       // (scrollAnchor processing runs in a microtask) — the seek would
       // silently no-op (detached anchor element).
-      setTimeout(() => setForceMountRowId(null), 0)
+      setTimeout(() => uiStore.setForceMountRowId(null), 0)
     }
   })
 
@@ -5041,7 +5042,7 @@ export function Chat({
         overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
       } else if (plainReturn) {
         const visible = overlay.focus === 0
-        setThinkingVisible(visible)
+        uiStore.setThinkingVisible(visible)
         overlayStore.dispatch({ type: 'close' })
         channel.notify(t('thinking-toggled', { state: visible ? t('thinking-on') : t('thinking-off') }))
       } else if (key.escape) {
@@ -5799,7 +5800,7 @@ export function Chat({
       // Consume: same readline-shadowing rule as dashboard/showAll below.
       event.stopImmediatePropagation()
     } else if (actionMatches('showAll', input, key)) {
-      setShowAllMessages(previous => !previous)
+      uiStore.setShowAllMessages(previous => !previous)
       // Ctrl+E is also the editor's line-end binding — stop the press from
       // additionally moving the caret (one press, one meaning).
       event.stopImmediatePropagation()
@@ -5922,8 +5923,8 @@ export function Chat({
           }
         : undefined}
       collapsed={questionMinimized}
-      onExpand={() => setMinimizedQuestionKey(null)}
-      onToggleFold={() => setMinimizedQuestionKey(previous =>
+      onExpand={() => uiStore.setMinimizedQuestionKey(null)}
+      onToggleFold={() => uiStore.setMinimizedQuestionKey(previous =>
         previous === questionSnapshot.key ? null : questionSnapshot.key)}
       fullscreen={fullscreen}
     />
@@ -5977,7 +5978,7 @@ export function Chat({
               onPick={(index) => {
                 // 点击行 = 设焦点 + 应用（与 Enter 同一条路径）
                 const visible = index === 0
-                setThinkingVisible(visible)
+                uiStore.setThinkingVisible(visible)
                 overlayStore.dispatch({ type: 'close' })
                 channel.notify(t('thinking-toggled', { state: visible ? t('thinking-on') : t('thinking-off') }))
               }}
@@ -6664,7 +6665,7 @@ export function Chat({
     const scene = (
       <BtwThreadScene
         channel={channel}
-        onClose={() => setBtwSceneOpen(false)}
+        onClose={() => uiStore.setBtwSceneOpen(false)}
         // 送聊天之后整屏场景让位：关场景 + 焦点回主输入框——与侧栏形态里
         // 「面板留着、焦点回输入框」的落点一致（见 BtwThreadScene.sendToChat）。
         onFocusChat={sidePanel.focusChat}
@@ -6959,7 +6960,7 @@ export function Chat({
           onPrevious: () => stepPreview(-1), onNext: () => stepPreview(1),
         } : undefined}
         onClose={activePreview.peek
-          ? () => setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
+          ? () => uiStore.setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
           : () => overlayStore.dispatch({ type: 'close-if', kind: 'image-preview' })}
         region={imagePreviewRegion}
       />
@@ -7078,7 +7079,7 @@ export function Chat({
           thinkingVisible={thinkingVisible}
           historyPaintEnabled={!fullscreen}
           fullscreen={fullscreen}
-          onToggleAll={() =>{  setShowAllMessages(previous => !previous) }}
+          onToggleAll={() =>{  uiStore.setShowAllMessages(previous => !previous) }}
           onLoadOlder={() => channel.loadOlder()}
           registerRowRef={registerRowRef}
           scrollHandle={handle}
