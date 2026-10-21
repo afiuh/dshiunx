@@ -298,6 +298,16 @@
   name: '@deepseek-ai/dsh-tool-subagent/model-selection-settings'
 - id: bash-local
   name: '@deepseek-ai/dsh-bash-local'
+- id: web
+  name: '@deepseek-ai/dsh-web'
+  config:
+    searchProvider: deepseek-official
+- id: storage
+  name: '@deepseek-ai/dsh-storage'
+- id: storage-domain
+  name: '@deepseek-ai/dsh-storage-domain'
+- id: storage-json
+  name: '@deepseek-ai/dsh-storage-json'
 - id: preset-standard
   name: '@deepseek-ai/dsh-agent-preset'
   config:
@@ -324,8 +334,6 @@
         sampleOverCapGlobResults: false
     - id: tool-jobs
       name: '@deepseek-ai/dsh-tool-jobs'
-    - id: tool-schedule
-      name: '@deepseek-ai/dsh-tool-schedule'
     - id: skill-filesystem
       name: '@deepseek-ai/dsh-skill-filesystem'
     - id: tool-skill
@@ -479,8 +487,6 @@
         sampleOverCapGlobResults: false
     - id: tool-jobs
       name: '@deepseek-ai/dsh-tool-jobs'
-    - id: tool-schedule
-      name: '@deepseek-ai/dsh-tool-schedule'
     - id: skill-filesystem
       name: '@deepseek-ai/dsh-skill-filesystem'
     - id: tool-skill
@@ -702,8 +708,6 @@
         sampleOverCapGlobResults: false
     - id: tool-jobs
       name: '@deepseek-ai/dsh-tool-jobs'
-    - id: tool-schedule
-      name: '@deepseek-ai/dsh-tool-schedule'
     - id: command-goal
       name: '@deepseek-ai/dsh-command-goal'
     - id: tool-goal
