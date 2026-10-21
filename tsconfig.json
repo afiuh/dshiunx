@@ -477,6 +477,21 @@
       ],
       "@dshiunx/tui-themes": [
         "packages/tui-themes/src/index.ts"
+      ],
+      "@dshiunx/tui-settings": [
+        "packages/tui-settings/src/index.ts"
+      ],
+      "@dshiunx/tui-sessions": [
+        "packages/tui-sessions/src/index.ts"
+      ],
+      "@dshiunx/tui-panels": [
+        "packages/tui-panels/src/index.ts"
+      ],
+      "@dshiunx/tui-status": [
+        "packages/tui-status/src/index.ts"
+      ],
+      "@dshiunx/tui-input": [
+        "packages/tui-input/src/index.ts"
       ]
     }
   }
