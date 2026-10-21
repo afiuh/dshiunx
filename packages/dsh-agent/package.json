@@ -1,15 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-agent",
-  "description": "Agent interface, registry, initiator scope, and event vocabulary for the DeepSeek Harness",
-  "version": "0.2.1-rc.2",
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
-    "directory": "packages/core/agent"
-  },
+  "private": true,
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -25,34 +16,5 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  },
-  "license": "MIT",
-  "peerDependencies": {
-    "@deepseek-ai/dsh-llm": "*",
-    "@deepseek-ai/dsh-scope": "*",
-    "@deepseek-ai/dsh-session": "*",
-    "@deepseek-ai/dsh-session-projection": "*",
-    "@deepseek-ai/dsh-system-prompt": "*",
-    "@deepseek-ai/dsh-typert-protocol": "*",
-    "@deepseek-ai/dsh-util-values": "*",
-    "@deepseek-ai/dsh-workspace": "*",
-    "@deepseek-ai/cordis": "*"
-  },
-  "peerDependenciesMeta": {
-    "@deepseek-ai/dsh-workspace": {
-      "optional": true
-    }
-  },
-  "devDependencies": {
-    "@deepseek-ai/dsh-llm": "*",
-    "@deepseek-ai/dsh-scope": "*",
-    "@deepseek-ai/dsh-session": "*",
-    "@deepseek-ai/dsh-session-projection": "*",
-    "@deepseek-ai/dsh-system-prompt": "*",
-    "@deepseek-ai/dsh-typert-protocol": "*",
-    "@deepseek-ai/dsh-typert-registry": "*",
-    "@deepseek-ai/dsh-util-values": "*",
-    "@deepseek-ai/dsh-workspace": "*",
-    "@deepseek-ai/cordis": "*"
   }
 }

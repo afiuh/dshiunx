@@ -1,15 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-session-format-v3-to-v4",
-  "description": "Streaming tool-role migration and delivery validation from Session V3 to V4",
-  "version": "0.2.1-rc.2",
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
-    "directory": "packages/session/session-format-v3-to-v4"
-  },
+  "private": true,
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -20,28 +11,5 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
-  },
-  "license": "MIT",
-  "dsh": {
-    "sessionFormatMigration": {
-      "from": 3,
-      "to": 4,
-      "export": ".",
-      "migration": "sessionFormatV3ToV4",
-      "sourceCodec": "releasedV3SessionFormatCodec",
-      "targetCodec": "releasedV4SessionFormatCodec",
-      "targetHeaderValidator": "assertReleasedV4Header",
-      "targetRestorer": "restoreReleasedV4Artifact"
-    }
-  },
-  "dependencies": {
-    "@deepseek-ai/dsh-session-format": "*",
-    "@deepseek-ai/dsh-session-format-v2-to-v3": "*"
-  },
-  "peerDependencies": {
-    "@deepseek-ai/cordis": "*"
-  },
-  "devDependencies": {
-    "@deepseek-ai/cordis": "*"
   }
 }

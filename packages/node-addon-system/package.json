@@ -1,0 +1,18 @@
+{
+  "name": "@deepseek-ai/node-addon-system",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    "./landlock-run": {
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./flock": {
+      "types": "./src/flock.ts",
+      "default": "./src/flock.ts"
+    },
+    "./package.json": "./package.json"
+  }
+}

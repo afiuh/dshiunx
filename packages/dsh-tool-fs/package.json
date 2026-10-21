@@ -1,15 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-tool-fs",
-  "description": "Model-facing filesystem tools (read, write, edit) over the DeepSeek Harness filesystem seam (ctx.fs)",
-  "version": "0.2.1-rc.2",
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
-    "directory": "packages/fs/tool-fs"
-  },
+  "private": true,
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -21,47 +12,5 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  },
-  "license": "MIT",
-  "dependencies": {
-    "diff": "^9.0.0",
-    "@deepseek-ai/schemastery": "*",
-    "@deepseek-ai/dsh-util-code-language": "*"
-  },
-  "peerDependencies": {
-    "@deepseek-ai/dsh-attachment": "*",
-    "@deepseek-ai/dsh-fs": "*",
-    "@deepseek-ai/dsh-llm": "*",
-    "@deepseek-ai/dsh-sandbox": "*",
-    "@deepseek-ai/dsh-sandbox-policy": "*",
-    "@deepseek-ai/dsh-session": "*",
-    "@deepseek-ai/dsh-system-prompt": "*",
-    "@deepseek-ai/dsh-tools": "*",
-    "@deepseek-ai/dsh-user-approval": "*",
-    "@deepseek-ai/cordis": "*",
-    "@deepseek-ai/dsh-working-directory": "*"
-  },
-  "devDependencies": {
-    "@deepseek-ai/dsh-agent": "*",
-    "@deepseek-ai/dsh-agent-loop": "*",
-    "@deepseek-ai/dsh-agent-loop-testkit": "*",
-    "@deepseek-ai/dsh-attachment": "*",
-    "@deepseek-ai/dsh-fs": "*",
-    "@deepseek-ai/dsh-fs-local": "*",
-    "@deepseek-ai/dsh-fs-observation-policy": "*",
-    "@deepseek-ai/dsh-llm": "*",
-    "@deepseek-ai/dsh-llm-deepseek": "*",
-    "@deepseek-ai/dsh-llm-deepseek-api-key": "*",
-    "@deepseek-ai/dsh-sandbox": "*",
-    "@deepseek-ai/dsh-sandbox-policy": "*",
-    "@deepseek-ai/dsh-session": "*",
-    "@deepseek-ai/dsh-system-prompt": "*",
-    "@deepseek-ai/dsh-tools": "*",
-    "@deepseek-ai/dsh-user-approval": "*",
-    "@deepseek-ai/cordis": "*",
-    "@deepseek-ai/dsh-session-projection": "*",
-    "@deepseek-ai/dsh-scope": "*",
-    "@deepseek-ai/dsh-ptc-runtime": "*",
-    "@deepseek-ai/dsh-working-directory": "*"
   }
 }

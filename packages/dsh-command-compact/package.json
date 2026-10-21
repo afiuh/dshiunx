@@ -1,15 +1,6 @@
 {
   "name": "@deepseek-ai/dsh-command-compact",
-  "description": "Human-facing slash command for explicit session compaction",
-  "version": "0.2.1-rc.2",
-  "publishConfig": {
-    "access": "public"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
-    "directory": "packages/compaction/command-compact"
-  },
+  "private": true,
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -21,21 +12,5 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  },
-  "license": "MIT",
-  "peerDependencies": {
-    "@deepseek-ai/dsh-commands": "*",
-    "@deepseek-ai/dsh-compaction": "*",
-    "@deepseek-ai/cordis": "*"
-  },
-  "devDependencies": {
-    "@deepseek-ai/cordis-plugin-include": "*",
-    "@deepseek-ai/cordis-plugin-loader": "*",
-    "@deepseek-ai/dsh-agent": "*",
-    "@deepseek-ai/dsh-commands": "*",
-    "@deepseek-ai/dsh-compaction": "*",
-    "@deepseek-ai/dsh-llm": "*",
-    "@deepseek-ai/dsh-session": "*",
-    "@deepseek-ai/cordis": "*"
   }
 }

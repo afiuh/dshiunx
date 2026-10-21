@@ -10,33 +10,25 @@
     "hello": "tsx examples/hello.ts"
   },
   "devDependencies": {
-    "@types/node": "^24.0.0",
     "tsx": "^4.20.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "@types/node": "^24.0.0"
   },
   "dependencies": {
-    "@babel/code-frame": "^7.26.2",
-    "@deepseek-ai/dsh-attachment": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-commands": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-compaction": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-compaction-tool-result-pruner": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-credentials": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-fs": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-invariants": "0.2.0-rc.2",
-    "@deepseek-ai/dsh-launch-environment": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-llm-deepseek": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-output-retention": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-ptc-runtime": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-scope": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-session-persistence": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-timeout": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-typert-registry": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-user-approval": "0.2.1-rc.2",
-    "@deepseek-ai/dsh-workspace": "0.2.1-rc.2",
-    "@standard-schema/spec": "^1.1.0",
-    "chokidar": "^4.0.3",
+    "koffi": "3.1.1",
+    "node-pty": "1.2.0-beta.15",
     "js-yaml": "^4.1.0",
+    "chokidar": "^4.0.3",
+    "zod": "^4.4.3",
+    "turndown": "^7.2.0",
+    "@joplin/turndown-plugin-gfm": "^1.0.67",
+    "diff": "^8.0.2",
+    "p-limit": "^6.0.0",
+    "@standard-schema/spec": "^1.1.0",
+    "@babel/code-frame": "^7.26.2",
+    "picomatch": "^4.0.2",
     "node-addon-require-builtin": "^0.1.9",
-    "picomatch": "^4.0.2"
+    "yaml": "^2.8.0",
+    "eventsource-parser": "^3.0.0"
   }
 }

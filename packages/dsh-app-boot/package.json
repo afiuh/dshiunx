@@ -1,0 +1,19 @@
+{
+  "name": "@deepseek-ai/dsh-app-boot",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/types/index.d.ts",
+      "default": "./lib/index.js"
+    },
+    "./worker/profile-resolution-bootstrap": {
+      "types": "./lib/types/profile-resolution/worker-bootstrap.d.ts",
+      "default": "./lib/worker/profile-resolution-bootstrap.js"
+    },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
+  }
+}
