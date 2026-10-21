@@ -148,6 +148,46 @@
   name: '@deepseek-ai/dsh-tool-subagent'
 - id: tool-working-directory
   name: '@deepseek-ai/dsh-tool-working-directory'
+- id: agent-instructions
+  name: '@deepseek-ai/dsh-agent-instructions'
+  config:
+    maxBytes: 65536
+- id: skill-filesystem
+  name: '@deepseek-ai/dsh-skill-filesystem'
+- id: user-questions
+  name: '@deepseek-ai/dsh-user-questions'
+- id: command-compact
+  name: '@deepseek-ai/dsh-command-compact'
+- id: command-goal
+  name: '@deepseek-ai/dsh-command-goal'
+- id: attachment-local
+  name: '@deepseek-ai/dsh-attachment-local'
+- id: bash-sandbox
+  name: '@deepseek-ai/dsh-bash-sandbox'
+- id: fs-sandbox
+  name: '@deepseek-ai/dsh-fs-sandbox'
+- id: approval
+  name: '@deepseek-ai/dsh-user-approval'
+- id: permission
+  name: '@deepseek-ai/dsh-permission-presets'
+- id: jobs
+  name: '@deepseek-ai/dsh-jobs-local'
+- id: tool-jobs
+  name: '@deepseek-ai/dsh-tool-jobs'
+- id: agent-default-model
+  name: '@deepseek-ai/dsh-agent-default-model'
+- id: tool-web
+  name: '@deepseek-ai/dsh-tool-web'
+- id: web
+  name: '@deepseek-ai/dsh-web'
+- id: web-fetch
+  name: '@deepseek-ai/dsh-web-fetch-http'
+- id: web-search
+  name: '@deepseek-ai/dsh-web-search-deepseek'
+- id: goal-round-driver
+  name: '@deepseek-ai/dsh-goal-round-driver'
+- id: mcp-resources
+  name: '@deepseek-ai/dsh-mcp-resources'
 - id: preset-standard
   name: '@deepseek-ai/dsh-agent-preset'
   config:
@@ -162,14 +202,6 @@
         prefix: You are a coding agent powered by the {{model}} model. Do not describe
           yourself as a plugin system or claim you can create plugins unless the user
           explicitly asks about the harness internals.
-    - id: skill-filesystem
-      name: '@deepseek-ai/dsh-skill-filesystem'
-    - id: command-compact
-      name: '@deepseek-ai/dsh-command-compact'
-    - id: agent-instructions
-      name: '@deepseek-ai/dsh-agent-instructions'
-      config:
-        maxBytes: 65536
 - id: preset-ptc
   name: '@deepseek-ai/dsh-agent-preset'
   config:
@@ -184,14 +216,6 @@
         prefix: You are a coding agent powered by the {{model}} model. Do not describe
           yourself as a plugin system or claim you can create plugins unless the user
           explicitly asks about the harness internals.
-    - id: skill-filesystem
-      name: '@deepseek-ai/dsh-skill-filesystem'
-    - id: command-compact
-      name: '@deepseek-ai/dsh-command-compact'
-    - id: agent-instructions
-      name: '@deepseek-ai/dsh-agent-instructions'
-      config:
-        maxBytes: 65536
 - id: preset-minimal
   name: '@deepseek-ai/dsh-agent-preset'
   config:
@@ -227,11 +251,3 @@
           running plugin tree, write new Cordis plugins, and install them into the
           current profile. When a task needs a new capability, prefer creating a small
           plugin over ad-hoc scripting.'
-    - id: skill-filesystem
-      name: '@deepseek-ai/dsh-skill-filesystem'
-    - id: command-compact
-      name: '@deepseek-ai/dsh-command-compact'
-    - id: agent-instructions
-      name: '@deepseek-ai/dsh-agent-instructions'
-      config:
-        maxBytes: 65536

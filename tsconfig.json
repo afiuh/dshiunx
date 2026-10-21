@@ -25,6 +25,12 @@
       "@deepseek-ai/dsh-ptc-runtime": [
         "packages/dsh-ptc-runtime/src/index.ts"
       ],
+      "@deepseek-ai/dsh-jobs-local": [
+        "packages/dsh-jobs-local/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-attachment-local": [
+        "packages/dsh-attachment-local/src/index.ts"
+      ],
       "@deepseek-ai/dsh-llm-deepseek": [
         "packages/dsh-llm-deepseek/src/index.ts"
       ],
@@ -79,6 +85,9 @@
       "@deepseek-ai/dsh-agent-loop": [
         "packages/dsh-agent-loop/src/index.ts"
       ],
+      "@deepseek-ai/dsh-tool-web": [
+        "packages/dsh-tool-web/src/index.ts"
+      ],
       "@deepseek-ai/dsh-http-proxy": [
         "packages/dsh-http-proxy/src/index.ts"
       ],
@@ -102,6 +111,9 @@
       ],
       "@deepseek-ai/cordis-plugin-timer": [
         "packages/cordis-plugin-timer/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-agent-default-model": [
+        "packages/dsh-agent-default-model/src/index.ts"
       ],
       "@deepseek-ai/dsh-session-format-v3-to-v4": [
         "packages/dsh-session-format-v3-to-v4/src/index.ts"
@@ -199,6 +211,9 @@
       "@deepseek-ai/cosmokit": [
         "packages/cosmokit/src/index.ts"
       ],
+      "@deepseek-ai/dsh-permission-presets": [
+        "packages/dsh-permission-presets/src/index.ts"
+      ],
       "@deepseek-ai/dsh-timeout": [
         "packages/dsh-timeout/src/index.ts"
       ],
@@ -231,6 +246,9 @@
       ],
       "@deepseek-ai/dsh-tool-skill": [
         "packages/dsh-tool-skill/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-bash-sandbox": [
+        "packages/dsh-bash-sandbox/src/index.ts"
       ],
       "@deepseek-ai/dsh-fs-observation-policy": [
         "packages/dsh-fs-observation-policy/src/index.ts"
@@ -268,8 +286,14 @@
       "@deepseek-ai/dsh-tool-cordis": [
         "packages/dsh-tool-cordis/src/index.ts"
       ],
+      "@deepseek-ai/dsh-web-fetch-http": [
+        "packages/dsh-web-fetch-http/src/index.ts"
+      ],
       "@deepseek-ai/dsh-session-projection": [
         "packages/dsh-session-projection/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-tool-jobs": [
+        "packages/dsh-tool-jobs/src/index.ts"
       ],
       "@deepseek-ai/dsh-subagent-spawn-in-process": [
         "packages/dsh-subagent-spawn-in-process/src/index.ts"
@@ -301,8 +325,14 @@
       "@deepseek-ai/dsh-agent": [
         "packages/dsh-agent/src/index.ts"
       ],
+      "@deepseek-ai/dsh-fs-sandbox": [
+        "packages/dsh-fs-sandbox/src/index.ts"
+      ],
       "@deepseek-ai/dsh-plugin-manager": [
         "packages/dsh-plugin-manager/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-web-search-deepseek": [
+        "packages/dsh-web-search-deepseek/src/index.ts"
       ],
       "@deepseek-ai/dsh-terminal": [
         "packages/dsh-terminal/src/index.ts"
@@ -325,6 +355,9 @@
       "@deepseek-ai/dsh-sandbox": [
         "packages/dsh-sandbox/src/index.ts"
       ],
+      "@deepseek-ai/dsh-web": [
+        "packages/dsh-web/src/index.ts"
+      ],
       "@deepseek-ai/dsh-user-questions": [
         "packages/dsh-user-questions/src/index.ts"
       ],
@@ -333,6 +366,9 @@
       ],
       "@deepseek-ai/dsh-command-feedback": [
         "packages/dsh-command-feedback/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-mcp-resources": [
+        "packages/dsh-mcp-resources/src/index.ts"
       ],
       "@deepseek-ai/dsh-subprocess-local": [
         "packages/dsh-subprocess-local/src/index.ts"
