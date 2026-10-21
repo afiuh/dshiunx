@@ -824,7 +824,7 @@ export function Chat({
   const modelsLoading = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.isLoading)
   const modelCatalogGeneration = React.useRef(0)
   /** Provider display identities for the /model tabs; refreshed alongside `models`. */
-  const [providerInfos, setProviderInfos] = React.useState<readonly LlmProviderInfo[]>([])
+  const providerInfos = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getProviderInfos)
   /** /model 最近使用分组：成功切换即记录（去重置顶，上限 10），重启保留。 */
   const modelProviderTabs = channel.backendCapabilities?.modelRoutes !== 'backend'
   const recentsBackend = channel.backendCapabilities?.backendId
@@ -854,7 +854,7 @@ export function Chat({
     },
   })
   /** `/skills` 技能目录（issue #204）：null = 注册表快照在途。 */
-  const [skillsList, setSkillsList] = React.useState<readonly SkillInfo[] | null>(null)
+  const skillsList = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getSkillsList)
   /**
    * The session supervisor — the ONE screen behind `/resume`, `/agentview`,
    * `/home`, `/bg` and the composer's 🏠 button.
@@ -1422,7 +1422,7 @@ export function Chat({
   const workspaceFlowRequestRef = React.useRef(0)
   const workspaceFlowAbortRef = React.useRef<AbortController | null>(null)
   /** `/preset` agent-preset roster (issue #8): loads async, persists. */
-  const [presetOptions, setPresetOptions] = React.useState<readonly PresetOption[]>([])
+  const presetOptions = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getPresetOptions)
   /**
    * 落地页参数行的模式段（第六版设计 1）显示 preset 的**显示名**
    * （Standard/PTC/极简…），名册是异步的——落地页出来时顺手预热一次
@@ -1436,15 +1436,15 @@ export function Chat({
     if (!launchpadShown || presetOptions.length > 0 || !presetsReady || !presetsServed) return
     let cancelled = false
     channel.listPresets()
-      .then(list => { if (!cancelled && list.length > 0) setPresetOptions(list) })
+      .then(list => { if (!cancelled && list.length > 0) modelsStore.setPresetOptions(list) })
       .catch(() => {})
     return () => { cancelled = true }
   }, [launchpadShown, presetOptions.length, channel, presetsReady, presetsServed])
   /** `/effort` adapter levels: load async before the slider opens. */
-  const [effortOptions, setEffortOptions] = React.useState<readonly EffortOption[]>([])
+  const effortOptions = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getEffortOptions)
   /** True when those levels are the CLI-standard compatibility ladder (the
    *  model row declares no tiers of its own) — the slider says so. */
-  const [effortLevelsFallback, setEffortLevelsFallback] = React.useState(false)
+  const effortLevelsFallback = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getEffortLevelsFallback)
   const [themeName, setTheme] = useTheme()
   const { rows: terminalRows } = useTerminalSize()
   /**
@@ -3031,7 +3031,7 @@ export function Chat({
             channel.notify(t('preset-roster-unmounted'), { color: 'warning' })
             return
           }
-          setPresetOptions(list)
+          modelsStore.setPresetOptions(list)
           const index = list.findIndex(preset => preset.id === channel.agentPreset)
           overlayStore.dispatch({ type: 'set-index', kind: 'preset', index: index >= 0 ? index : 0 })
         })
@@ -3060,8 +3060,8 @@ export function Chat({
         void channel.listEfforts().then(({ efforts, defaultEffort, levelsFallback }) => {
           // 0/1-tier routes were already notified by listEfforts.
           if (efforts.length <= 1) return
-          setEffortOptions(efforts)
-          setEffortLevelsFallback(levelsFallback === true)
+          modelsStore.setEffortOptions(efforts)
+          modelsStore.setEffortLevelsFallback(levelsFallback === true)
           const current = channel.reasoningEffort ?? defaultEffort
           const index = efforts.findIndex(effort => effort.id === current)
           // open-if: a picker the user opened during the round trip wins
@@ -3319,9 +3319,9 @@ export function Chat({
           channel.notify(t('model-load-failed'), { color: 'error' })
         })
         if (modelProviderTabs) void channel.listProviders().then(list => {
-          if (generation === modelCatalogGeneration.current) setProviderInfos(list)
+          if (generation === modelCatalogGeneration.current) modelsStore.setProviderInfos(list)
         }).catch(() => {
-          if (generation === modelCatalogGeneration.current) setProviderInfos([])
+          if (generation === modelCatalogGeneration.current) modelsStore.setProviderInfos([])
         })
         return true
       }
@@ -3349,7 +3349,7 @@ export function Chat({
           return true
         }
         helpStore.set(false)
-        setSkillsList(null)
+        modelsStore.setSkillsList(null)
         overlayStore.dispatch({ type: 'open', overlay: { kind: 'skills', index: 0 } })
         void channel.listSkills().then((list) => {
           if (list === undefined) {
@@ -3357,7 +3357,7 @@ export function Chat({
             channel.notify(t('skills-load-failed'), { color: 'error' })
             return
           }
-          setSkillsList(list)
+          modelsStore.setSkillsList(list)
         })
         return true
       }
@@ -3389,7 +3389,7 @@ export function Chat({
             || outcome === 'deleted' || outcome === 'signed-out') {
             channel.invalidateModelCompletion()
             void channel.listModels().then(modelsStore.set)
-            void channel.listProviders().then(setProviderInfos).catch(() => setProviderInfos([]))
+            void channel.listProviders().then(setProviderInfos).catch(() => modelsStore.setProviderInfos([]))
           }
         }).catch(() => {
           // The wizard notifies on every handled failure; this only swallows
