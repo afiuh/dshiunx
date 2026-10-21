@@ -113,7 +113,10 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
         caretPreviewOpen={false}
         onDismissCaretPreview={() => {}}
       />
-      {overlay.kind !== 'none' && renderOverlay(overlay.kind, { channel, overlay, approval: approvalSnapshot, question: questionSnapshot })}
+      {overlay.kind !== 'none'
+        && overlay.kind !== 'permission'   // pi 方案：不弹审批（工具直接执行）
+        && !overlay.kind.startsWith('workspace-')   // pi 方案：无工作区
+        && renderOverlay(overlay.kind, { channel, overlay, approval: approvalSnapshot, question: questionSnapshot })}
       <StatusLine
         channel={channel}
         activity={undefined}
