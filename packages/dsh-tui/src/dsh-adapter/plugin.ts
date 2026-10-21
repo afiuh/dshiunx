@@ -2616,7 +2616,8 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
   // 蓝再变橙。Chat 里的 effect 会在品牌解析变化时跟进更新这个镜像。
   setActiveBrand(resolveBrand(config.brand, backendChoice))
   const liveThemeHost = (): TuiThemeHost | undefined => getHostThemes(ctx.get('tuiThemes') as TuiThemeRuntime | undefined)
-  const buildChat = (): React.ReactElement => React.createElement(Chat, {
+  // dshiunx: props are a slot value so tui-chat can build its own Chat.
+  const chatProps = {
     channel,
     renderScene: createChannelSceneOutlet(() => rawChannel.pluginScene),
     questionStore,
@@ -2731,7 +2732,9 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
         handleExit()
       })
     },
-  })
+  }
+  ctx.provide('tuiChatProps', chatProps)
+  const buildChat = (): React.ReactElement => React.createElement(Chat, chatProps)
   // Freeze the fullscreen decision only NOW, right before the tree mounts:
   // Chat above was created after the same settingsReady await, so the root
   // wrap and the `fullscreen` prop share one value; a mid-session /settings
