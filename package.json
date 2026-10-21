@@ -29,6 +29,8 @@
     "picomatch": "^4.0.2",
     "node-addon-require-builtin": "^0.1.9",
     "yaml": "^2.8.0",
-    "eventsource-parser": "^3.0.0"
+    "eventsource-parser": "^3.0.0",
+    "semver": "^7.6.0",
+    "resolve.exports": "^2.0.3"
   }
 }
