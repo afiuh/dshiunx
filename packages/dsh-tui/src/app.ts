@@ -30,15 +30,23 @@ export function createTui(options: {
 }): TuiApp {
   const terminal = new ProcessTerminal()
   const tui = new TuiMainScreen(terminal, true)
-  const scroll = new ScrollView({ follow: 'end', scrollbar: 'auto' })
+  const scroll = new ScrollView(new VStack([]), { follow: 'end', scrollbar: 'auto' })
   const status = new Text('')
-  const editor = new Editor({
-    onSubmit: (text) => {
-      const trimmed = text.trim()
-      if (trimmed) options.onSubmit(trimmed)
-      editor.setText('')
+  const editor = new Editor(tui, {
+    borderColor: (str) => `\x1b[2m${str}\x1b[0m`,
+    selectList: {
+      selectedPrefix: (str) => `\x1b[36m${str}\x1b[0m`,
+      selectedText: (str) => `\x1b[36m${str}\x1b[0m`,
+      description: (str) => `\x1b[2m${str}\x1b[0m`,
+      scrollInfo: (str) => `\x1b[2m${str}\x1b[0m`,
+      noMatch: (str) => `\x1b[2m${str}\x1b[0m`,
     },
-  })
+  }, { paddingX: 1 })
+  editor.onSubmit = (text) => {
+    const trimmed = text.trim()
+    if (trimmed) options.onSubmit(trimmed)
+    editor.setText('')
+  }
   const root = new VStack([scroll, editor, status])
   tui.addChild(root)
   tui.setFocus(editor)
@@ -57,7 +65,9 @@ export function createTui(options: {
     editor,
     status,
     append(component) {
-      scroll.addChild(component as any)
+      const child = (scroll as any).child
+      if (child && typeof child.addChild === 'function') child.addChild(component)
+      else (scroll as any).addChild?.(component)
       tui.requestRender()
     },
     setStatus(text) {
