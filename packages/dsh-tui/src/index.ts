@@ -1,6 +1,7 @@
 import { Renderer } from './renderer.ts'
 import { projectSessionEvent } from './projection.ts'
 import type { ViewEvent } from './view-event.ts'
+import { StatusBar } from './status.ts'
 
 export const name = 'tui'
 export const inject = ['agents', 'sessions', 'agentPresets']
@@ -11,7 +12,11 @@ export const inject = ['agents', 'sessions', 'agentPresets']
  */
 export function apply(ctx: any): void {
   const renderer = new Renderer()
-  const emit = (event: ViewEvent) => renderer.write(event)
+  const status = new StatusBar()
+  const emit = (event: ViewEvent) => {
+    if (event.kind === 'text-delta') status.clear()
+    renderer.write(event)
+  }
 
   ctx.effect(() => {
     const off = ctx.on('session/event', (_session: any, event: any) => {
@@ -20,4 +25,13 @@ export function apply(ctx: any): void {
     })
     return () => off?.()
   }, 'tui.session-events')
+
+  ctx.effect(() => {
+    const off = ctx.on('session/event', (_session: any, event: any) => {
+      if (event?.type === 'turn/end') {
+        status.render({ model: process.env.DSHIUNX_MODEL ?? 'deepseek-chat', working: false })
+      }
+    })
+    return () => off?.()
+  }, 'tui.status')
 }
