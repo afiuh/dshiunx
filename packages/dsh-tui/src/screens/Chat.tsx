@@ -52,15 +52,6 @@ import { backendModeStatus as modeStatus, backendPermissionCommand, parseMcpComm
 import { PermissionStore, type PermissionPanelSource } from '../channel/permissions.js'
 import { goalStatusLines, parseGoalCommand } from '../channel/goal-command.js'
 import { useChatStore } from '../../../tui-store/src/index.js'
-import { timelineStore } from '../stores/timelineStore.js'
-import { modelsStore } from '../stores/modelsStore.js'
-import { selectionStore } from '../stores/selectionStore.js'
-import { overlayStore } from '../stores/overlayStore.js'
-import { sessionStore } from '../stores/sessionStore.js'
-import { panelsStore } from '../stores/panelsStore.js'
-import { migrateStore } from '../stores/migrateStore.js'
-import { uiStore } from '../stores/uiStore.js'
-import { bootStore } from '../stores/bootStore.js'
 import { AskUserQuestionPanel } from '../components/questions/AskUserQuestionPanel.js'
 import { ApprovalPanel } from '../components/approvals/ApprovalPanel.js'
 import { ExtensionDialog } from '../components/ExtensionDialog.js'
@@ -717,14 +708,14 @@ export function Chat({
    * rail's ▲/▼. Null activeId while pinned to the bottom only when there
    * are no turns (header hidden there anyway).
    */
-  const timeline = React.useSyncExternalStore(timelineStore.subscribe, timelineStore.get)
-  const selectionActive = React.useSyncExternalStore(selectionStore.subscribe, selectionStore.getActive)
-  const selectedId = React.useSyncExternalStore(selectionStore.subscribe, selectionStore.getSelectedId)
-  const expandedRows = React.useSyncExternalStore(selectionStore.subscribe, selectionStore.getExpanded)
+  const timeline = useChatStore((state) => state.timeline)
+  const selectionActive = useChatStore((state) => state.selectionActive)
+  const selectedId = useChatStore((state) => state.selectedId)
+  const expandedRows = useChatStore((state) => state.expandedRows)
   /** 流式 reasoning 行相对 thinkingFold 默认值的用户切换。与
    *  expandedRows 分开：preview 默认三行、full 默认全文，点击在两者间
    *  翻转；落定后自动回到普通行的折叠语义。 */
-  const streamViewToggledRows = React.useSyncExternalStore(selectionStore.subscribe, selectionStore.getToggled)
+  const streamViewToggledRows = useChatStore((state) => state.streamViewToggledRows)
   /**
    * The transient-dialog layer (every picker/dialog `<OverlayAbove>` hosts,
    * plus /tips) as ONE value: mutual exclusion between the panels is
@@ -735,19 +726,19 @@ export function Chat({
    * it persists across open/close so a reopened picker paints the previous
    * list while the fresh one loads, exactly as the boolean era did.
    */
-  const overlay = React.useSyncExternalStore(overlayStore.subscribe, overlayStore.get)
-  const dispatchOverlay = overlayStore.dispatch
+  const overlay = useChatStore((state) => state.overlay)
+  const dispatchOverlay = useChatStore((state) => state.dispatchOverlay)
   // `/migrate` picker rows (null = collecting in the background; the picker
   // shows its empty state until the sub-second scan lands).
-  const migrateRows = React.useSyncExternalStore(migrateStore.subscribe, migrateStore.getRows)
+  const migrateRows = useChatStore((state) => state.migrateRows)
   // Multi-select state (PRD): checked agent ids + the confirmation layer's
   // frozen snapshot of the checked rows.
-  const migrateChecked = React.useSyncExternalStore(migrateStore.subscribe, migrateStore.getChecked)
-  const migratePending = React.useSyncExternalStore(migrateStore.subscribe, migrateStore.getPending)
+  const migrateChecked = useChatStore((state) => state.migrateChecked)
+  const migratePending = useChatStore((state) => state.migratePending)
   // Smart-hint arming: while the migration hint notification is up, a bare
   // Enter (empty prompt, no overlay) jumps straight into the picker with
   // that source pre-checked (PRD #4). Any other key disarms.
-  const migrateHintAgent = React.useSyncExternalStore(migrateStore.subscribe, migrateStore.getHintAgent)
+  const migrateHintAgent = useChatStore((state) => state.migrateHintAgent)
   // Chat and PromptInput both receive one parsed stdin batch. Keep the
   // permission focus synchronous so arrow+Enter in the same batch uses the
   // post-arrow row rather than the previous render's index.
@@ -799,7 +790,7 @@ export function Chat({
       && live.autoConfirmed === overlay.snapshot.autoConfirmed
     ) return
     if (live.availability === 'unavailable' || live.options.length === 0) {
-      overlayStore.dispatch({ type: 'close-if', kind: 'permission' })
+      useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'permission' })
       return
     }
     const focusIndex = permissionOverlayFocusRef.current?.overlay === overlay
@@ -812,17 +803,17 @@ export function Chat({
       .find(found => found >= 0) ?? Math.min(1, live.options.length - 1)
     const confirm = overlay.confirm === true && live.options.some(option => option.value === PERMISSION_PRESET_AUTO)
     if (overlay.confirm === true && !confirm) channel.notify(t('permission-auto-unavailable'), { color: 'warning' })
-    overlayStore.dispatch({
+    useChatStore.getState().dispatchOverlay({
       type: 'open-if',
       overlay: { kind: 'permission', index, snapshot: clonePermissionPresetSnapshot(live), ...(confirm ? { confirm } : {}) },
       when: ['permission'],
     })
   })
-  const models = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.get)
-  const modelsLoading = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.isLoading)
+  const models = useChatStore((state) => state.models)
+  const modelsLoading = useChatStore((state) => state.modelsLoading)
   const modelCatalogGeneration = React.useRef(0)
   /** Provider display identities for the /model tabs; refreshed alongside `models`. */
-  const providerInfos = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getProviderInfos)
+  const providerInfos = useChatStore((state) => state.providerInfos)
   /** /model 最近使用分组：成功切换即记录（去重置顶，上限 10），重启保留。 */
   const modelProviderTabs = channel.backendCapabilities?.modelRoutes !== 'backend'
   const recentsBackend = channel.backendCapabilities?.backendId
@@ -841,9 +832,9 @@ export function Chat({
   }
   const modelPicker = useModelPicker({
     channel, models, providers: providerInfos, recents: modelProviderTabs ? modelRecents : undefined, open: overlay.kind === 'model',
-    onCancel: () => overlayStore.dispatch({ type: 'close-if', kind: 'model' }),
+    onCancel: () => useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'model' }),
     onPick: (model, effort) => {
-      overlayStore.dispatch({ type: 'close-if', kind: 'model' })
+      useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'model' })
       void switchModelRecorded(model.provider, model.id, model.name).then(ok => {
         // Validate/apply on the adopted route; a refused switch leaves both
         // the live effort and its persisted preference untouched.
@@ -852,7 +843,7 @@ export function Chat({
     },
   })
   /** `/skills` 技能目录（issue #204）：null = 注册表快照在途。 */
-  const skillsList = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getSkillsList)
+  const skillsList = useChatStore((state) => state.skillsList)
   /**
    * The session supervisor — the ONE screen behind `/resume`, `/agentview`,
    * `/home`, `/bg` and the composer's 🏠 button.
@@ -905,9 +896,9 @@ export function Chat({
    * unmounting component would be lost in exactly the transition it exists
    * to carry.
    */
-  const launchpadDraft = React.useSyncExternalStore(bootStore.subscribe, bootStore.getLaunchpadDraft)
-  const launchpadCaret = React.useSyncExternalStore(bootStore.subscribe, bootStore.getLaunchpadCaret)
-  const launchpadFocus = React.useSyncExternalStore(bootStore.subscribe, bootStore.getLaunchpadFocus)
+  const launchpadDraft = useChatStore((state) => state.launchpadDraft)
+  const launchpadCaret = useChatStore((state) => state.launchpadCaret)
+  const launchpadFocus = useChatStore((state) => state.launchpadFocus)
   const launchpadImagesRef = React.useRef(new Map<string, string>())
   const changeLaunchpadDraft = (text: string, cursor: number): void => {
     const live = new Set(composerImageRefsForText(text, launchpadImagesRef.current).map(image => image.token))
@@ -916,8 +907,8 @@ export function Chat({
       launchpadImagesRef.current.delete(token)
       channel.discardStagedImage(stageId)
     }
-    bootStore.setLaunchpadDraft(text)
-    bootStore.setLaunchpadCaret(cursor)
+    useChatStore.getState().setLaunchpadDraft(text)
+    useChatStore.getState().setLaunchpadCaret(cursor)
   }
   const launchpadBindingGeneration = resolveBindingGeneration(channel)
   // Capture the image epoch with each session binding. Automatic startup keeps
@@ -935,8 +926,8 @@ export function Chat({
     const previous = launchpadSessionRef.current
     launchpadSessionRef.current = { id: channel.agentId, imageGeneration: composerImageGeneration }
     if (previous.id === '' && channel.agentId !== '' && previous.imageGeneration === composerImageGeneration) return
-    bootStore.setLaunchpadDraft('')
-    bootStore.setLaunchpadCaret(0)
+    useChatStore.getState().setLaunchpadDraft('')
+    useChatStore.getState().setLaunchpadCaret(0)
     discardLaunchpadImages()
   }, [channel, channel.agentId, launchpadBindingGeneration])
   /**
@@ -1002,13 +993,13 @@ export function Chat({
    * 判定，src/update.ts）在启动页第一次挂起时后台探一次——registry 延迟
    * 不许拖慢第一帧；失败/离线静默为 false（绝不放假按钮）。
    */
-  const launchpadUpdateAvailable = React.useSyncExternalStore(bootStore.subscribe, bootStore.getLaunchpadUpdateAvailable)
+  const launchpadUpdateAvailable = useChatStore((state) => state.launchpadUpdateAvailable)
   const launchpadUpdateProbedRef = React.useRef(false)
   React.useEffect(() => {
     if (!launchpadShown || launchpadUpdateProbedRef.current) return
     launchpadUpdateProbedRef.current = true
     void checkForTuiUpdate().then(update => {
-      bootStore.setLaunchpadUpdateAvailable(update !== undefined)
+      useChatStore.getState().setLaunchpadUpdateAvailable(update !== undefined)
     }).catch(() => undefined)
   }, [launchpadShown])
   const canInstallSdk = onResolveSdkInstall !== undefined
@@ -1023,7 +1014,7 @@ export function Chat({
    * 不进 overlay union）。每次打开独占安装面与进程句柄；浮层关闭或替换时
    * 取消安装并重置步骤，旧预检/安装结果不能落进下一次打开的向导。
    */
-  const sdkPhase = React.useSyncExternalStore(bootStore.subscribe, bootStore.getSdkPhase)
+  const sdkPhase = useChatStore((state) => state.sdkPhase)
   const sdkInstallRef = React.useRef<{ readonly surface: SdkInstallSurface; installer?: SdkInstaller } | undefined>(undefined)
   const sdkOverlay = overlay.kind === 'sdk-install' ? overlay : undefined
   // 安装面在这次打开时快照；宿主回调更新不重启正在进行的安装。
@@ -1031,14 +1022,14 @@ export function Chat({
     if (sdkOverlay === undefined) return
     const surface = onResolveSdkInstall?.(sdkOverlay.backendId)
     if (surface === undefined) {
-      overlayStore.dispatch({ type: 'close' })
+      useChatStore.getState().dispatchOverlay({ type: 'close' })
       return
     }
     const installation: NonNullable<typeof sdkInstallRef.current> = { surface }
     sdkInstallRef.current = installation
     const target = surface.resolveTarget()
     if (target.kind === 'profile') {
-      bootStore.setSdkPhase({
+      useChatStore.getState().setSdkPhase({
         kind: 'confirm',
         dir: target.dir,
         version: surface.version,
@@ -1046,20 +1037,20 @@ export function Chat({
         ...(sdkOverlay.foundCli === undefined ? {} : { foundCli: sdkOverlay.foundCli }),
       })
     } else {
-      bootStore.setSdkPhase({ kind: 'no-target', reason: target.kind === 'standalone' ? 'standalone' : 'no-profile' })
+      useChatStore.getState().setSdkPhase({ kind: 'no-target', reason: target.kind === 'standalone' ? 'standalone' : 'no-profile' })
     }
     return () => {
       sdkInstallRef.current = undefined
       installation.installer?.cancel()
-      bootStore.setSdkPhase({ kind: 'idle' })
+      useChatStore.getState().setSdkPhase({ kind: 'idle' })
     }
   }, [sdkOverlay])
   const closeSdkInstallToKernelPicker = (): void => {
-    overlayStore.dispatch({ type: 'close' })
+    useChatStore.getState().dispatchOverlay({ type: 'close' })
     openKernelPicker()
   }
   const closeSdkInstall = (): void => {
-    overlayStore.dispatch({ type: 'close' })
+    useChatStore.getState().dispatchOverlay({ type: 'close' })
   }
   const runSdkInstall = (dir: string): void => {
     const installation = sdkInstallRef.current
@@ -1067,20 +1058,20 @@ export function Chat({
     const { surface } = installation
     const installer = surface.start(dir)
     installation.installer = installer
-    bootStore.setSdkPhase({ kind: 'running' })
+    useChatStore.getState().setSdkPhase({ kind: 'running' })
     void installer.result.then(result => {
       if (sdkInstallRef.current !== installation) return
       installation.installer = undefined
       if (result.kind === 'ok') {
         // 装好了：重探内核（灰行变亮，无需重启进程），停在完成面板。
         reprobeKernels()
-        bootStore.setSdkPhase({ kind: 'done', rebuiltStore: result.rebuiltStore === true })
+        useChatStore.getState().setSdkPhase({ kind: 'done', rebuiltStore: result.rebuiltStore === true })
       } else if (result.kind === 'failed') {
-        bootStore.setSdkPhase({ kind: 'failed', exitCode: result.exitCode, tail: result.tail, dir, version: surface.version, specifier: surface.specifier })
+        useChatStore.getState().setSdkPhase({ kind: 'failed', exitCode: result.exitCode, tail: result.tail, dir, version: surface.version, specifier: surface.specifier })
       } else if (result.kind === 'pnpm-missing') {
-        bootStore.setSdkPhase({ kind: 'pnpm-missing', dir, version: surface.version, specifier: surface.specifier })
+        useChatStore.getState().setSdkPhase({ kind: 'pnpm-missing', dir, version: surface.version, specifier: surface.specifier })
       } else {
-        bootStore.setSdkPhase({ kind: 'cancelled' })
+        useChatStore.getState().setSdkPhase({ kind: 'cancelled' })
       }
     })
   }
@@ -1088,11 +1079,11 @@ export function Chat({
     const installation = sdkInstallRef.current
     if (installation === undefined) return
     const { surface } = installation
-    bootStore.setSdkPhase({ kind: 'checking' })
+    useChatStore.getState().setSdkPhase({ kind: 'checking' })
     void surface.preflight().then(ok => {
       if (sdkInstallRef.current !== installation) return
       if (!ok) {
-        bootStore.setSdkPhase({ kind: 'pnpm-missing', dir, version: surface.version, specifier: surface.specifier })
+        useChatStore.getState().setSdkPhase({ kind: 'pnpm-missing', dir, version: surface.version, specifier: surface.specifier })
         return
       }
       runSdkInstall(dir)
@@ -1192,7 +1183,7 @@ export function Chat({
    * 完成（写进 onboarding.json）之后立刻收掉；跳过刻意保留——没记账，下次启动还会问，
    * 横幅说的正是这件事。
    */
-  const onboardingPending = React.useSyncExternalStore(bootStore.subscribe, bootStore.getOnboardingPending)
+  const onboardingPending = useChatStore((state) => state.onboardingPending)
   /**
    * 品牌档（`branding.ts`）：设置项 `dsh-tui.brand`（`auto` = 跟后端）与当前
    * 后端 id（`backendCapabilities.backendId`，boot 时即定）的合成。开屏词、
@@ -1212,7 +1203,7 @@ export function Chat({
    * The session backgrounded when the screen opened via ←/`/bg` (the "Esc
    *  returns to that conversation" return target), cleared on close.
    */
-  const agentViewReturnId = React.useSyncExternalStore(sessionStore.subscribe, sessionStore.getAgentViewReturnId)
+  const agentViewReturnId = useChatStore((state) => state.agentViewReturnId)
   /** Live agent-view rows: the prompt footer's "← N agents" hint reads the
    *  needs-input count from here (cached snapshot in the channel). The
    *  `?.()` fallbacks keep pre-agent-view test stubs (channel facades in
@@ -1240,7 +1231,7 @@ export function Chat({
     }
     void channel.backgroundCurrent().then((result) => {
       if (result.ok) {
-        sessionStore.setAgentViewReturnId(result.backgroundedSessionId)
+        useChatStore.getState().setAgentViewReturnId(result.backgroundedSessionId)
         agentViewOpenSessionRef.current = channel.agentId
         setSupervisorOpen(true)
       }
@@ -1273,7 +1264,7 @@ export function Chat({
    * 这一轮不弹也**不记账**，留给下一次启动。`starPrompt` 是测试缝：传
    * `null` 显式关闭，传 actions 覆写两个按钮（不跑真 gh、不开真浏览器）。 */
   /** 本次会话是否已经 star 成功（开屏彩蛋标题切「捡到小星星啦」）。 */
-  const starred = React.useSyncExternalStore(bootStore.subscribe, bootStore.getStarred)
+  const starred = useChatStore((state) => state.starred)
   /**
    * 落地页条件位③（投喂一颗 Star）：与开屏求 star 弹窗**同一口径**——
    * `usageStats`（~/.dsh-tui/usage.json）里有未报过的已达档里程碑
@@ -1286,7 +1277,7 @@ export function Chat({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- dir 经测试缝注入
     [starred, starPrompt],
   )
-  const starModal = React.useSyncExternalStore(bootStore.subscribe, bootStore.getStarModal)
+  const starModal = useChatStore((state) => state.starModal)
   // 单发闩：只在第一个"安静的开屏视口"上武装定时器。700ms 窗口内整屏
   // 界面打开 → cleanup 掐掉定时器且**不再重臂**（记账只发生在回调里，
   // 所以这一档完好留给下一次启动）；整屏界面随后关闭也不追到聊天视图
@@ -1313,13 +1304,13 @@ export function Chat({
       if (working) return
       if (starModalPreview) {
         const preview = STAR_MILESTONES.findIndex(milestone => milestone.hours === 99)
-        if (preview >= 0) bootStore.setStarModal({ index: preview, phase: 'ask' })
+        if (preview >= 0) useChatStore.getState().setStarModal({ index: preview, phase: 'ask' })
         return
       }
       const index = dueStarModal(starPrompt?.dir)
       if (index === null) return
       markStarAsked(index, starPrompt?.dir)
-      bootStore.setStarModal({ index, phase: 'ask' })
+      useChatStore.getState().setStarModal({ index, phase: 'ask' })
     }, 700)
     return () => { clearTimeout(timer) }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- 只在整屏界面开合时重判；闩保证只武装一次
@@ -1348,14 +1339,14 @@ export function Chat({
         return { kind: 'failed' as const, detail: outcome.detail, url }
       })).then(attempt => {
       if (attempt.kind === 'starred') {
-        bootStore.setStarred(true)
+        useChatStore.getState().setStarred(true)
         // 成功就演一段庆祝（女仆娘接住星星）——`/star`、`Alt+S`、标语点击
         // 都是这一条路。整屏界面开着或回合进行中时弹窗放不下，退回一句
         // 通知，用户至少知道 star 点上了。
         const blocked = channel.working || supervisorOpen || treeOpen || settingsOpen
         const index = STAR_MILESTONES.findIndex(milestone => milestone.hours === 99)
         if (!blocked && index >= 0) {
-          bootStore.setStarModal({ index, phase: 'done' })
+          useChatStore.getState().setStarModal({ index, phase: 'done' })
           return
         }
         channel.notify(t('star-ok'), { color: 'success' })
@@ -1386,7 +1377,7 @@ export function Chat({
       // 多一个微任务会让弹窗"庆祝那一帧"被紧随其后的 Enter 关窗批掉
       //（夹具 C8/C9 实测）。这里只挂副作用、原样返回。
       const afterAttempt = (attempt: StarAttempt): StarAttempt => {
-        if (attempt.kind === 'starred') bootStore.setStarred(true)
+        if (attempt.kind === 'starred') useChatStore.getState().setStarred(true)
         else if (attempt.kind === 'no-gh' || attempt.kind === 'not-authed') openStarPage()
         return attempt
       }
@@ -1410,17 +1401,17 @@ export function Chat({
       return run
     },
     onOpen: () => {
-      bootStore.setStarModal(null)
+      useChatStore.getState().setStarModal(null)
       openStarPage()
     },
   }), [starPrompt, openStarPage])
   /** 弹窗关闭回调：稳定引用（见渲染处的注释）。 */
-  const closeStarModal = React.useCallback((): void => { bootStore.setStarModal(null) }, [])
-  const workspaceTargets = React.useSyncExternalStore(bootStore.subscribe, bootStore.getWorkspaceTargets)
+  const closeStarModal = React.useCallback((): void => { useChatStore.getState().setStarModal(null) }, [])
+  const workspaceTargets = useChatStore((state) => state.workspaceTargets)
   const workspaceFlowRequestRef = React.useRef(0)
   const workspaceFlowAbortRef = React.useRef<AbortController | null>(null)
   /** `/preset` agent-preset roster (issue #8): loads async, persists. */
-  const presetOptions = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getPresetOptions)
+  const presetOptions = useChatStore((state) => state.presetOptions)
   /**
    * 落地页参数行的模式段（第六版设计 1）显示 preset 的**显示名**
    * （Standard/PTC/极简…），名册是异步的——落地页出来时顺手预热一次
@@ -1434,15 +1425,15 @@ export function Chat({
     if (!launchpadShown || presetOptions.length > 0 || !presetsReady || !presetsServed) return
     let cancelled = false
     channel.listPresets()
-      .then(list => { if (!cancelled && list.length > 0) modelsStore.setPresetOptions(list) })
+      .then(list => { if (!cancelled && list.length > 0) useChatStore.getState().setPresetOptions(list) })
       .catch(() => {})
     return () => { cancelled = true }
   }, [launchpadShown, presetOptions.length, channel, presetsReady, presetsServed])
   /** `/effort` adapter levels: load async before the slider opens. */
-  const effortOptions = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getEffortOptions)
+  const effortOptions = useChatStore((state) => state.effortOptions)
   /** True when those levels are the CLI-standard compatibility ladder (the
    *  model row declares no tiers of its own) — the slider says so. */
-  const effortLevelsFallback = React.useSyncExternalStore(modelsStore.subscribe, modelsStore.getEffortLevelsFallback)
+  const effortLevelsFallback = useChatStore((state) => state.effortLevelsFallback)
   const [themeName, setTheme] = useTheme()
   const { rows: terminalRows } = useTerminalSize()
   /**
@@ -1452,16 +1443,16 @@ export function Chat({
    */
   const helpCoverScrollRef = React.useRef<ScrollBoxHandle | null>(null)
   const helpCoverViewportHeight = Math.max(3, Math.min(terminalRows - 7, 15))
-  const showAllMessages = React.useSyncExternalStore(uiStore.subscribe, uiStore.getShowAllMessages)
+  const showAllMessages = useChatStore((state) => state.showAllMessages)
   /** Scope the fold to this question: an aborted ask can promote its queued
    *  successor without ever publishing an idle (null) snapshot. */
-  const minimizedQuestionKey = React.useSyncExternalStore(uiStore.subscribe, uiStore.getMinimizedQuestionKey)
+  const minimizedQuestionKey = useChatStore((state) => state.minimizedQuestionKey)
   const questionMinimized = questionSnapshot !== null && minimizedQuestionKey === questionSnapshot.key
   /** Fold state for the GoalTodoPanel todo section (ctrl/cmd+q or click). */
-  const todoCollapsed = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getTodoCollapsed)
+  const todoCollapsed = useChatStore((state) => state.todoCollapsed)
   // Dismiss only this idle projection; new goal/todo data or a session switch
   // reveals the footer again without changing the backend's canonical state.
-  const todoFooterOverride = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getTodoFooterOverride)
+  const todoFooterOverride = useChatStore((state) => state.todoFooterOverride)
   const todoFooterOverrideMatches = !channel.working && todoFooterOverride !== undefined
     && todoFooterOverride.agentId === channel.agentId
     && todoFooterOverride.goal === channel.goal
@@ -1480,13 +1471,13 @@ export function Chat({
     && completedTodoSnapshot.current?.todos === channel.todos
   const todoFooterHidden = todoFooterOverrideMatches ? todoFooterOverride!.hidden : completedTodoFooter
   const toggleTodoFooter = (): void => {
-    if (channel.working) panelsStore.setTodoCollapsed(previous => !previous)
-    else panelsStore.setTodoFooterOverride({
+    if (channel.working) useChatStore.getState().setTodoCollapsed(previous => !previous)
+    else useChatStore.getState().setTodoFooterOverride({
       hidden: !todoFooterHidden,
       agentId: channel.agentId, goal: channel.goal, todos: channel.todos,
     })
   }
-  const thinkingVisible = React.useSyncExternalStore(uiStore.subscribe, uiStore.getThinkingVisible)
+  const thinkingVisible = useChatStore((state) => state.thinkingVisible)
   /** ctrl+r history-search entries (loaded on open, persists). */
   const [historyEntries, setHistoryEntries] = React.useState<readonly HistoryEntry[]>([])
   const [historyFill, setHistoryFill] = React.useState<string | null>(null)
@@ -1500,9 +1491,9 @@ export function Chat({
    *  panel, otherwise the floating overlay in the conversation. This flag
    *  records that the fallback is wanted; `btwOverlayVisible` decides whether
    *  it actually owns the screen. */
-  const btwOverlayOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getBtwOverlayOpen)
+  const btwOverlayOpen = useChatStore((state) => state.btwOverlayOpen)
   /** ⤢ fullscreen thread scene (openPanelFullscreen 'btw' route). */
-  const btwSceneOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getBtwSceneOpen)
+  const btwSceneOpen = useChatStore((state) => state.btwSceneOpen)
   // Only the fallback overlay reads the thread here. With the overlay closed
   // the snapshot stays undefined, so an answer streaming into the sidebar
   // panel does not re-render the whole Chat on every delta.
@@ -1514,7 +1505,7 @@ export function Chat({
     // Fallback parity with the pre-thread overlay: closing cancels the
     // in-flight ask (completed turns stay in the thread).
     btwThreads.abortActive(String(channel.agentId))
-    uiStore.setBtwOverlayOpen(false)
+    useChatStore.getState().setBtwOverlayOpen(false)
   }
   /** 有模态或整屏界面时，/btw 的回答不抢着打开面板，只标未读。 */
   const btwSurfaceFree = () =>
@@ -1653,16 +1644,16 @@ export function Chat({
     if (lastAgentIdRef.current === id) return
     lastAgentIdRef.current = id
     setExpanded(false)
-    selectionStore.setExpanded(new Set())
-    selectionStore.setSelectedId(null)
-    selectionStore.setActive(false)
-    uiStore.setShowAllMessages(false)
-    uiStore.setLoadedContextOpen(false)
+    useChatStore.getState().setExpandedRows(new Set())
+    useChatStore.getState().setSelectedId(null)
+    useChatStore.getState().setSelectionActive(false)
+    useChatStore.getState().setShowAllMessages(false)
+    useChatStore.getState().setLoadedContextOpen(false)
     useChatStore.getState().setSearchQuery('')
     useChatStore.getState().setSearchCursor(0)
     useChatStore.getState().setSearchCount(0)
     useChatStore.getState().setSearchCurrent(0)
-    uiStore.setBtwOverlayOpen(false)
+    useChatStore.getState().setBtwOverlayOpen(false)
     repaintTranscript()
   }, [channel.agentId]) // eslint-disable-line react-hooks/exhaustive-deps
   /** The session attached when the agent view opened; a close on a
@@ -1677,12 +1668,12 @@ export function Chat({
    */
   const suppressLogoIntroRef = React.useRef(false)
   /** Subagent dashboard (Ctrl+A): displays active/completed subagents. */
-  const subagentDashboardOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getSubagentDashboardOpen)
-  const jobsPanelOpen = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getJobsPanelOpen)
+  const subagentDashboardOpen = useChatStore((state) => state.subagentDashboardOpen)
+  const jobsPanelOpen = useChatStore((state) => state.jobsPanelOpen)
   /** Job id the panel should focus on open: set by a transcript card click
    *  (open the panel AT that job), cleared on close so the keyboard/command
    *  path reopens at the top. */
-  const jobsPanelFocusId = React.useSyncExternalStore(panelsStore.subscribe, panelsStore.getJobsPanelFocusId)
+  const jobsPanelFocusId = useChatStore((state) => state.jobsPanelFocusId)
   // Side-panel routing needs the controller, which is created further down;
   // a ref keeps this identity-stable callback fresh anyway.
   const sidePanelRef = React.useRef<{
@@ -1704,8 +1695,8 @@ export function Chat({
       return
     }
     // Narrow / inline fallback: the full-screen overlay (unchanged).
-    if (typeof focusId === 'string' && focusId !== '') panelsStore.setJobsPanelFocusId(focusId)
-    panelsStore.setJobsPanelOpen(true)
+    if (typeof focusId === 'string' && focusId !== '') useChatStore.getState().setJobsPanelFocusId(focusId)
+    useChatStore.getState().setJobsPanelOpen(true)
   }, [])
   // A job card / the panel keeps its output tail fresh while on screen, when
   // the backend reads output on demand. The control is re-projected on every
@@ -1726,22 +1717,22 @@ export function Chat({
       sidePanel.openPanel('agents', { focus: true })
       return
     }
-    uiStore.setSubagentDashboardOpen(true)
+    useChatStore.getState().setSubagentDashboardOpen(true)
   }, [])
   /** Detail view for a specific subagent (opened from dashboard). */
-  const subagentDetailId = React.useSyncExternalStore(uiStore.subscribe, uiStore.getSubagentDetailId)
+  const subagentDetailId = useChatStore((state) => state.subagentDetailId)
   /**
    * 主屏只读 Agent View：Chat 自己的场景层。父 Chat、Channel 与 PromptInput
    * 保持挂载（草稿经 draftCache 往返），场景只借用屏幕与键盘；Esc 回到打开它
    * 的地方（对话 / 代理面板 / 详情 / 转录卡）。不建第二个 Channel。
    */
-  const agentView = React.useSyncExternalStore(sessionStore.subscribe, sessionStore.getAgentView)
+  const agentView = useChatStore((state) => state.agentView)
   const openAgentView = React.useCallback((agentId: string, source: AgentViewSource): void => {
-    sessionStore.setAgentView({ agentId, source })
+    useChatStore.getState().setAgentView({ agentId, source })
   }, [])
   /** 工作台里切到同级或父代理：原地换被查看的代理，Esc 仍回最初的入口。 */
   const switchViewedAgent = React.useCallback((agentId: string): void => {
-    sessionStore.setAgentView(prev => prev === null ? prev : { ...prev, agentId })
+    useChatStore.getState().setAgentView(prev => prev === null ? prev : { ...prev, agentId })
   }, [])
   /** 转录卡入口的稳定句柄：MessageList 的 memo 行按 props 身份比较，内联
    *  箭头会让每个流式 tick 重渲染全部落定行（verify-tool-history-window）。 */
@@ -1755,28 +1746,28 @@ export function Chat({
     const source: AgentViewSource = request.source === 'agents-dashboard'
       ? { kind: 'agents-dashboard', ...(request.panel ? { panel: true as const } : {}) }
       : { kind: 'agent-detail', agentId: request.agentId, ...(request.panel ? { panel: true as const } : {}) }
-    sessionStore.setAgentView({ agentId: request.agentId, source })
+    useChatStore.getState().setAgentView({ agentId: request.agentId, source })
   }), [])
   /** Esc 的返回路由：面板来源回面板（路由经模块记忆保真），整屏来源回整屏。 */
   const exitAgentView = React.useCallback((source: AgentViewSource): void => {
-    sessionStore.setAgentView(null)
+    useChatStore.getState().setAgentView(null)
     const sidePanel = sidePanelRef.current
     const panelReturn = (sidePanel !== null && sidePanel.split && sidePanel.enabledPanelIds.includes('agents'))
     if (source.kind === 'agents-dashboard') {
       if (source.panel === true && panelReturn) sidePanel.openPanel('agents', { focus: true })
-      else uiStore.setSubagentDashboardOpen(true)
+      else useChatStore.getState().setSubagentDashboardOpen(true)
       return
     }
     if (source.kind === 'agent-detail') {
       if (source.panel === true && panelReturn) sidePanel.openPanel('agents', { focus: true })
-      else uiStore.setSubagentDetailId(source.agentId)
+      else useChatStore.getState().setSubagentDetailId(source.agentId)
     }
   }, [])
   /**
    * Hidden `/deepseek` easter egg: each invocation bumps this key so the
    * logo header remounts and replays the whale spout + text shimmer.
    */
-  const logoNonce = React.useSyncExternalStore(uiStore.subscribe, uiStore.getLogoNonce)
+  const logoNonce = useChatStore((state) => state.logoNonce)
   React.useEffect(() => () => recapAbortRef.current?.abort(), [])
   /**
    * The trajectory scene (issue #80 evolution). Unlike every other overlay
@@ -1785,7 +1776,7 @@ export function Chat({
    * it the keyboard. Chat itself stays mounted, so scroll position, pickers
    * and in-flight turn state survive the round trip untouched.
    */
-  const sceneOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getSceneOpen)
+  const sceneOpen = useChatStore((state) => state.sceneOpen)
   /**
    * Close the scene.
    *
@@ -1794,7 +1785,7 @@ export function Chat({
    * that happened while the scene was open.
    */
   const closeScene = React.useCallback(() => {
-    uiStore.setSceneOpen(false)
+    useChatStore.getState().setSceneOpen(false)
   }, [])
 
   /**
@@ -1854,7 +1845,7 @@ export function Chat({
       controller.openPanel('trajectory', { focus: true })
       return
     }
-    uiStore.setSceneOpen(true)
+    useChatStore.getState().setSceneOpen(true)
   }, [channel])
 
   /**
@@ -1876,7 +1867,7 @@ export function Chat({
     suppressLogoIntroRef.current = true
     markHomeSeen()
     const returnTo = agentViewReturnId
-    sessionStore.setAgentViewReturnId(undefined)
+    useChatStore.getState().setAgentViewReturnId(undefined)
     setSupervisorOpen(false)
     if (returnTo !== undefined && returnTo !== channel.agentId) {
       void channel.resumeTo(returnTo).then((result) => {
@@ -1901,7 +1892,7 @@ export function Chat({
     setOnboardingOpen(false)
     if (outcome === 'done') {
       const written = markOnboardingDone()
-      bootStore.setOnboardingPending(false)
+      useChatStore.getState().setOnboardingPending(false)
       channel.notify(t(written ? 'onboarding-finished' : 'onboarding-write-failed'), {
         color: written ? 'success' : 'warning',
         timeoutMs: written ? 3000 : 6000,
@@ -1915,9 +1906,9 @@ export function Chat({
   /** The startup summary gives way to transcript rows after the first local command or message. */
   const loadedContextVisible = channel.rows.length === 0 && channel.loadedContext !== undefined
   /** Startup context panel: collapsed by default, toggled with Ctrl+P. */
-  const loadedContextOpen = React.useSyncExternalStore(uiStore.subscribe, uiStore.getLoadedContextOpen)
+  const loadedContextOpen = useChatStore((state) => state.loadedContextOpen)
   const toggleLoadedContext = React.useCallback(() => {
-    uiStore.setLoadedContextOpen(previous => !previous)
+    useChatStore.getState().setLoadedContextOpen(previous => !previous)
   }, [])
   const renderedLoadedContextOpen = React.useRef(loadedContextOpen)
   React.useLayoutEffect(() => {
@@ -1954,7 +1945,7 @@ export function Chat({
     } catch {
       isDir = false
     }
-    overlayStore.dispatch({ type: 'open', overlay: { kind: 'file-actions', path: resolved, index: 0, isDir } })
+    useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'file-actions', path: resolved, index: 0, isDir } })
   }, [])
 
   /** Run one file-action menu row: 0 = open file, 1 = reveal in file
@@ -1973,7 +1964,7 @@ export function Chat({
     const gallery: { image: TranscriptImage; title?: string }[] = channel.rows.flatMap(row => (row.images ?? []).map(image => ({ image })))
     let index = gallery.findIndex(entry => entry.image === image)
     if (index < 0) { index = gallery.length; gallery.push({ image, title }) }
-    overlayStore.dispatch({
+    useChatStore.getState().dispatchOverlay({
       type: 'open',
       overlay: { kind: 'image-preview', image, gallery, index, ...(title === undefined ? {} : { title }) },
     })
@@ -2025,7 +2016,7 @@ export function Chat({
   React.useEffect(() => {
     if (previewGenerationRef.current === previewBindingGeneration) return
     previewGenerationRef.current = previewBindingGeneration
-    overlayStore.dispatch({ type: 'close-if', kind: 'image-preview' })
+    useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'image-preview' })
   }, [previewBindingGeneration])
   // A questionnaire/approval/plugin dialog owns the keyboard while pending
   // (their guard runs BEFORE the overlay key chain), so a preview left open
@@ -2036,7 +2027,7 @@ export function Chat({
       overlay.kind === 'image-preview' &&
       previewBlocked
     ) {
-      overlayStore.dispatch({ type: 'close-if', kind: 'image-preview' })
+      useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'image-preview' })
     }
   }, [overlay.kind, previewBlocked])
   // Caret-driven preview (Grok Build's chip peek): while the composer caret
@@ -2050,7 +2041,7 @@ export function Chat({
   const [caretPreview, setCaretPreview] = React.useState<
     { image: TranscriptImage; title?: string } | null
   >(null)
-  const peekSuppressed = React.useSyncExternalStore(uiStore.subscribe, uiStore.getPeekSuppressed)
+  const peekSuppressed = useChatStore((state) => state.peekSuppressed)
   const handleCaretImage = React.useCallback((
     image: TranscriptImage | undefined,
     title: string | undefined,
@@ -2058,12 +2049,12 @@ export function Chat({
   ): void => {
     if (image === undefined) {
       setCaretPreview(null)
-      uiStore.setPeekSuppressed(null)
+      useChatStore.getState().setPeekSuppressed(null)
       return
     }
     setCaretPreview({ image, ...(title === undefined ? {} : { title }) })
     const key = peekKey(image, title)
-    uiStore.setPeekSuppressed(current => reason === 'click' || current !== key ? null : current)
+    useChatStore.getState().setPeekSuppressed(current => reason === 'click' || current !== key ? null : current)
   }, [])
   const peekPreview =
     !previewBlocked && overlay.kind === 'none' && caretPreview !== null
@@ -2074,7 +2065,7 @@ export function Chat({
    *  caret leaves it. PromptInput's Esc arm calls this first — its listener
    *  runs before Chat's and the prompt stays live under a peek. */
   const dismissPeek = (): void => {
-    if (peekPreview !== null) uiStore.setPeekSuppressed(peekKey(peekPreview.image, peekPreview.title))
+    if (peekPreview !== null) useChatStore.getState().setPeekSuppressed(peekKey(peekPreview.image, peekPreview.title))
   }
   /** The card on screen, if any: the modal overlay first, else the peek. */
   const activePreview: { image: TranscriptImage; title?: string; peek: boolean } | null =
@@ -2171,11 +2162,11 @@ export function Chat({
   // a rows.length index); MessageList owns the row offsets, so it computes
   // how many rows past that anchor lie below the viewport and reports it.
   const lastSeenRowIdRef = React.useRef<number | null>(null)
-  const unseenCount = React.useSyncExternalStore(uiStore.subscribe, uiStore.getUnseenCount)
+  const unseenCount = useChatStore((state) => state.unseenCount)
   React.useEffect(() => {
     if (isSticky) {
       lastSeenRowIdRef.current = null
-      uiStore.setUnseenCount(0)
+      useChatStore.getState().setUnseenCount(0)
     } else if (lastSeenRowIdRef.current === null) {
       lastSeenRowIdRef.current = channel.rows.length
         ? channel.rows[channel.rows.length - 1]!.id
@@ -2323,14 +2314,14 @@ export function Chat({
     ? previewGallery.findIndex(entry => entry.image.id === activePreview.image.id && entry.title === activePreview.title)
     : overlay.kind === 'image-preview' ? overlay.index ?? 0 : -1
   const stepPreview = (delta: 1 | -1): void => {
-    if (!activePreview?.peek) { overlayStore.dispatch({ type: 'image-step', delta }); return }
+    if (!activePreview?.peek) { useChatStore.getState().dispatchOverlay({ type: 'image-step', delta }); return }
     const index = previewIndex + delta
     const entry = previewGallery[index]
     if (!entry) return
     // A gallery click promotes the caret peek to a modal without moving or
     // editing the draft. Suppress the original peek so Esc really closes it.
-    uiStore.setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
-    overlayStore.dispatch({ type: 'open', overlay: { kind: 'image-preview', ...entry, gallery: previewGallery, index } })
+    useChatStore.getState().setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
+    useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'image-preview', ...entry, gallery: previewGallery, index } })
   }
   // Publish the external-injection controller (dsh.nvim etc.) every render so
   // the adapter-owned socket can append to the prompt and submit. `submit`
@@ -2409,7 +2400,7 @@ export function Chat({
   const migrateHintShownRef = React.useRef(false)
   React.useEffect(() => {
     // A replaced Channel must not retain the old hint's Enter shortcut.
-    migrateStore.setHintAgent(null)
+    useChatStore.getState().setMigrateHintAgent(null)
     if (migrateHintShownRef.current) return
     let disposed = false
     let hintTimer: ReturnType<typeof setTimeout> | undefined
@@ -2429,8 +2420,8 @@ export function Chat({
           // PRD #4: while the hint is up, a bare Enter (empty prompt, no
           // overlay) jumps into the picker with this source pre-checked;
           // the global key layer below consumes it, anything else disarms.
-          migrateStore.setHintAgent(top.agentId)
-          hintTimer = setTimeout(() => migrateStore.setHintAgent(current => current === top.agentId ? null : current), 10_000)
+          useChatStore.getState().setMigrateHintAgent(top.agentId)
+          hintTimer = setTimeout(() => useChatStore.getState().setMigrateHintAgent(current => current === top.agentId ? null : current), 10_000)
         }
       })()
     }, 12_000)
@@ -2491,19 +2482,19 @@ export function Chat({
   const handleWorkspaceResult = (result: TuiWorkspaceCommandResult): void => {
     workspaceFlowAbortRef.current = null
     if (result.kind === 'target') {
-      overlayStore.dispatch({ type: 'close-if', kind: 'workspace-flow' })
+      useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'workspace-flow' })
       void channel.switchWorkspace(result.target)
       return
     }
     if (result.choices.length === 0) {
-      overlayStore.dispatch({ type: 'close-if', kind: 'workspace-flow' })
+      useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'workspace-flow' })
       channel.notify(t('workspace-command-empty'))
       return
     }
     // open-if: 'workspace-flow' stays allowed so an in-flow action can
     // transition to its next stage; a picker the user opened after leaving
     // the menu wins over a late command result.
-    overlayStore.dispatch({
+    useChatStore.getState().dispatchOverlay({
       type: 'open-if',
       overlay: { kind: 'workspace-flow', flow: result, index: 0, busy: false, input: null },
       when: ['none', 'workspace-flow'],
@@ -2516,7 +2507,7 @@ export function Chat({
     const request = ++workspaceFlowRequestRef.current
     const controller = new AbortController()
     workspaceFlowAbortRef.current = controller
-    overlayStore.dispatch({ type: 'flow-busy', busy: true })
+    useChatStore.getState().dispatchOverlay({ type: 'flow-busy', busy: true })
     void Promise.resolve()
       .then(() => action(controller.signal))
       .then((result) => {
@@ -2525,7 +2516,7 @@ export function Chat({
       .catch((error: unknown) => {
         if (request !== workspaceFlowRequestRef.current) return
         workspaceFlowAbortRef.current = null
-        overlayStore.dispatch({ type: 'flow-busy', busy: false })
+        useChatStore.getState().dispatchOverlay({ type: 'flow-busy', busy: false })
         channel.notify(
           t('workspace-command-failed', { err: error instanceof Error ? error.message : String(error) }),
           { color: 'error', timeoutMs: 8000 },
@@ -2570,9 +2561,9 @@ export function Chat({
         channel.notify(t('workspace-none'))
         return
       }
-      bootStore.setWorkspaceTargets(targets)
+      useChatStore.getState().setWorkspaceTargets(targets)
       // open-if: the listing is async — whatever the user opened meanwhile wins.
-      overlayStore.dispatch({
+      useChatStore.getState().dispatchOverlay({
         type: 'open-if',
         overlay: {
           kind: 'workspace-picker',
@@ -2593,7 +2584,7 @@ export function Chat({
    * built-ins dispatch locally, extension commands go through the channel.
    */
   const runWorkspaceMenuOption = (option: { id: string } | undefined): void => {
-    overlayStore.dispatch({ type: 'close-if', kind: 'workspace-menu' })
+    useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'workspace-menu' })
     if (option === undefined) return
     if (option.id === 'resume') {
       openWorkspaceResume()
@@ -2871,9 +2862,9 @@ export function Chat({
     // 提交首句后必须把它收掉，否则用户落到浏览器而不是"草稿就在眼前的对话"，
     // 与本函数 doc 承诺的落点直接矛盾。
     setSupervisorOpen(false)
-    bootStore.setLaunchpadFocus(-1)
-    bootStore.setLaunchpadDraft('')
-    bootStore.setLaunchpadCaret(0)
+    useChatStore.getState().setLaunchpadFocus(-1)
+    useChatStore.getState().setLaunchpadDraft('')
+    useChatStore.getState().setLaunchpadCaret(0)
     if (text === '') {
       setLaunchpadOpen(false)
       return
@@ -2883,7 +2874,7 @@ export function Chat({
     // Enter 的那条路）——不收落地页、不进对话页。聊天页里 /help 的行为
     // 不变（那边不走这个回调）。
     if (parsed !== undefined && parsed.name === 'help' && launchpadOpen) {
-      overlayStore.dispatch({ type: 'open', overlay: { kind: 'help' } })
+      useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'help' } })
       return
     }
     // 与 composer 的 tryRunCommand 同一条判定：合并命令表（LOCAL_COMMANDS +
@@ -2916,9 +2907,9 @@ export function Chat({
     launchpadDraftHandoffRef.current = launchpadDraft
     setLaunchpadOpen(false)
     setSupervisorOpen(false)
-    bootStore.setLaunchpadFocus(-1)
-    bootStore.setLaunchpadDraft('')
-    bootStore.setLaunchpadCaret(0)
+    useChatStore.getState().setLaunchpadFocus(-1)
+    useChatStore.getState().setLaunchpadDraft('')
+    useChatStore.getState().setLaunchpadCaret(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps -- the draft is read at the moment of the failure, not tracked
   }, [launchpadOpen, startupFailure])
   React.useEffect(() => {
@@ -2979,7 +2970,7 @@ export function Chat({
           return true
         }
         useChatStore.getState().setHelpOpen(false)
-        overlayStore.dispatch({
+        useChatStore.getState().dispatchOverlay({
           type: 'open',
           overlay: {
             kind: 'activity',
@@ -3016,7 +3007,7 @@ export function Chat({
         // pane — deliberate contrast with /model); the fresh list lands with
         // the authoritative focus. Both loader writes are kind-guarded, so a
         // picker the user already left is not resurrected or re-focused.
-        overlayStore.dispatch({
+        useChatStore.getState().dispatchOverlay({
           type: 'open',
           overlay: {
             kind: 'preset',
@@ -3025,13 +3016,13 @@ export function Chat({
         })
         void channel.listPresets().then((list) => {
           if (list.length === 0) {
-            overlayStore.dispatch({ type: 'close-if', kind: 'preset' })
+            useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'preset' })
             channel.notify(t('preset-roster-unmounted'), { color: 'warning' })
             return
           }
-          modelsStore.setPresetOptions(list)
+          useChatStore.getState().setPresetOptions(list)
           const index = list.findIndex(preset => preset.id === channel.agentPreset)
-          overlayStore.dispatch({ type: 'set-index', kind: 'preset', index: index >= 0 ? index : 0 })
+          useChatStore.getState().dispatchOverlay({ type: 'set-index', kind: 'preset', index: index >= 0 ? index : 0 })
         })
         return true
       }
@@ -3058,13 +3049,13 @@ export function Chat({
         void channel.listEfforts().then(({ efforts, defaultEffort, levelsFallback }) => {
           // 0/1-tier routes were already notified by listEfforts.
           if (efforts.length <= 1) return
-          modelsStore.setEffortOptions(efforts)
-          modelsStore.setEffortLevelsFallback(levelsFallback === true)
+          useChatStore.getState().setEffortOptions(efforts)
+          useChatStore.getState().setEffortLevelsFallback(levelsFallback === true)
           const current = channel.reasoningEffort ?? defaultEffort
           const index = efforts.findIndex(effort => effort.id === current)
           // open-if: a picker the user opened during the round trip wins
           // over this late-arriving slider.
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'open-if',
             overlay: { kind: 'effort', index: index >= 0 ? index : 0 },
             when: ['none'],
@@ -3098,7 +3089,7 @@ export function Chat({
           return true
         }
         useChatStore.getState().setHelpOpen(false)
-        overlayStore.dispatch({
+        useChatStore.getState().dispatchOverlay({
           type: 'open',
           overlay: { kind: 'lang', index: getLang() === 'zh' ? 0 : 1 },
         })
@@ -3139,7 +3130,7 @@ export function Chat({
           return true
         }
         useChatStore.getState().setHelpOpen(false)
-        overlayStore.dispatch({
+        useChatStore.getState().dispatchOverlay({
           type: 'open',
           overlay: {
             kind: 'theme',
@@ -3156,7 +3147,7 @@ export function Chat({
         useChatStore.getState().setHelpOpen(false)
         const parts = rawInput.trim().split(/\s+/).filter(Boolean)
         if (parts.length === 0) {
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'open',
             overlay: {
               kind: 'color',
@@ -3202,12 +3193,12 @@ export function Chat({
           // transcript. Reset view-local state, return the ScrollBox to the
           // top, then clear native scrollback and repaint the whale homepage.
           setExpanded(false)
-          selectionStore.setExpanded(new Set())
-          selectionStore.setToggled(new Set())
-          selectionStore.setSelectedId(null)
-          selectionStore.setActive(false)
-          uiStore.setShowAllMessages(false)
-          uiStore.setLoadedContextOpen(false)
+          useChatStore.getState().setExpandedRows(new Set())
+          useChatStore.getState().setStreamViewToggledRows(new Set())
+          useChatStore.getState().setSelectedId(null)
+          useChatStore.getState().setSelectionActive(false)
+          useChatStore.getState().setShowAllMessages(false)
+          useChatStore.getState().setLoadedContextOpen(false)
           handle?.scrollTo(0)
           channel.notify(t('new-session-started'))
           const ink = instances.get(process.stdout) ?? instances.values().next().value
@@ -3224,10 +3215,10 @@ export function Chat({
         channel.clear()
         // channel.clear() resets row ids to 0; stale expanded/selection
         // state would mis-highlight fresh rows (known-limitation fix).
-        selectionStore.setExpanded(new Set())
-        selectionStore.setToggled(new Set())
-        selectionStore.setSelectedId(null)
-        selectionStore.setActive(false)
+        useChatStore.getState().setExpandedRows(new Set())
+        useChatStore.getState().setStreamViewToggledRows(new Set())
+        useChatStore.getState().setSelectedId(null)
+        useChatStore.getState().setSelectionActive(false)
         return true
       case 'compact': {
         // The TUI's own transaction is the primary path: it owns the
@@ -3304,22 +3295,22 @@ export function Chat({
           setModelRecents(recordModelUse({ provider: channel.provider, id: channel.model }, undefined, recentsBackend))
         }
         modelPicker.reset()
-        overlayStore.dispatch({ type: 'open', overlay: { kind: 'model' } })
-        modelsStore.setLoading(true)
+        useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'model' } })
+        useChatStore.getState().setModelsLoading(true)
         const generation = ++modelCatalogGeneration.current
         void channel.listModels().then((list) => {
           if (generation !== modelCatalogGeneration.current) return
-          modelsStore.set(list)
-          modelsStore.setLoading(false)
+          useChatStore.getState().setModels(list)
+          useChatStore.getState().setModelsLoading(false)
         }).catch(() => {
           if (generation !== modelCatalogGeneration.current) return
-          modelsStore.setLoading(false)
+          useChatStore.getState().setModelsLoading(false)
           channel.notify(t('model-load-failed'), { color: 'error' })
         })
         if (modelProviderTabs) void channel.listProviders().then(list => {
-          if (generation === modelCatalogGeneration.current) modelsStore.setProviderInfos(list)
+          if (generation === modelCatalogGeneration.current) useChatStore.getState().setProviderInfos(list)
         }).catch(() => {
-          if (generation === modelCatalogGeneration.current) modelsStore.setProviderInfos([])
+          if (generation === modelCatalogGeneration.current) useChatStore.getState().setProviderInfos([])
         })
         return true
       }
@@ -3347,15 +3338,15 @@ export function Chat({
           return true
         }
         useChatStore.getState().setHelpOpen(false)
-        modelsStore.setSkillsList(null)
-        overlayStore.dispatch({ type: 'open', overlay: { kind: 'skills', index: 0 } })
+        useChatStore.getState().setSkillsList(null)
+        useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'skills', index: 0 } })
         void channel.listSkills().then((list) => {
           if (list === undefined) {
-            overlayStore.dispatch({ type: 'close-if', kind: 'skills' })
+            useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'skills' })
             channel.notify(t('skills-load-failed'), { color: 'error' })
             return
           }
-          modelsStore.setSkillsList(list)
+          useChatStore.getState().setSkillsList(list)
         })
         return true
       }
@@ -3387,7 +3378,7 @@ export function Chat({
             || outcome === 'deleted' || outcome === 'signed-out') {
             channel.invalidateModelCompletion()
             void channel.listModels().then(modelsStore.set)
-            void channel.listProviders().then(setProviderInfos).catch(() => modelsStore.setProviderInfos([]))
+            void channel.listProviders().then(setProviderInfos).catch(() => useChatStore.getState().setProviderInfos([]))
           }
         }).catch(() => {
           // The wizard notifies on every handled failure; this only swallows
@@ -3397,7 +3388,7 @@ export function Chat({
       }
       case 'thinking':
         useChatStore.getState().setHelpOpen(false)
-        overlayStore.dispatch({
+        useChatStore.getState().dispatchOverlay({
           type: 'open',
           overlay: { kind: 'thinking', focus: thinkingVisible ? 0 : 1 },
         })
@@ -3494,7 +3485,7 @@ export function Chat({
         if (subcommand === '') {
           // Bare `/workspace` opens the action menu (resume / rename / open
           // plus any registered extensions) instead of a text usage line.
-          overlayStore.dispatch({ type: 'open', overlay: { kind: 'workspace-menu', index: 0 } })
+          useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'workspace-menu', index: 0 } })
         } else if (subcommand === 'resume') {
           openWorkspaceResume()
         } else if (subcommand === 'rename') {
@@ -3681,7 +3672,7 @@ export function Chat({
             }
             channel.notify(t('resume-resumed'))
             suppressLogoIntroRef.current = true
-            sessionStore.setAgentViewReturnId(undefined)
+            useChatStore.getState().setAgentViewReturnId(undefined)
             repaintTranscript()
           })
           .catch(() => {
@@ -3762,21 +3753,21 @@ export function Chat({
               spawnMigrateSources([row], true)
               return
             }
-            migrateStore.setPending([row])
+            useChatStore.getState().setMigratePending([row])
             // Pin the checked set to the source this confirmation is about:
             // Esc returns to the picker, and a stale set from an earlier visit
             // would there contradict what the confirmation just showed.
-            migrateStore.setChecked(new Set([row.agentId]))
-            overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate-confirm' } })
+            useChatStore.getState().setMigrateChecked(new Set([row.agentId]))
+            useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'migrate-confirm' } })
           })()
           return true
         }
         // Bare `/migrate` starts a NEW flow: drop the previous run's checks
         // (only Esc-out-of-confirm keeps them) and let the picker show its
         // scanning state until the rows land.
-        migrateStore.setRows(null)
-        migrateStore.setChecked(new Set())
-        overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
+        useChatStore.getState().setMigrateRows(null)
+        useChatStore.getState().setMigrateChecked(new Set())
+        useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
         void collectMigrateRows().then(setMigrateRows)
         return true
       }
@@ -3851,8 +3842,8 @@ export function Chat({
         if (sidePanel.split && sidePanel.enabledPanelIds.includes('jobs')) {
           sidePanel.openPanel('jobs', { focus: true })
         } else {
-          panelsStore.setJobsPanelFocusId(null)
-          panelsStore.setJobsPanelOpen(true)
+          useChatStore.getState().setJobsPanelFocusId(null)
+          useChatStore.getState().setJobsPanelOpen(true)
         }
         return true
       }
@@ -3861,7 +3852,7 @@ export function Chat({
         // 无参 → 面板选择器（overlay 互斥结构内）；有参 → 侧栏命令分发。
         if (rawInput.trim() === '' && sidePanel.splitAvailable && panelPickerRows.length > 0) {
           const current = panelPickerRows.findIndex(row => row.id === sidePanel.activePanelId)
-          overlayStore.dispatch({ type: 'open', overlay: { kind: 'panel', index: Math.max(0, current) } })
+          useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'panel', index: Math.max(0, current) } })
           return true
         }
         if (sidePanel.command(rawInput)) return true
@@ -3874,12 +3865,12 @@ export function Chat({
           ? sidePanel.activePanelId
           : arg
         if (target === 'jobs') {
-          panelsStore.setJobsPanelFocusId(null)
-          panelsStore.setJobsPanelOpen(true)
+          useChatStore.getState().setJobsPanelFocusId(null)
+          useChatStore.getState().setJobsPanelOpen(true)
           return true
         }
         if (target === 'agents') {
-          uiStore.setSubagentDashboardOpen(true)
+          useChatStore.getState().setSubagentDashboardOpen(true)
           return true
         }
         if (arg === 'toggle' || arg === 'focus' || arg === 'zoom' || arg === '' || target !== undefined) {
@@ -4005,7 +3996,7 @@ export function Chat({
           const index = currentIndex >= 0
             ? currentIndex
             : Math.min(1, snapshot.options.length - 1)
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'open',
             overlay: {
               kind: 'permission',
@@ -4027,7 +4018,7 @@ export function Chat({
         }
         useChatStore.getState().setHelpOpen(false)
         if (native.kind === 'status') channel.pushLocal('/permission', native.lines)
-        else if (native.kind === 'picker') overlayStore.dispatch({ type: 'open', overlay: native.overlay })
+        else if (native.kind === 'picker') useChatStore.getState().dispatchOverlay({ type: 'open', overlay: native.overlay })
         else void runBackendModeCommand(native.mode.id, native.mode.name)
         return true
       }
@@ -4050,7 +4041,7 @@ export function Chat({
         const argument = parts.length === 1 && parts[0] === 'on' ? '' : rawInput
         if (mounted && parts.length === 0) {
           useChatStore.getState().setHelpOpen(false)
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'open',
             overlay: { kind: 'plan', index: channel.mode.plan === true ? 0 : 1 },
           })
@@ -4218,7 +4209,7 @@ export function Chat({
         // 渠道选择器。/channel 只在声明了 channels 能力的内核下进命令表，
         // 能走到这里就说明可用。与 /kernel 一样，再执行一次就收起。
         useChatStore.getState().setHelpOpen(false)
-        if (overlay.kind === 'channel') overlayStore.dispatch({ type: 'close' })
+        if (overlay.kind === 'channel') useChatStore.getState().dispatchOverlay({ type: 'close' })
         else openChannelPicker()
         return true
       }
@@ -4227,7 +4218,7 @@ export function Chat({
         // 确认后由组合根的 onSwitchBackend 记住选择并以新内核重启。与 /help、
         // 参数行一致：选择器已开着就收起，没开才打开。
         useChatStore.getState().setHelpOpen(false)
-        if (overlay.kind === 'kernel') overlayStore.dispatch({ type: 'close' })
+        if (overlay.kind === 'kernel') useChatStore.getState().dispatchOverlay({ type: 'close' })
         else openKernelPicker()
         return true
       case 'dsh':
@@ -4325,7 +4316,7 @@ export function Chat({
         const btwPanelEnabled = sidePanel.enabledPanelIds.includes('btw')
         if (btwSurfaceFree()) {
           if (btwPanelEnabled && sidePanel.splitAvailable) sidePanel.openPanel('btw')
-          else uiStore.setBtwOverlayOpen(true)
+          else useChatStore.getState().setBtwOverlayOpen(true)
         } else {
           // 屏被别的浮层/整屏界面占着：侧问照常发出，但只在通知通道里说一
           // 句——既不把答案静默塞进看不见的地方，也不挂一个既看不见、又
@@ -4340,7 +4331,7 @@ export function Chat({
         // catalogs; PromptInput recognizes it through HIDDEN_COMMAND_NAMES.
         useChatStore.getState().setHelpOpen(false)
         suppressLogoIntroRef.current = false
-        uiStore.setLogoNonce(n => n + 1)
+        useChatStore.getState().setLogoNonce(n => n + 1)
         // Bring the logo back into view if the transcript has scrolled.
         setTimeout(() => {
           handle?.scrollTo(0)
@@ -4349,7 +4340,7 @@ export function Chat({
       }
       case 'tips':
         useChatStore.getState().setHelpOpen(false)
-        overlayStore.dispatch({ type: 'open', overlay: { kind: 'tips' } })
+        useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'tips' } })
         return true
       case 'connect':
         useChatStore.getState().setHelpOpen(false)
@@ -4417,7 +4408,7 @@ export function Chat({
       return
     }
     rewindRequestRef.current += 1
-    overlayStore.dispatch({
+    useChatStore.getState().dispatchOverlay({
       type: 'open',
       overlay: { kind: 'rewind', index: 0, confirm: null, modes: null, modeIndex: 0, busy: false },
     })
@@ -4429,14 +4420,14 @@ export function Chat({
    */
   const requestRewindConfirm = async (row: ChatRow) => {
     const token = ++rewindRequestRef.current
-    overlayStore.dispatch({ type: 'rewind-busy', busy: true })
+    useChatStore.getState().dispatchOverlay({ type: 'rewind-busy', busy: true })
     const decision = await channel.promptRewind(row)
     if (token !== rewindRequestRef.current) return
     if (decision === 'cancel') {
-      overlayStore.dispatch({ type: 'rewind-busy', busy: false })
+      useChatStore.getState().dispatchOverlay({ type: 'rewind-busy', busy: false })
       return
     }
-    overlayStore.dispatch({ type: 'rewind-decision', confirm: row, modes: decision?.modes ?? null })
+    useChatStore.getState().dispatchOverlay({ type: 'rewind-decision', confirm: row, modes: decision?.modes ?? null })
   }
   /** Execute the confirmed rewind; the message comes back into the input. */
   const performRewind = async (row: ChatRow, mode: string | null = null) => {
@@ -4516,12 +4507,12 @@ export function Chat({
   const openPanelFullscreen = React.useCallback((panelId: string): void => {
     if (panelId === 'jobs') {
       sidePanelRef.current?.focusChat()
-      panelsStore.setJobsPanelOpen(true)
+      useChatStore.getState().setJobsPanelOpen(true)
       return
     }
     if (panelId === 'agents') {
       sidePanelRef.current?.focusChat()
-      uiStore.setSubagentDashboardOpen(true)
+      useChatStore.getState().setSubagentDashboardOpen(true)
       return
     }
     if (panelId === 'trajectory') {
@@ -4539,7 +4530,7 @@ export function Chat({
       // ⤢ 进整屏线程场景：Esc 返回侧栏，不清 thread/draft（面板
       // mountPolicy=enabled 保挂载，路由/焦点/滚动原样恢复）。
       sidePanelRef.current?.focusChat()
-      uiStore.setBtwSceneOpen(true)
+      useChatStore.getState().setBtwSceneOpen(true)
     }
   }, [openScene])
   // openJobsPanel（在上方、identity 稳定）经 ref 读取最新控制器。
@@ -4606,14 +4597,14 @@ export function Chat({
   // Row seeking under layout virtualization: a mounted row seeks directly;
   // an unmounted one is force-mounted first, then sought by the completion
   // effect below once its ref lands.
-  const forceMountRowId = React.useSyncExternalStore(uiStore.subscribe, uiStore.getForceMountRowId)
+  const forceMountRowId = useChatStore((state) => state.forceMountRowId)
   const seekRow = (rowId: number): void => {
     const el = rowRefsRef.current.get(rowId)
     if (el) {
       handle?.scrollToElement(el)
       return
     }
-    uiStore.setForceMountRowId(rowId)
+    useChatStore.getState().setForceMountRowId(rowId)
   }
   /**
    * Reveal-and-seek for a row folded behind the recent-rows window (the
@@ -4624,7 +4615,7 @@ export function Chat({
    * for an already-revealed row is harmless.
    */
   const revealAndSeekRow = (rowId: number): void => {
-    if (!showAllMessages) uiStore.setShowAllMessages(true)
+    if (!showAllMessages) useChatStore.getState().setShowAllMessages(true)
     seekRow(rowId)
   }
   React.useLayoutEffect(() => {
@@ -4637,7 +4628,7 @@ export function Chat({
       // the row BEFORE the renderer's deferred pass reads its Yoga top
       // (scrollAnchor processing runs in a microtask) — the seek would
       // silently no-op (detached anchor element).
-      setTimeout(() => uiStore.setForceMountRowId(null), 0)
+      setTimeout(() => useChatStore.getState().setForceMountRowId(null), 0)
     }
   })
 
@@ -4679,10 +4670,10 @@ export function Chat({
   }, [searchCurrent])
 
   const enterSelection = () => {
-    selectionStore.setActive(true)
+    useChatStore.getState().setSelectionActive(true)
     const last = selectableRows[selectableRows.length - 1]
     // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: empty selectable list
-    selectionStore.setSelectedId(last ? last.id : null)
+    useChatStore.getState().setSelectedId(last ? last.id : null)
   }
   const moveSelection = (delta: 1 | -1) => {
     if (selectedId === null) return
@@ -4690,12 +4681,12 @@ export function Chat({
     if (index < 0) return
     const next = selectableRows[index + delta]
     // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index
-    if (next) selectionStore.setSelectedId(next.id)
+    if (next) useChatStore.getState().setSelectedId(next.id)
   }
   // useCallback: these feed MessageList → MemoRow's shallow compare; fresh
   // closures each render would defeat every row's memo.
   const toggleRowExpanded = React.useCallback((rowId: number) => {
-    selectionStore.setExpanded((previous) => {
+    useChatStore.getState().setExpandedRows((previous) => {
       const next = new Set(previous)
       if (next.has(rowId)) next.delete(rowId)
       else next.add(rowId)
@@ -4703,7 +4694,7 @@ export function Chat({
     })
   }, [])
   const toggleStreamView = React.useCallback((rowId: number) => {
-    selectionStore.setToggled((previous) => {
+    useChatStore.getState().setStreamViewToggledRows((previous) => {
       const next = new Set(previous)
       if (next.has(rowId)) next.delete(rowId)
       else next.add(rowId)
@@ -4941,9 +4932,9 @@ export function Chat({
       // Modal gallery owns plain left/right. Caret peeks below still leave
       // navigation with PromptInput. Esc/Ctrl+C/Enter keep their close semantics.
       if (key.escape || (key.ctrl && input === 'c') || plainReturn) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       } else if (!key.ctrl && !key.meta && !key.shift && (key.leftArrow || key.rightArrow)) {
-        overlayStore.dispatch({ type: 'image-step', delta: key.leftArrow ? -1 : 1 })
+        useChatStore.getState().dispatchOverlay({ type: 'image-step', delta: key.leftArrow ? -1 : 1 })
       }
       event.stopImmediatePropagation()
       return
@@ -4970,13 +4961,13 @@ export function Chat({
       // Transcript search bar (less-style): edit the query, Enter commits
       // (query persists for n/N), Esc/ctrl+c cancels back to the anchor.
       if (key.escape || (key.ctrl && input === 'c')) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         setHighlight('')
         handle?.scrollTo(searchAnchorRef.current)
       } else if (plainReturn) {
         // Enter commits; 0-match junk queries don't persist.
         if (searchCount === 0) useChatStore.getState().setSearchQuery('')
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       } else if (key.backspace) {
         if (searchCursor > 0) {
           useChatStore.getState().setSearchQuery(searchQuery.slice(0, searchCursor - 1) + searchQuery.slice(searchCursor))
@@ -5031,21 +5022,21 @@ export function Chat({
       } else if (key.end) {
         helpCoverScrollRef.current?.scrollTo(Number.MAX_SAFE_INTEGER)
       } else if (key.escape || (key.ctrl && (input === 'c' || input === 'd')) || plainReturn) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       event.stopImmediatePropagation()
       return
     }
     if (overlay.kind === 'thinking') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
       } else if (plainReturn) {
         const visible = overlay.focus === 0
-        uiStore.setThinkingVisible(visible)
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().setThinkingVisible(visible)
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         channel.notify(t('thinking-toggled', { state: visible ? t('thinking-on') : t('thinking-off') }))
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
@@ -5053,13 +5044,13 @@ export function Chat({
       const { flow, busy, input: flowInput } = overlay
       if (key.escape) {
         if (flowInput !== null && !busy) {
-          overlayStore.dispatch({ type: 'flow-input', input: null })
+          useChatStore.getState().dispatchOverlay({ type: 'flow-input', input: null })
           return
         }
         workspaceFlowAbortRef.current?.abort()
         workspaceFlowAbortRef.current = null
         workspaceFlowRequestRef.current += 1
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         return
       }
       if (busy) return
@@ -5074,31 +5065,31 @@ export function Chat({
             runWorkspaceFlowAction(signal => editor.submit(value, signal))
           }
         } else if (key.backspace && flowInput.cursor > 0) {
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'flow-input-edit',
             value: flowInput.value.slice(0, flowInput.cursor - 1) + flowInput.value.slice(flowInput.cursor),
             cursor: flowInput.cursor - 1,
           })
         } else if (key.delete && flowInput.cursor < flowInput.value.length) {
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'flow-input-edit',
             value: flowInput.value.slice(0, flowInput.cursor) + flowInput.value.slice(flowInput.cursor + 1),
             cursor: flowInput.cursor,
           })
         } else if (key.leftArrow) {
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'flow-input-edit',
             value: flowInput.value,
             cursor: Math.max(0, flowInput.cursor - 1),
           })
         } else if (key.rightArrow) {
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'flow-input-edit',
             value: flowInput.value,
             cursor: Math.min(flowInput.value.length, flowInput.cursor + 1),
           })
         } else if (input.length > 0 && !key.ctrl && !key.meta && !key.super && !key.tab) {
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'flow-input-edit',
             value: flowInput.value.slice(0, flowInput.cursor) + input + flowInput.value.slice(flowInput.cursor),
             cursor: flowInput.cursor + input.length,
@@ -5107,7 +5098,7 @@ export function Chat({
         return
       }
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: flow.choices.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: flow.choices.length })
       } else if (key.tab && !key.shift) {
         const choice = flow.choices[overlay.index]
         if (choice?.input !== undefined) {
@@ -5118,7 +5109,7 @@ export function Chat({
             cursor: value.length,
             ...(choice.input.placeholder === undefined ? {} : { placeholder: choice.input.placeholder }),
           }
-          overlayStore.dispatch({ type: 'flow-input', input: flowInputNext })
+          useChatStore.getState().dispatchOverlay({ type: 'flow-input', input: flowInputNext })
         }
       } else if (plainReturn) {
         const choice = flow.choices[overlay.index]
@@ -5130,25 +5121,25 @@ export function Chat({
     }
     if (overlay.kind === 'workspace-picker') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: workspaceTargets.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: workspaceTargets.length })
       } else if (plainReturn) {
         const target = workspaceTargets[overlay.index]
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         if (target !== undefined) void channel.switchWorkspace(target)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'workspace-menu') {
       const menu = workspaceMenuOptions
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: menu.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: menu.length })
       } else if (plainReturn) {
         const option = menu[overlay.index]
         runWorkspaceMenuOption(option)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
@@ -5156,16 +5147,16 @@ export function Chat({
       const list = skillsList ?? []
       if (key.upArrow || key.downArrow) {
         // count 0 (snapshot still loading) is a no-op inside the reducer.
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: list.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: list.length })
       } else if (plainReturn) {
         const skill = list[overlay.index]
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         // 可直调技能 Enter 填入 `/name `——与 / 菜单选中技能同一条
         // completion-only 分发路径；模型专用技能（userInvocable=false）只关闭。
         // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index on an empty list
         if (skill?.userInvocable) setHistoryFill(`/${skill.name} `)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
@@ -5179,25 +5170,25 @@ export function Chat({
       if (plainReturn && !(promptControllerRef.current?.hasText() ?? false)) {
         const agent = migrateHintAgent
         event.stopImmediatePropagation()
-        migrateStore.setHintAgent(null)
-        migrateStore.setRows(null)
-        migrateStore.setChecked(new Set([agent]))
-        overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
+        useChatStore.getState().setMigrateHintAgent(null)
+        useChatStore.getState().setMigrateRows(null)
+        useChatStore.getState().setMigrateChecked(new Set([agent]))
+        useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
         void collectMigrateRows().then(setMigrateRows)
         return
       }
-      migrateStore.setHintAgent(null)
+      useChatStore.getState().setMigrateHintAgent(null)
     }
     if (overlay.kind === 'migrate') {
       const rows = migrateRows ?? []
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: rows.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: rows.length })
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       } else if (rows.length > 0) {
         const row = rows[overlay.index]
         if (input === ' ' && row !== undefined) {
-          migrateStore.setChecked(current => {
+          useChatStore.getState().setMigrateChecked(current => {
             const next = new Set(current)
             if (next.has(row.agentId)) next.delete(row.agentId)
             else next.add(row.agentId)
@@ -5205,7 +5196,7 @@ export function Chat({
           })
         } else if (input === 'a' && !key.ctrl && !key.meta) {
           // All/none toggle: a checked-everything state collapses to none.
-          migrateStore.setChecked(current =>
+          useChatStore.getState().setMigrateChecked(current =>
             current.size >= rows.length ? new Set() : new Set(rows.map(candidate => candidate.agentId)))
         } else if (plainReturn) {
           // Checked set wins; the focused row acts as a single selection
@@ -5214,9 +5205,9 @@ export function Chat({
             ? rows.filter(candidate => migrateChecked.has(candidate.agentId))
             : row !== undefined ? [row] : []
           if (chosen.length > 0) {
-            migrateStore.setPending(chosen)
-            overlayStore.dispatch({ type: 'close' })
-            overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate-confirm' } })
+            useChatStore.getState().setMigratePending(chosen)
+            useChatStore.getState().dispatchOverlay({ type: 'close' })
+            useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'migrate-confirm' } })
           }
         }
       }
@@ -5226,41 +5217,41 @@ export function Chat({
       if (key.escape) {
         // Back to the picker with the checked set preserved (PRD #2's
         // "cancel" reads cheapest as "let me change the selection").
-        overlayStore.dispatch({ type: 'close' })
-        overlayStore.dispatch({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'migrate', index: 0 } })
       } else if (plainReturn) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         spawnMigrateSources(migratePending, false)
       } else if (input === 'd' && !key.ctrl && !key.meta) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         spawnMigrateSources(migratePending, true)
       }
       return
     }
     if (overlay.kind === 'activity') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: PRESET_NAMES.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: PRESET_NAMES.length })
       } else if (plainReturn) {
         const name = PRESET_NAMES[overlay.index]
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         if (name) channel.setActivityFrames(name)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'color') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: SESSION_COLOR_NAMES.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: SESSION_COLOR_NAMES.length })
       } else if (plainReturn) {
         const name = SESSION_COLOR_NAMES[overlay.index]
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         if (name) {
           channel.setSessionColor(name)
           channel.notify(t('color-set', { name }), { color: 'success' })
         }
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
@@ -5270,34 +5261,34 @@ export function Chat({
         // The same wrap rule the reducer applies — computed here too so the
         // newly focused level is applied in this very keystroke.
         const next = wrapIndex(overlay.index, delta, effortOptions.length)
-        overlayStore.dispatch({ type: 'move', delta, count: effortOptions.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta, count: effortOptions.length })
         const option = effortOptions[next]
         // Live-apply: the slider IS the control; Esc does not revert.
         if (option) void channel.setEffort(option.id)
       } else if (plainReturn || key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'preset') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: presetOptions.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: presetOptions.length })
       } else if (plainReturn) {
         const option = presetOptions[overlay.index]
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         if (option) void channel.switchPreset(option.id)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'permission' && overlay.confirm === true) {
       if (plainReturn) {
         permissionOverlayFocusRef.current = null
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         void runPermissionCommand(` ${PERMISSION_PRESET_AUTO}`)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'open', overlay: { ...overlay, confirm: false } })
+        useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { ...overlay, confirm: false } })
       }
       return
     }
@@ -5308,7 +5299,7 @@ export function Chat({
           : overlay.index
         const nextIndex = wrapIndex(currentIndex, key.upArrow ? -1 : 1, overlay.snapshot.options.length)
         permissionOverlayFocusRef.current = { overlay, index: nextIndex }
-        overlayStore.dispatch({ type: 'set-index', kind: 'permission', index: nextIndex })
+        useChatStore.getState().dispatchOverlay({ type: 'set-index', kind: 'permission', index: nextIndex })
       } else if (plainReturn) {
         const currentIndex = permissionOverlayFocusRef.current?.overlay === overlay
           ? permissionOverlayFocusRef.current.index
@@ -5316,26 +5307,26 @@ export function Chat({
         const option = overlay.snapshot.options[currentIndex]
         permissionOverlayFocusRef.current = null
         if (needsAutoConfirm(overlay.snapshot, option?.value)) {
-          overlayStore.dispatch({ type: 'open', overlay: { ...overlay, index: currentIndex, confirm: true } })
+          useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { ...overlay, index: currentIndex, confirm: true } })
           return
         }
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         if (option !== undefined) void runPermissionCommand(` ${option.value}`)
       } else if (key.escape) {
         permissionOverlayFocusRef.current = null
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'mode') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: overlay.modes.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: overlay.modes.length })
       } else if (plainReturn) {
         const option = overlay.modes[overlay.index]
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         if (option !== undefined) void runBackendModeCommand(option.id, option.name)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
@@ -5343,11 +5334,11 @@ export function Chat({
       // 名册不冻在 overlay 里（kernelOptions 是渲染期派生值）：探测落地后
       // 选择器自己就刷新成完整目录，不需要重开。
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: kernelOptions.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: kernelOptions.length })
       } else if (plainReturn) {
         pickKernel(overlay.index)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
@@ -5441,56 +5432,56 @@ export function Chat({
       // 名册不冻在 overlay 里（channelRows 是渲染期派生值）：切换/导入后
       // 选择器自己就刷新成新状态，不需要重开。
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: channelRows.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: channelRows.length })
       } else if (plainReturn) {
         pickChannel(overlay.index)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'plan') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
       } else if (plainReturn) {
         const on = overlay.index === 0
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         void runExternalCommand('plan', on ? '' : ' off')
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'lang') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: 2 })
       } else if (plainReturn) {
         const lang = LANGS[overlay.index]
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         if (lang !== undefined) applyLang(lang)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'panel') {
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: panelPickerRows.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: panelPickerRows.length })
       } else if (plainReturn) {
         const row = panelPickerRows[overlay.index]
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         if (row !== undefined) sidePanel.openPanel(row.id, { focus: true })
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'theme') {
       const options = getThemeOptions(themeHost)
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: options.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: options.length })
       } else if (plainReturn) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         const name = options[overlay.index]?.value
         if (name !== undefined) {
           const ok = setTheme(name)
@@ -5500,37 +5491,37 @@ export function Chat({
           )
         }
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
     if (overlay.kind === 'history') {
       const { query, cursor, focus } = overlay
       if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       } else if (key.ctrl && (input === 'c' || input === 'd')) {
         // History search cancels on ctrl+c/ctrl+d too.
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       } else if (plainReturn) {
         const entry = historyMatches[focus]
         // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index on an empty match list
         if (entry) {
           setHistoryFill(entry.text)
-          overlayStore.dispatch({ type: 'close' })
+          useChatStore.getState().dispatchOverlay({ type: 'close' })
         }
       } else if (key.upArrow) {
         if (historyMatches.length > 0) {
-          overlayStore.dispatch({ type: 'move', delta: -1, count: historyMatches.length })
+          useChatStore.getState().dispatchOverlay({ type: 'move', delta: -1, count: historyMatches.length })
         }
       } else if (key.downArrow || actionMatches('history', input, key)) {
         // History search next — ↓ and the history key (default Ctrl+R)
         // walk to the next match.
         if (historyMatches.length > 0) {
-          overlayStore.dispatch({ type: 'move', delta: 1, count: historyMatches.length })
+          useChatStore.getState().dispatchOverlay({ type: 'move', delta: 1, count: historyMatches.length })
         }
       } else if (key.backspace) {
         if (cursor > 0) {
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'history-edit',
             query: query.slice(0, cursor - 1) + query.slice(cursor),
             cursor: cursor - 1,
@@ -5539,7 +5530,7 @@ export function Chat({
         }
       } else if (key.delete) {
         if (cursor < query.length) {
-          overlayStore.dispatch({
+          useChatStore.getState().dispatchOverlay({
             type: 'history-edit',
             query: query.slice(0, cursor) + query.slice(cursor + 1),
             focus: 0,
@@ -5550,19 +5541,19 @@ export function Chat({
         // a mid-pair caret offset would split it in the SearchBox render.
         if (cursor > 0) {
           const ch = [...query.slice(0, cursor)].pop()!
-          overlayStore.dispatch({ type: 'history-edit', cursor: cursor - ch.length })
+          useChatStore.getState().dispatchOverlay({ type: 'history-edit', cursor: cursor - ch.length })
         }
       } else if (key.rightArrow) {
         if (cursor < query.length) {
           const ch = [...query.slice(cursor)][0]!
-          overlayStore.dispatch({ type: 'history-edit', cursor: cursor + ch.length })
+          useChatStore.getState().dispatchOverlay({ type: 'history-edit', cursor: cursor + ch.length })
         }
       } else if (key.home) {
-        overlayStore.dispatch({ type: 'history-edit', cursor: 0 })
+        useChatStore.getState().dispatchOverlay({ type: 'history-edit', cursor: 0 })
       } else if (key.end) {
-        overlayStore.dispatch({ type: 'history-edit', cursor: query.length })
+        useChatStore.getState().dispatchOverlay({ type: 'history-edit', cursor: query.length })
       } else if (!key.ctrl && !key.meta && !key.super && input) {
-        overlayStore.dispatch({
+        useChatStore.getState().dispatchOverlay({
           type: 'history-edit',
           query: query.slice(0, cursor) + input + query.slice(cursor),
           cursor: cursor + input.length,
@@ -5577,7 +5568,7 @@ export function Chat({
       if (overlay.busy) {
         if (key.escape) {
           rewindRequestRef.current += 1
-          overlayStore.dispatch({ type: 'rewind-busy', busy: false })
+          useChatStore.getState().dispatchOverlay({ type: 'rewind-busy', busy: false })
         }
         return
       }
@@ -5588,31 +5579,31 @@ export function Chat({
           // option 0 is always the built-in conversation-only rewind.
           const optionCount = overlay.modes.length + 1
           if (key.upArrow || key.downArrow) {
-            overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: optionCount })
+            useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: optionCount })
           } else if (plainReturn) {
             const mode = overlay.modeIndex === 0 ? null : (overlay.modes[overlay.modeIndex - 1]?.id ?? null)
-            overlayStore.dispatch({ type: 'close' })
+            useChatStore.getState().dispatchOverlay({ type: 'close' })
             void performRewind(row, mode)
           } else if (key.escape) {
-            overlayStore.dispatch({ type: 'rewind-back' })
+            useChatStore.getState().dispatchOverlay({ type: 'rewind-back' })
           }
           return
         }
         // Confirmation state: Enter rewinds, Esc backs out to the list.
         if (plainReturn) {
-          overlayStore.dispatch({ type: 'close' })
+          useChatStore.getState().dispatchOverlay({ type: 'close' })
           void performRewind(row)
         } else if (key.escape) {
-          overlayStore.dispatch({ type: 'rewind-back' })
+          useChatStore.getState().dispatchOverlay({ type: 'rewind-back' })
         }
       } else if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: rewindRows.length })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: rewindRows.length })
       } else if (plainReturn) {
         const row = rewindRows[overlay.index]
         // oxlint-disable-next-line typescript/no-unnecessary-condition -- runtime guard: out-of-range index on an empty list
         if (row) void requestRewindConfirm(row)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
@@ -5620,13 +5611,13 @@ export function Chat({
       // Click-to-act file menu: ↑/↓ move, Enter runs the focused action,
       // Esc closes.
       if (key.upArrow || key.downArrow) {
-        overlayStore.dispatch({ type: 'move', delta: key.upArrow ? -1 : 1, count: FILE_ACTION_COUNT })
+        useChatStore.getState().dispatchOverlay({ type: 'move', delta: key.upArrow ? -1 : 1, count: FILE_ACTION_COUNT })
       } else if (plainReturn) {
         const path = overlay.path
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
         runFileAction(overlay.index, path)
       } else if (key.escape) {
-        overlayStore.dispatch({ type: 'close' })
+        useChatStore.getState().dispatchOverlay({ type: 'close' })
       }
       return
     }
@@ -5655,7 +5646,7 @@ export function Chat({
     }
     if (actionMatches('history', input, key) && !helpOpen) {
       setHistoryEntries(loadHistory(channel.cwd))
-      overlayStore.dispatch({
+      useChatStore.getState().dispatchOverlay({
         type: 'open',
         overlay: { kind: 'history', query: '', cursor: 0, focus: 0 },
       })
@@ -5671,8 +5662,8 @@ export function Chat({
       } else if (plainReturn && selectedId !== null) {
         toggleRowExpanded(selectedId)
       } else if (key.escape) {
-        selectionStore.setActive(false)
-        selectionStore.setSelectedId(null)
+        useChatStore.getState().setSelectionActive(false)
+        useChatStore.getState().setSelectedId(null)
       }
     } else if (key.escape && promptControllerRef.current?.consumeEscape()) {
       // Local menu/preview/selection/editor Esc stays with the composer even
@@ -5746,7 +5737,7 @@ export function Chat({
         useChatStore.getState().setSearchCursor(0)
         useChatStore.getState().setSearchCurrent(0)
         useChatStore.getState().setSearchCount(0)
-        overlayStore.dispatch({ type: 'open', overlay: { kind: 'search' } })
+        useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { kind: 'search' } })
         event.stopImmediatePropagation()
       }
     } else if (key.ctrl && (input === 'c' || input === 'd')) {
@@ -5799,7 +5790,7 @@ export function Chat({
       // Consume: same readline-shadowing rule as dashboard/showAll below.
       event.stopImmediatePropagation()
     } else if (actionMatches('showAll', input, key)) {
-      uiStore.setShowAllMessages(previous => !previous)
+      useChatStore.getState().setShowAllMessages(previous => !previous)
       // Ctrl+E is also the editor's line-end binding — stop the press from
       // additionally moving the caret (one press, one meaning).
       event.stopImmediatePropagation()
@@ -5922,8 +5913,8 @@ export function Chat({
           }
         : undefined}
       collapsed={questionMinimized}
-      onExpand={() => uiStore.setMinimizedQuestionKey(null)}
-      onToggleFold={() => uiStore.setMinimizedQuestionKey(previous =>
+      onExpand={() => useChatStore.getState().setMinimizedQuestionKey(null)}
+      onToggleFold={() => useChatStore.getState().setMinimizedQuestionKey(previous =>
         previous === questionSnapshot.key ? null : questionSnapshot.key)}
       fullscreen={fullscreen}
     />
@@ -5962,10 +5953,10 @@ export function Chat({
                 onCommandPick={(name) => {
                   // 点击命令行 = 把 /name 填进落地页草稿（聊天页 Tab 补全的
                   // 鼠标等价），浮层收起、人还在启动页（第八版：不许进对话页）。
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   const filled = '/' + name + ' '
                   changeLaunchpadDraft(filled, filled.length)
-                  bootStore.setLaunchpadFocus(-1)
+                  useChatStore.getState().setLaunchpadFocus(-1)
                 }}
               />
             </Box>
@@ -5977,8 +5968,8 @@ export function Chat({
               onPick={(index) => {
                 // 点击行 = 设焦点 + 应用（与 Enter 同一条路径）
                 const visible = index === 0
-                uiStore.setThinkingVisible(visible)
-                overlayStore.dispatch({ type: 'close' })
+                useChatStore.getState().setThinkingVisible(visible)
+                useChatStore.getState().dispatchOverlay({ type: 'close' })
                 channel.notify(t('thinking-toggled', { state: visible ? t('thinking-on') : t('thinking-off') }))
               }}
             />
@@ -5992,7 +5983,7 @@ export function Chat({
                 onPick={(index) => {
                   // 点击行 = 切换该行目标（与 Enter 同一条路径）
                   const target = workspaceTargets[index]
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   if (target !== undefined) void channel.switchWorkspace(target)
                 }}
               />
@@ -6023,7 +6014,7 @@ export function Chat({
                   // busy/输入态在组件侧禁点
                   const choice = overlay.flow.choices[index]
                   if (choice === undefined) return
-                  overlayStore.dispatch({ type: 'set-index', kind: 'workspace-flow', index })
+                  useChatStore.getState().dispatchOverlay({ type: 'set-index', kind: 'workspace-flow', index })
                   runWorkspaceFlowAction(signal => choice.choose(signal))
                 }}
               />
@@ -6063,7 +6054,7 @@ export function Chat({
                 onPick={(index) => {
                   const row = (migrateRows ?? [])[index]
                   if (!row) return
-                  migrateStore.setChecked(current => {
+                  useChatStore.getState().setMigrateChecked(current => {
                     const next = new Set(current)
                     if (next.has(row.agentId)) next.delete(row.agentId)
                     else next.add(row.agentId)
@@ -6089,7 +6080,7 @@ export function Chat({
                   onPick={(index) => {
                     const skill = skillsList[index]
                     if (!skill) return
-                    overlayStore.dispatch({ type: 'close' })
+                    useChatStore.getState().dispatchOverlay({ type: 'close' })
                     if (skill.userInvocable) setHistoryFill(`/${skill.name} `)
                   }}
                 />
@@ -6102,7 +6093,7 @@ export function Chat({
                 focusIndex={overlay.index}
                 currentPreset={channel.activityFrames}
                 onPick={(index) => {
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   const name = PRESET_NAMES[index]
                   if (name) channel.setActivityFrames(name)
                 }}
@@ -6115,7 +6106,7 @@ export function Chat({
                 focusIndex={overlay.index}
                 currentColor={channel.sessionColor}
                 onPick={(index) => {
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   const name = SESSION_COLOR_NAMES[index]
                   if (name) {
                     channel.setSessionColor(name)
@@ -6133,7 +6124,7 @@ export function Chat({
                 activeId={sidePanel.activePanelId}
                 onPick={(index) => {
                   const row = panelPickerRows[index]
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   if (row !== undefined) sidePanel.openPanel(row.id, { focus: true })
                 }}
               />
@@ -6148,7 +6139,7 @@ export function Chat({
                 levelsFallback={effortLevelsFallback}
                 // 点击档位 = 移到该档并即时应用（与 ←/→ 同语义）
                 onPick={(index) => {
-                  overlayStore.dispatch({ type: 'set-index', kind: 'effort', index })
+                  useChatStore.getState().dispatchOverlay({ type: 'set-index', kind: 'effort', index })
                   const option = effortOptions[index]
                   if (option) void channel.setEffort(option.id)
                 }}
@@ -6162,7 +6153,7 @@ export function Chat({
                 focusIndex={overlay.index}
                 currentPreset={channel.agentPreset}
                 onPick={(index) => {
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   const option = presetOptions[index]
                   if (option) void channel.switchPreset(option.id)
                 }}
@@ -6180,21 +6171,21 @@ export function Chat({
                 onConfirm={() => {
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
                   permissionOverlayFocusRef.current = null
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   void runPermissionCommand(` ${PERMISSION_PRESET_AUTO}`)
                 }}
                 onCancelConfirm={() => {
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
-                  overlayStore.dispatch({ type: 'open', overlay: { ...overlay, confirm: false } })
+                  useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { ...overlay, confirm: false } })
                 }}
                 onPick={(index) => {
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
                   const option = overlay.snapshot.options[index]
                   if (needsAutoConfirm(overlay.snapshot, option?.value)) {
-                    overlayStore.dispatch({ type: 'open', overlay: { ...overlay, index, confirm: true } })
+                    useChatStore.getState().dispatchOverlay({ type: 'open', overlay: { ...overlay, index, confirm: true } })
                     return
                   }
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   if (option !== undefined) void runPermissionCommand(` ${option.value}`)
                 }}
               />
@@ -6209,7 +6200,7 @@ export function Chat({
                 onPick={(index) => {
                   if (approvalSnapshot !== null || questionSnapshot !== null || dialogSnapshot !== null) return
                   const option = overlay.modes[index]
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   if (option !== undefined) void runBackendModeCommand(option.id, option.name)
                 }}
               />
@@ -6261,7 +6252,7 @@ export function Chat({
                 focusIndex={overlay.index}
                 currentOn={channel.mode.plan === true}
                 onPick={(index) => {
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   const on = index === 0
                   void runExternalCommand('plan', on ? '' : ' off')
                 }}
@@ -6276,7 +6267,7 @@ export function Chat({
                 onPick={(index) => {
                   const lang = LANGS[index]
                   if (lang === undefined) return
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   applyLang(lang)
                 }}
               />
@@ -6289,7 +6280,7 @@ export function Chat({
                 currentTheme={themeName}
                 themeHost={themeHost}
                 onPick={(index) => {
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   const name = getThemeOptions(themeHost)[index]?.value
                   if (name !== undefined) {
                     const ok = setTheme(name)
@@ -6314,7 +6305,7 @@ export function Chat({
                   const entry = historyMatches[index]
                   if (entry) {
                     setHistoryFill(entry.text)
-                    overlayStore.dispatch({ type: 'close' })
+                    useChatStore.getState().dispatchOverlay({ type: 'close' })
                   }
                 }}
               />
@@ -6331,13 +6322,13 @@ export function Chat({
                 busy={overlay.busy}
                 onPickRow={(index) => {
                   // 列表页点击只选中：进入确认态保留键盘 Enter 显式触发
-                  overlayStore.dispatch({ type: 'set-index', kind: 'rewind', index })
+                  useChatStore.getState().dispatchOverlay({ type: 'set-index', kind: 'rewind', index })
                 }}
                 onConfirm={() => {
                   // 确认页即显式确认层，点击直接执行（与 Enter 同路径）
                   const row = overlay.confirm
                   if (row === null) return
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   void performRewind(row)
                 }}
                 onPickMode={(index) => {
@@ -6346,7 +6337,7 @@ export function Chat({
                   if (row === null) return
                   // 模式页仅当 modes 非空才渲染，这里空安全取值
                   const mode = index === 0 ? null : (overlay.modes?.[index - 1]?.id ?? null)
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   void performRewind(row, mode)
                 }}
               />
@@ -6361,7 +6352,7 @@ export function Chat({
                 onPick={(index) => {
                   // 点击行直接执行该动作（与 Enter 同路径）
                   const path = overlay.path
-                  overlayStore.dispatch({ type: 'close' })
+                  useChatStore.getState().dispatchOverlay({ type: 'close' })
                   runFileAction(index, path)
                 }}
               />
@@ -6489,7 +6480,7 @@ export function Chat({
           if (!result.ok) return result
           channel.notify(t('resume-resumed'))
           suppressLogoIntroRef.current = true
-          sessionStore.setAgentViewReturnId(undefined)
+          useChatStore.getState().setAgentViewReturnId(undefined)
           setSupervisorOpen(false)
           // 第七版：明确选中一个会话 = 有意导航（与 Esc「退出」相对）——浏览页
           // 与盖在它底下的落地页**一起收**，人落在那个会话的聊天页。只收浏览页
@@ -6497,7 +6488,7 @@ export function Chat({
           // 草稿/焦点也按 submitLaunchpad 同一口径清掉（进入的是别的会话，旧草稿
           // 不该跟过去）。
           setLaunchpadOpen(false)
-          bootStore.setLaunchpadFocus(-1)
+          useChatStore.getState().setLaunchpadFocus(-1)
           changeLaunchpadDraft('', 0)
           repaintTranscript()
           return result
@@ -6506,11 +6497,11 @@ export function Chat({
           const ok = await channel.switchWorkspace(target)
           if (ok) {
             suppressLogoIntroRef.current = true
-            sessionStore.setAgentViewReturnId(undefined)
+            useChatStore.getState().setAgentViewReturnId(undefined)
             setSupervisorOpen(false)
             // 同 onOpenSession：新建/切工作区会话也是有意导航，落地页一并收。
             setLaunchpadOpen(false)
-            bootStore.setLaunchpadFocus(-1)
+            useChatStore.getState().setLaunchpadFocus(-1)
             changeLaunchpadDraft('', 0)
             repaintTranscript()
           }
@@ -6579,7 +6570,7 @@ export function Chat({
     const viewSubagent = channel.subagents.find(s => s.agentId === agentView.agentId)
     if (!viewSubagent) {
       // The roster lost this child (session switch): pop the view, don't crash.
-      sessionStore.setAgentView(null)
+      useChatStore.getState().setAgentView(null)
       return null
     }
     // Headless stubs mount Chat without a subagentControl at all.
@@ -6611,7 +6602,7 @@ export function Chat({
     const subagent = channel.subagents.find(s => s.agentId === subagentDetailId)
     if (!subagent) {
       // Agent not found, go back to the dashboard (side panel when split).
-      uiStore.setSubagentDetailId(null)
+      useChatStore.getState().setSubagentDetailId(null)
       openSubagentDashboard()
       return null
     }
@@ -6628,8 +6619,8 @@ export function Chat({
         messages={detailMessages}
         {...(detailControl === undefined ? {} : { compose: { control: detailControl, target: detailTarget } })}
         onBack={() => {
-          uiStore.setSubagentDetailId(null)
-          uiStore.setSubagentDashboardOpen(true)
+          useChatStore.getState().setSubagentDetailId(null)
+          useChatStore.getState().setSubagentDashboardOpen(true)
         }}
       />
     )
@@ -6643,7 +6634,7 @@ export function Chat({
       <JobsPanel
         jobs={channel.backgroundJobs ?? []}
         initialFocusId={jobsPanelFocusId ?? undefined}
-        onClose={() => { panelsStore.setJobsPanelOpen(false); panelsStore.setJobsPanelFocusId(null) }}
+        onClose={() => { useChatStore.getState().setJobsPanelOpen(false); useChatStore.getState().setJobsPanelFocusId(null) }}
         onWatchOutput={watchJobOutput}
         onKill={(id) => {
           // Stub channels (verify harnesses) have no jobControl — surface
@@ -6664,7 +6655,7 @@ export function Chat({
     const scene = (
       <BtwThreadScene
         channel={channel}
-        onClose={() => uiStore.setBtwSceneOpen(false)}
+        onClose={() => useChatStore.getState().setBtwSceneOpen(false)}
         // 送聊天之后整屏场景让位：关场景 + 焦点回主输入框——与侧栏形态里
         // 「面板留着、焦点回输入框」的落点一致（见 BtwThreadScene.sendToChat）。
         onFocusChat={sidePanel.focusChat}
@@ -6684,12 +6675,12 @@ export function Chat({
         team={channel.team}
         sessionId={channel.sessionId}
         onSelect={(id) => {
-          uiStore.setSubagentDashboardOpen(false)
-          uiStore.setSubagentDetailId(id)
+          useChatStore.getState().setSubagentDashboardOpen(false)
+          useChatStore.getState().setSubagentDetailId(id)
         }}
         onOpenView={(id) => openAgentView(id, { kind: 'agents-dashboard' })}
         messages={channel.subagentControl?.message?.messages()}
-        onClose={() => uiStore.setSubagentDashboardOpen(false)}
+        onClose={() => useChatStore.getState().setSubagentDashboardOpen(false)}
       />
     )
     return withTitle(fullscreen ? dashboard : <AlternateScreen>{dashboard}</AlternateScreen>)
@@ -6809,27 +6800,27 @@ export function Chat({
           // 再点/再按 Enter = 收起（展开 ↔ 收起，键盘与鼠标同一条 onParamPick）。
           // 点另一段仍直接切换，点空白/Esc 仍收起（上一版契约不回退）。
           if (overlay.kind === segment) {
-            overlayStore.dispatch({ type: 'close' })
+            useChatStore.getState().dispatchOverlay({ type: 'close' })
             return
           }
           // BUG 3（点另一段直接切换）：/effort 的选择器是异步 open-if（when:
           // ['none']），盖着别的选择器时会被丢弃——这就是"点了没反应"的根因。
           // 先把屏上的参数选择器收掉再开新的，一个在屏、且就是点的那段。
           if (overlay.kind !== 'none') {
-            overlayStore.dispatch({ type: 'close' })
+            useChatStore.getState().dispatchOverlay({ type: 'close' })
           }
           void runCommand(segment, '')
         }}
         onQueryChange={changeLaunchpadDraft}
         onSubmit={submitLaunchpad}
-        onFocusChange={bootStore.setLaunchpadFocus}
+        onFocusChange={useChatStore.getState().setLaunchpadFocus}
         onAction={(action) => {
           // 第八版（用户实测：「刚点帮助，不知道为什么直接进入聊天页面了」）：
           // 帮助**不属于**离开启动页的两条路（Enter 发非命令消息 / 会话浏览
           // 里选中会话）——它盖在落地页之上（overlay kind 'help'），再点同一
           // 入口 = 收起（与参数段同一条切换语义）。
           if (action.command === 'help') {
-            overlayStore.dispatch(overlay.kind === 'help'
+            useChatStore.getState().dispatchOverlay(overlay.kind === 'help'
               ? { type: 'close' }
               : { type: 'open', overlay: { kind: 'help' } })
             return
@@ -6866,8 +6857,8 @@ export function Chat({
           // 有参数选择器盖在落地页之上时，空白点击先把选择器收掉（焦点照旧
           // 收回输入框）。选择器内部的点击已被 Launchpad 的浮层包装拦住
           // 冒泡，不会走到这里。
-          if (overlay.kind !== 'none') overlayStore.dispatch({ type: 'close' })
-          bootStore.setLaunchpadFocus(-1)
+          if (overlay.kind !== 'none') useChatStore.getState().dispatchOverlay({ type: 'close' })
+          useChatStore.getState().setLaunchpadFocus(-1)
         }}
         model={channel.modelDisplay ?? channel.model}
         effort={channel.reasoningEffort}
@@ -6959,8 +6950,8 @@ export function Chat({
           onPrevious: () => stepPreview(-1), onNext: () => stepPreview(1),
         } : undefined}
         onClose={activePreview.peek
-          ? () => uiStore.setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
-          : () => overlayStore.dispatch({ type: 'close-if', kind: 'image-preview' })}
+          ? () => useChatStore.getState().setPeekSuppressed(peekKey(activePreview.image, activePreview.title))
+          : () => useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'image-preview' })}
         region={imagePreviewRegion}
       />
     )
@@ -7078,14 +7069,14 @@ export function Chat({
           thinkingVisible={thinkingVisible}
           historyPaintEnabled={!fullscreen}
           fullscreen={fullscreen}
-          onToggleAll={() =>{  uiStore.setShowAllMessages(previous => !previous) }}
+          onToggleAll={() =>{  useChatStore.getState().setShowAllMessages(previous => !previous) }}
           onLoadOlder={() => channel.loadOlder()}
           registerRowRef={registerRowRef}
           scrollHandle={handle}
           forceMountRowId={forceMountRowId}
           newSinceRowId={isSticky ? null : lastSeenRowIdRef.current}
           onUnseenCount={setUnseenCount}
-          onTimeline={timelineStore.set}
+          onTimeline={useChatStore.getState().setTimeline}
           onOpenSubagent={setSubagentDetailId}
           onOpenSubagentView={openSubagentViewFromCard}
           onOpenJobs={openJobsPanel}
@@ -7259,7 +7250,7 @@ export function Chat({
           />
         ) : overlay.kind === 'tips' ? (
           <Box flexDirection="column" marginTop={1}>
-            <TipsPanel onClose={() => overlayStore.dispatch({ type: 'close-if', kind: 'tips' })} />
+            <TipsPanel onClose={() => useChatStore.getState().dispatchOverlay({ type: 'close-if', kind: 'tips' })} />
           </Box>
         ) : recap !== null && (!recap.auto || recap.expanded) ? (
           <Box flexDirection="column" marginTop={1}>
