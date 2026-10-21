@@ -78,6 +78,9 @@ import {
 } from '../utils/keymap.js'
 import { attachHerdrIntegration } from '../herdr.js'
 import { logMouseDebug } from '../utils/debug.js'
+import { readFileSync, watch } from 'node:fs'
+import { homedir } from 'node:os'
+import { join } from 'node:path'
 import { Chat } from '../screens/Chat.js'
 import { openInjectChannel, type InjectChannel, type InjectController } from './inject-channel.js'
 import { startSessionMountHeartbeat } from './session-mount-heartbeat.js'
@@ -1658,7 +1661,9 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
     // Legacy user scopes layer over cordis.yml. Modern Config is already
     // resolved: an unset action must not revive its startup override.
     // Applied live so the very next keypress matches the new combos.
+    let lastSettingsValue: SettingsValue = {}
     const applyShortcuts = (value: SettingsValue): void => {
+      lastSettingsValue = value
       const userLayer = value.shortcuts ?? {}
       const configLayer = scope.legacy ? config.shortcuts ?? {} : {}
       const merged: Partial<Record<ShortcutActionId, string>> = {}
@@ -1670,8 +1675,25 @@ export async function apply(ctx: Context, runtimeConfig: RuntimeConfig<Config>, 
           : (typeof pinned === 'string' && pinned.trim() !== '' ? pinned : undefined)
         if (chosen !== undefined) merged[action.id] = chosen
       }
+      // dshiunx: one keybindings file wins over settings/cordis.yml.
+      try {
+        const raw = readFileSync(join(homedir(), '.config/dshiunx/keybindings.json'), 'utf8')
+        const file = JSON.parse(raw) as Record<string, string | string[] | undefined>
+        for (const [id, combos] of Object.entries(file)) {
+          if (Array.isArray(combos)) merged[id as ShortcutActionId] = combos.join(',')
+          else if (typeof combos === 'string' && combos.trim() !== '') merged[id as ShortcutActionId] = combos
+        }
+      } catch {}
       setKeymapOverrides(merged)
     }
+    // Hot reload: edit ~/.config/dshiunx/keybindings.json, no restart.
+    try {
+      const kbPath = join(homedir(), '.config/dshiunx/keybindings.json')
+      const watcher = watch(kbPath, { persistent: false }, () => {
+        try { applyShortcuts(lastSettingsValue) } catch {}
+      })
+      ctx.effect(() => () => watcher.close(), 'dshiunx.keybindings-watch')
+    } catch {}
     // The /settings default-reasoning-effort field (effortDefault): re-seat
     // the channel's future-sessions default without touching effort.json
     // (the user layer outranks that file). Only the field's own changes
