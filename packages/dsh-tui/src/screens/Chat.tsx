@@ -7032,7 +7032,7 @@ export function Chat({
     watchJobOutput,
     workingActivity,
   }
-  return <ChatView state={chatState} />
+  return <ChatView state={chatState} withTitle={withTitle} PinnedTurnHeader={PinnedTurnHeader} />
 
 }
 
@@ -7155,7 +7155,7 @@ function NewMessagesPill({
 }
 
 /** Chat 的渲染树（纯渲染）：只读 state，不持有逻辑。 */
-function ChatView({ state }: { state: Record<string, any> }): React.ReactNode {
+function ChatView({ state, withTitle, PinnedTurnHeader }: { state: Record<string, any>; withTitle: (content: React.ReactNode) => React.ReactNode; PinnedTurnHeader: React.ComponentType<any> }): React.ReactNode {
   return withTitle(
     <Box flexDirection="column" flexGrow={1} width="100%">
       {/* 分栏布局：geometry 为 null（收起 / 窄屏 / inline / 编辑器展开）
