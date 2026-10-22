@@ -43,6 +43,7 @@ loader / include / 配置校验：配置树怎么读、模块怎么 import、插
 22. **`Entry.update` 路径**：`create` 时整体替换 options，否则增量合并 + `sortKeys`；`disabled` → dispose fiber；有 fiber 时计算 changes，volatile-only 走 `_commitVolatile`，否则 `loader/partial-dispose` + `_patchContext`；无 fiber → `init()`。
 23. **`_commitVolatile` 细节**：用 `resolveConfig` 验证候选；普通值也变 → 返回 false 走普通更新；只 volatile 变 → `updateVolatile` + emit `loader/volatile-update`（带路径）；无效候选只 warn，运行中的引用不变；监听器异常只 warn，不影响更新。
 24. **`init` 去重**：`_initTask` 保证并发 init 只跑一次；`_init` 失败只 `logger.error`，不创建 fiber。
+25. **`EntryOptions` 的 string 索引签名**：`[key: string]: any`，支持 patch 写入动态字段（`applyEntryPatches` 的 overrides）。
 
 ## 与 DSH 成熟代码的差异
 

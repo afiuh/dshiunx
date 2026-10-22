@@ -16,12 +16,13 @@
 4. **API 文档**：对外契约（`ctx` / `Service` / `Fiber` / loader 配置）必须有说明；内部实现细节不承诺稳定。
 5. **差异登记**：与 DSH 的每一处差异必须登记（原因 + 位置），上游更新时逐项对齐。
 6. **类型债**：不允许 `as unknown as` 之类的断言；必要时用类型守卫或 `Reflect.get` 替代。
+7. **动态索引签名**：`Context` / `Service` 加 `[key: symbol]: any`，`EntryOptions` 加 `[key: string]: any`——支持 isolate/intercept/fiber/entry 和 patch 动态字段；窄断言只用于 `Disposable` 等无法加索引签名的类型。
 
 ## 验收
 
 | # | 判据 |
 |---|---|
-| 1 | 核心包 `tsc --strict` 0 错误（当前 48 个，待修：39 索引签名 / 4 EffectRunner 类型 / 5 递归推断） |
+| 1 | 核心包 `tsc --strict` 0 错误 |
 | 2 | `dependency-cruiser` 对内核规则 0 违规 |
 | 3 | 内核契约测试全部通过 |
 | 4 | 与 DSH 的差异清单可查、每项有原因 |

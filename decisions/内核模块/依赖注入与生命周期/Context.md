@@ -27,6 +27,7 @@
 6. **子 scope 必须继承 root**：任何创建子 scope 的地方（preset、group、include），owner 必须是 `ctx.root` 或继承链上的 root 视图，否则子树看不到宿主服务。
 7. **跨 realm 判断**：`Context.is()` 用全局 symbol（`Symbol.for('cordis.is')`）而不是 `instanceof`，跨 realm / 多份 cordis 副本都能识别。
 8. **extend 的 shadow**：`extend` 保留父的 `symbols.shadow`，用于“影子上下文”（服务替换时保持调用链）。
+9. **symbol 索引签名**：`Context` 声明 `[key: symbol]: any`，支持 `isolate` / `intercept` / `fiber` / `entry` 等动态 symbol 键。
 
 ## 验收
 
