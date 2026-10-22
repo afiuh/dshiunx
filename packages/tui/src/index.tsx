@@ -44,6 +44,7 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
 
   // ── 动作（useChatStore.getState()，不触发重渲染）──────────────
   const store = useChatStore.getState()
+  const rowRefs = React.useRef(new Map<number, any>())
 
   useInput((input: string, key: any) => {
     handleKey({ input, key }, { channel })
@@ -67,9 +68,9 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
           activityFrames={channel.activityFrames}
           showAll={showAllMessages}
           onToggleAll={() => store.setShowAllMessages(!showAllMessages)}
-          onLoadOlder={() => {}}
+          onLoadOlder={() => (channel as any).loadOlder?.()}
           olderHistory={undefined}
-          registerRowRef={() => () => {}}
+          registerRowRef={(rowId: number, el: any) => { if (el) rowRefs.current.set(rowId, el); else rowRefs.current.delete(rowId) }}
           scrollHandle={undefined}
           forceMountRowId={forceMountRowId}
           newSinceRowId={null}
@@ -77,13 +78,13 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
           onTimeline={store.setTimeline}
           failureHintRowId={failureHintRowId}
           failureHint={undefined}
-          onOpenSubagent={() => {}}
-          onOpenSubagentView={() => {}}
-          onOpenJobs={() => () => {}}
-          onWatchJobOutput={() => () => {}}
-          onOpenFile={() => () => {}}
+          onOpenSubagent={(agentId: string) => store.setSubagentDetailId(agentId)}
+          onOpenSubagentView={(agentId: string, rowId: number) => store.setAgentView({ agentId, source: 'transcript-card' })}
+          onOpenJobs={(focusId?: string) => { store.setJobsPanelFocusId(focusId ?? null); store.setJobsPanelOpen(true) }}
+          onWatchJobOutput={(id: string) => (channel as any).jobControl?.watchOutput?.(id) ?? (() => {})}
+          onOpenFile={(rawPath: string) => store.dispatchOverlay({ type: 'open', overlay: { kind: 'file-actions', path: rawPath, index: 0, isDir: false } })}
           sessionCwd={channel.cwd}
-          onPreviewImage={() => {}}
+          onPreviewImage={(image: any) => store.dispatchOverlay({ type: 'open', overlay: { kind: 'image-preview', image, gallery: [{ image }], index: 0 } })}
           streamViewToggledRows={streamViewToggledRows}
           onToggleStreamView={(rowId: number) => store.setStreamViewToggledRows((prev) => {
             const next = new Set<number>(prev)
@@ -104,9 +105,9 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
         selectionActive={selectionActive}
         fillText={null}
         onFillConsumed={() => {}}
-        onRewindRequest={() => {}}
-        onBackgroundRequest={() => {}}
-        onOpenSessions={() => {}}
+        onRewindRequest={() => store.dispatchOverlay({ type: 'open', overlay: { kind: 'rewind', index: 0, confirm: null, modes: null, modeIndex: 0, busy: false } })}
+        onBackgroundRequest={() => (channel as any).background?.()}
+        onOpenSessions={() => store.setTreeOpen(true)}
         controllerRef={undefined}
         onCaretImage={() => {}}
         caretPreviewOpen={false}
