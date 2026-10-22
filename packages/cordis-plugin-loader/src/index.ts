@@ -107,8 +107,8 @@ export class Loader extends EntryTree {
       // Tree carriers (Group, Include) keep their configs literal: their
       // entry and patch lists hold other rows' configs, whose `!!js`
       // expressions belong to those rows' own fibers.
-      const plugin = this.runtime?.callback as unknown as Record<PropertyKey, unknown> | undefined
-      if (plugin?.[EntryGroup.key]) return config
+      const plugin = this.runtime?.callback
+      if (plugin && Reflect.get(plugin, EntryGroup.key)) return config
       return interpolate(this.ctx, config)
     }, { global: true })
 

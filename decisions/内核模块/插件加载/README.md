@@ -33,6 +33,13 @@ loader / include / 配置校验：配置树怎么读、模块怎么 import、插
 12. **Volatile 字段**：`.volatile()` 标记的字段，变化时更新稳定引用、**不重挂插件**；通过 `.get()` 读取；变化经 `loader/volatile-update` 事件通知（参数是变化路径）；loader 比较配置时忽略 volatile 字段。
 13. **`!!js` 适用范围**：仅在 `config` 与 `disabled` 字段内有效；`disabled` 在每次挂载决策时基于 loader 上下文求值；其余元数据（`name`、`id`、`inject`）保持静态。
 14. **明确报错**：配置无效时 `ValidationError: invalid config: ...`；fiber 进入 FAILED；宿主启动器打印错误并以非零状态退出。
+15. **Include 是文件-backed EntryTree**：支持 YAML / JSON / JS；`path` 相对 `ctx.baseUrl` 解析。
+16. **`!!js` 标签**：YAML schema 扩展（`tag:yaml.org,2002:js`），标量解析成 `{ __jsExpr }`，由 loader 在条目激活时求值。
+17. **patch 语义**：`applyEntryPatches` 支持 `insert`（插到 group 或根）、按 id 覆盖字段、`name` 校验；未匹配的 patch 只 warn，不中断。
+18. **initial 写入**：文件不存在（ENOENT）时写 `initial`；文件存在但解析失败必须报错，不能当成缺失。
+19. **只读检测**：`access(W_OK)` 失败 → readonly；只读时不覆盖文件。
+20. **refresh 容错**：重读文件，内容变化才 `root.update`；解析失败只 warn，保留旧树（热更新不能把进程搞挂）。
+21. **原子写**：写临时文件 + `rename`；EACCES/EBUSY/EPERM 重试（10 次，递增延迟）；写操作串行化。
 
 ## 与 DSH 成熟代码的差异
 
