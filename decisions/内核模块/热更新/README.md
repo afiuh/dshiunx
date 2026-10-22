@@ -77,6 +77,35 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 
 违反这些的插件，HMR 不保证能热更——它们会被标记为“不可自进化”的设计前提，而不是假装能热更。
 
+## 规范插件下的覆盖范围
+
+当插件满足规范（ESM / 静态 import / effect 清理 / 状态外置 / 入口声明）时：
+
+| 插件形态 | 能否热更 | 说明 |
+|---|---|---|
+| ESM 入口 + 静态依赖 | ✅ | 入口、深层依赖、嵌套 group 都能回溯 |
+| 有状态（状态外置到 storage） | ✅ | reload 后从 storage 恢复 |
+| 有副作用（effect 清理） | ✅ | reload 时清理干净，无泄漏 |
+| 嵌套 group 内插件 | ✅ | `entries()` 递归 |
+| 任意 `packages/**` 下文件 | ✅ | `root: [packages]` |
+
+这已经覆盖绝大多数业务插件。
+
+## 扩展路线（让更大范围的插件能热更）
+
+规范后仍不能热更的形态，以及对应的扩展方案：
+
+| 形态 | 原因 | 扩展方案 |
+|---|---|---|
+| externals（框架入口静态依赖） | 改引导代码 = 重启 | **缩小 externals**：`bin/dx.ts` 只留引导，业务逻辑全走 loader |
+| native 模块（node-pty / koffi / sixel） | 进程级 ABI，不能替换 | **进程隔离**：native 能力做成独立进程/worker 插件，HMR = 重启进程 |
+| 配置文件（entries.yml） | 不走模块图 | **include 管理**：由 `cordis-plugin-include` 加载，改配置 = `refresh()` |
+| 动态 `import()` | 不在静态 `linked` 图 | **`ctx.import()` 包装**：记录到依赖图，HMR 可追踪 |
+| 有状态但没外置 | reload 丢失 | **状态迁移协议**：插件导出 `serialize/restore`，HMR 自动迁移 |
+| worker / 子进程插件 | HMR 不管理子进程 | **worker 重启**：插件生命周期绑定 worker，重启 worker 而非主进程 |
+
+**终极目标**：所有插件都能热更——native 走进程替换、配置走 include、动态 import 走包装 API、状态走迁移协议。
+
 ## 已知限制
 
 - 动态 `import()` 的子模块不在静态 `linked` 图里，变更可能追踪不到
