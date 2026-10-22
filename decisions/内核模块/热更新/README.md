@@ -111,6 +111,37 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 
 **终极目标**：所有插件都能热更——native 走进程替换、配置走 include、动态 import 走包装 API、状态走迁移协议。
 
+## 排错案例：改深层依赖，HMR 不重载（2026-10-22）
+
+### 现象
+
+测试「HMR：改深层依赖重载入口」：改 `dep.ts`，`hmr/reload` 不触发，8 秒超时。
+
+### 排查过程（按顺序，每步缩小范围）
+
+1. **加 `[hmr] change` 日志** → change 触发了，说明 chokidar 监听正常
+2. **加 `inCache` 日志** → `inCache=false`，说明 `dep.ts` 不在 ESM `loadCache`
+3. **检查两个缓存**：
+   - `loadCache`：只有 `entry.ts`
+   - `require.cache`：`entry.ts` + `dep.ts`
+   - 结论：`dep.ts` 被当成 CJS 加载
+4. **对比实验**：临时目录加 `package.json`（`{"type":"module"}`）→ `dep.ts` 进入 `loadCache`，`require.cache` 为空 → HMR reload 成功
+
+### 根因
+
+测试的临时目录（`mkdtempSync`）**没有 `package.json`**。tsx 看到没有 `"type": "module"`，按 CJS 处理 `.ts` 依赖，走 `require.cache`；HMR 的 change 回调只检查 ESM `loadCache`，所以跳过。
+
+### 修复
+
+测试临时目录加 `package.json`（`{"type": "module"}`）。真实项目根 `package.json` 已有 `"type": "module"`，不受影响。
+
+### 教训（未来参考）
+
+- **“改了不生效”先确认文件在哪个缓存**：ESM `loadCache` vs CJS `require.cache`
+- **模块格式由 `package.json` 的 `type` 决定**，不是文件扩展名
+- **HMR 的追踪只覆盖 ESM**；CJS 依赖需要额外处理（`require.cache` 检查 + CJS 依赖图）
+- 排查顺序：change 是否触发 → 在不在 loadCache → 在哪个缓存 → 对比实验
+
 ## 已知限制
 
 - **深层依赖的模块格式取决于 `package.json`**：目录没有 `"type": "module"` 时，tsx 把 `.ts` 依赖转成 CJS（走 `require.cache`），不在 ESM `loadCache` 里，HMR 追踪不到。真实项目有 `"type": "module"`，依赖走 ESM，HMR 正常（2026-10-22 实测：加 `package.json` 后 `dep.ts` 进入 `loadCache`，深层依赖 reload 成功）
