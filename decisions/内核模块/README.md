@@ -36,6 +36,24 @@
 
 实际顺序可以调整；重点是按“哪里最可能有问题”排，不是按依赖排。
 
+## 审查方法：三向对照
+
+每个模块的审查，不是“读代码找感觉”，而是三向对照：
+
+| 对照 | 看什么 | 产出 |
+|---|---|---|
+| **决策 vs 我们的代码** | 决策写了代码没做 / 代码做了决策没写 / 两者冲突 | 缺口、隐式行为、待决策 |
+| **我们的代码 vs DSH 成熟代码** | 我们改了什么、删了什么、简化了什么 | 修改点清单、是否引入问题 |
+| **决策 vs DSH 代码/文档** | DSH 的实现是否更成熟、能否借鉴 | 优化点、可借鉴的设计 |
+
+**对照源**：
+
+- 我们的代码：`packages/cordis*`
+- DSH 源码：`/mnt/data/AI自由工作区/AI参考源码/deepseek-harness/vendor/{cordis,loader,group,include,hmr,logger-console}`
+- DSH 文档：`/mnt/data/AI自由工作区/AI参考源码/deepseek-harness/docs/cordis-api`、`docs/cordis-tutorial`
+
+**注意**：DSH 里有版本/兼容性检测模块（`dsh-app-boot/compatibility-*`），对照时**不要引入**（P7）；但 DSH 的 `vendor/cordis` 是内核本体，是主要对照对象。
+
 ## 明确排除（DSH 有，但我们不要）
 
 | DSH 模块 | 为什么排除 |
