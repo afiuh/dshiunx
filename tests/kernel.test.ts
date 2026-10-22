@@ -104,3 +104,41 @@ test('事件：emit / serial / bail / waterfall', async () => {
   ;(ctx as any).on('w', (_v: number, next: () => number) => next() + 10)
   assert.equal((ctx as any).waterfall('w', 0, () => 0), 11)
 })
+
+test('嵌套 group：3 层', async () => {
+  const root = await makeRoot()
+  ;(globalThis as any).__probe = []
+  await root.loader.create({
+    id: 'l1', name: 'cordis:group', group: true,
+    config: [{
+      id: 'l2', name: 'cordis:group', group: true,
+      config: [{
+        id: 'l3', name: 'cordis:group', group: true,
+        config: [{ id: 'leaf', name: './probe.ts', config: { tag: 'deep' } }],
+      }],
+    }],
+  })
+  await root.loader.await()
+  assert.deepEqual((globalThis as any).__probe, ['deep'], '3 层 group 内的插件应加载')
+})
+
+test('isolate：同 label 共享作用域', async () => {
+  const root = await makeRoot()
+  await root.loader.create({
+    id: 'provider', name: './value-provider.ts',
+    isolate: { value: 'shared' }, config: { tag: 'shared-tag' },
+  })
+  await root.loader.create({
+    id: 'consumer', name: './value-consumer.ts',
+    isolate: { value: 'shared' },
+  })
+  await root.loader.await()
+  assert.equal((globalThis as any).__value_tag, 'shared-tag', '同 label 的 consumer 应看到 provider 的实例')
+})
+
+test('waterfall：不调用 next 就 veto', () => {
+  const ctx = new Context()
+  ;(ctx as any).on('w', () => 'vetoed')
+  ;(ctx as any).on('w', (_v: number, next: () => number) => next() + 1)
+  assert.equal((ctx as any).waterfall('w', 0, () => 0), 'vetoed', '不调用 next 的监听器应 veto 后续链')
+})
