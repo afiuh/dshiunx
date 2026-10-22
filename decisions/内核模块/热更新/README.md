@@ -113,6 +113,6 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 
 ## 已知限制
 
-- **tsx 下 `.ts` 深层依赖走 CJS 缓存**：`dep.ts` 不在 ESM `loadCache` 里（`inCache=false`），HMR 的 change 回调直接跳过——深层依赖变更不会重载入口（2026-10-22 实测）
+- **深层依赖的模块格式取决于 `package.json`**：目录没有 `"type": "module"` 时，tsx 把 `.ts` 依赖转成 CJS（走 `require.cache`），不在 ESM `loadCache` 里，HMR 追踪不到。真实项目有 `"type": "module"`，依赖走 ESM，HMR 正常（2026-10-22 实测：加 `package.json` 后 `dep.ts` 进入 `loadCache`，深层依赖 reload 成功）
 - 动态 `import()` 的子模块不在静态 `linked` 图里，变更可能追踪不到
 - Service 内部运行时状态（进行中的流等）在 reload 时丢失

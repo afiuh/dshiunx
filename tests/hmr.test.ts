@@ -41,3 +41,34 @@ test('HMR 替换模块并保留进程', async () => {
   await ctx.fiber.dispose()
 })
 
+
+test('HMR：改深层依赖重载入口', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dshiunx-hmr-deep-'))
+  writeFileSync(join(dir, 'package.json'), '{"type":"module"}\n')
+  const entry = join(dir, 'entry.ts')
+  const dep = join(dir, 'dep.ts')
+  writeFileSync(dep, `export const value = 'v1'\n`)
+  writeFileSync(entry, `import { value } from './dep.ts'\nexport default { name: 'deep-entry', apply() { (globalThis as any).__deep = value } }\n`)
+
+  const ctx = new Context()
+  ctx.baseUrl = pathToFileURL(dir).href + '/'
+  await ctx.plugin(Timer)
+  await ctx.plugin(Loader)
+  await ctx.plugin(Hmr, { root: [dir], ignored: [], debounce: 50 })
+  await ctx.loader.create({ name: pathToFileURL(entry).href })
+  await ctx.loader.await()
+  assert.equal((globalThis as any).__deep, 'v1', '初始深层依赖值应加载')
+
+  const reloaded = new Promise<void>((resolve) => {
+    const off = ctx.on('hmr/reload', () => { off(); resolve() })
+  })
+  writeFileSync(dep, `export const value = 'v2'\n`)
+  await Promise.race([
+    reloaded,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('HMR 超时')), 8000)),
+  ])
+  await ctx.loader.await()
+  assert.equal((globalThis as any).__deep, 'v2', '深层依赖变更应重载入口')
+
+  await ctx.fiber.dispose()
+})
