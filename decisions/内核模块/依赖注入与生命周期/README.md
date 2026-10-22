@@ -32,6 +32,16 @@ Context / Fiber / Effect / Service / Registry / Reflect：服务怎么注册、�
 
 但这只是“读懂代码”的顺序，不是“写代码”的顺序；实际审查可以从问题最密集的文件开始。
 
+## 与 DSH 成熟代码的差异
+
+`diff -rq` 结果：`context.ts` / `service.ts` / `reflect.ts` / `registry.ts` 完全一致；
+`fiber.ts` 和 `utils.ts` 各有 3 处**类型断言**（为 tsc 通过，无行为差异）：
+
+- `fiber.ts`：`result.value` / `task?.catch` / `FiberState` 断言
+- `utils.ts`：`isObject` / `Object.hasOwn` / `tracker` 断言
+
+属**类型适配**，不是行为修改。上游更新时这些位置需要重新对齐。
+
 ## 下一级拆分
 
 暂不再拆。如果某个文件（如 Fiber.md）的决策多到出现可独立讨论的子模块，再升级成文件夹。

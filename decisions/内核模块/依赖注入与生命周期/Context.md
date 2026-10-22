@@ -25,6 +25,8 @@
 4. **intercept 是服务配置拦截**：`intercept(name, config)` 把配置合并到下层插件的服务解析中，不影响父。
 5. **baseUrl 是模块解析基准**：每个 entry 可以有自己的 baseUrl，用于解析相对模块说明符。
 6. **子 scope 必须继承 root**：任何创建子 scope 的地方（preset、group、include），owner 必须是 `ctx.root` 或继承链上的 root 视图，否则子树看不到宿主服务。
+7. **跨 realm 判断**：`Context.is()` 用全局 symbol（`Symbol.for('cordis.is')`）而不是 `instanceof`，跨 realm / 多份 cordis 副本都能识别。
+8. **extend 的 shadow**：`extend` 保留父的 `symbols.shadow`，用于“影子上下文”（服务替换时保持调用链）。
 
 ## 验收
 

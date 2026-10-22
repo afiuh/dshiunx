@@ -26,6 +26,8 @@
 6. **runtime**：同一 plugin callback 的所有 fiber 共享一个 `Plugin.Runtime`。
 7. **await**：等待 `inertia` 结算；启动错误会被重抛。
 8. **根 fiber**：uid=0，runtime=null，是 Context 构造时创建的。
+9. **`_disposables`**：`DisposableList` 收集所有 effect 的 disposer；`dispose()` 清空并按 LIFO 执行。
+10. **状态变更通知**：`_updateState` 在状态变化时 emit `internal/status`；只在 ACTIVE ↔ 非 ACTIVE 之间广播。
 
 ## 验收
 

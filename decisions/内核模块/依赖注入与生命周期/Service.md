@@ -29,6 +29,7 @@ Service 基类、生命周期符号、callable：一个“服务”是什么样�
 4. **isolate 语义**：`[symbols.filter]` 比较 `ctx[isolate][name]` 是否一致；不同 scope 的同名服务互不可见。
 5. **intercept 配置合并**：`resolveConfig` 沿原型链收集祖先配置，**根先、base 前、head 后**；有 `Config.merge` 用之，否则浅合并。
 6. **不做版本检查**：Service 注册不看版本号（核心战略 P7）。
+7. **跨代理 instanceof**：`Service[Symbol.hasInstance]` 沿 constructor 原型链查找，代理对象也能正确判断。
 
 ## 验收
 

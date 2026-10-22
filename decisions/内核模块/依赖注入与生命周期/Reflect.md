@@ -27,6 +27,7 @@
 7. **`mixin`**：把服务成员挂到 ctx（`ctx.on` → `ctx.events.on`），随 fiber 注销。
 8. **`notify`**：服务变化时重新检查所有 inject 该服务的 fiber，触发 `_refresh`。
 9. **trace / bind**：调用时把 `this` 和参数包成 traceable，供诊断用。
+10. **notify 的 filter**：`notify(names, filter)` 只通知匹配 isolate scope 的 fiber；`internal/service` 事件带 filter 包装的 ctx。
 
 ## 验收
 

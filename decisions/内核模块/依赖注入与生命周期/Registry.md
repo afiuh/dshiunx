@@ -25,6 +25,8 @@
 5. **`delete(plugin)`**：dispose 该插件的所有 fiber，删除 runtime。
 6. **迭代接口**：`keys` / `values` / `entries` / `forEach`，供 loader 和诊断用。
 7. **不做版本检查**：注册只看形状和 `apply`，不看版本号（P7）。
+8. **uid 分配**：`counter` getter 每次读取自增，fiber uid 由此分配（根 fiber 为 0）。
+9. **resolve 容错**：`plugin.apply` 可能抛错，`resolve` 用 try/catch 包住，返回 `undefined` 表示无效插件。
 
 ## 验收
 
