@@ -133,6 +133,24 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 - HMR 只有一套：主进程检测变更 → 通知 worker 重新 `import` → 主进程重建 fiber
 - worker 只负责“执行代码 + 持有 native 句柄”
 
+### worker 内 HMR：已验证可行（2026-10-22）
+
+原型验证（worker_threads + `--expose-internals`）：
+
+```
+main: {"type":"load","value":"v1","cached":true}
+main: {"type":"reload","value":"v2","cached":false}
+```
+
+- worker 内可通过 `internal/modules/esm/loader` 拿到 `loadCache`
+- `Map.prototype.delete.call(loadCache, url)` + 重新 `import(url + '?v=...')` → 拿到新版本
+- 主进程 `postMessage({ type: 'reload', url })` → worker 内重载 → 返回新值
+- **worker 不重启**（同一个 worker 实例）
+
+**前提**：`--expose-internals`（或 `node-addon-require-builtin`）；每个 worker 有自己的 loader 实例。
+
+**结论**：路径 A（单 cordis + 远程 fiber）成立；worker 内只需实现“清缓存 + 重新 import”，不需要完整的 cordis。
+
 ### native 模块：服务封装 + 三层变更边界
 
 ```
