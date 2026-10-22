@@ -27,6 +27,24 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 7. **状态**：fiber 重建；Service 实例状态不自动保留（模块级 HMR 的固有限制）。
 8. **配置对齐**：`base` 必须与 `root` 的 cwd 基准一致，否则 `resolve()` 拼错路径、`loadCache` 不命中。
 9. **不做版本检查**（P7）。
+10. **依赖 timer**：`inject: ['timer']`，用 `ctx.debounce` 做防抖；没有 timer 会永远 PENDING（静默）。
+11. **日志走 logger**：`ctx.logger.info/warn`，需要 console exporter 才能看到。
+12. **配置文件变更**：`entries.yml` 本身修改会触发 loader 的 entry 更新（按 id 比较）；无 id 的条目每次读取生成新 id，会被视为删除 + 添加。
+13. **PENDING 诊断**：`ctx.registry.values()` 遍历 fiber，检查 `FiberState.PENDING`。
+
+## 与 DSH 成熟代码的差异
+
+`diff -u` 结果：5 处有意修改（都为了修 watch 收不到 change 的问题）：
+
+1. `root` / `ignored` 加默认值（`?? ['.']` / `?? []`）
+2. 去掉 `...this.config`（会把 `root`/`ignored`/`base`/`debounce` 灌进 chokidar options）
+3. 去掉 `cwd: watchBaseDir`（路径基准混乱）
+4. `ignored: path => match(path)`（chokidar 给的是相对 cwd 的路径，不能再 `relative`）
+5. `debounce ?? 100`
+
+另外加了两行 stderr 诊断日志（`[hmr] change` / `[hmr] reloaded`），方便没有 console exporter 时观察。
+
+这些修改都登记为**决策 8**（base 对齐）的配套修复。
 
 ## 验收
 
