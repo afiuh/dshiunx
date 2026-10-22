@@ -26,6 +26,8 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 6. **原子重载单元**：插件入口文件；深层依赖变更会回溯到入口。
 7. **状态**：fiber 重建；Service 实例状态不自动保留（模块级 HMR 的固有限制）。
 8. **配置对齐**：`base` 必须与 `root` 的 cwd 基准一致，否则 `resolve()` 拼错路径、`loadCache` 不命中。
+8.1 **动态 import 登记**：`ctx.loader.importModule(specifier)` 把模块 URL 记入 `dynamicDeps`，HMR 的 `loadDependencies` 合并追踪。
+8.2 **状态迁移**：reload 时旧 plugin 的 `serialize()` → 新 plugin 的 `restore(state)`；失败只 warn，不阻断重载。
 9. **不做版本检查**（P7）。
 10. **依赖 timer**：`inject: ['timer']`，用 `ctx.debounce` 做防抖；没有 timer 会永远 PENDING（静默）。
 11. **日志走 logger**：`ctx.logger.info/warn`，需要 console exporter 才能看到。
@@ -101,7 +103,7 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 | native 模块（node-pty / koffi / sixel） | 进程级 ABI，不能替换 | **进程隔离**：native 能力做成独立进程/worker 插件，HMR = 重启进程 | 插件分类/规范（插件模块）+ 内核进程管理 |
 | 配置文件（entries.yml） | 不走模块图 | **include 管理**：`cordis-plugin-include` 的 `refresh()` | 内核（插件加载） |
 | 动态 `import()` | 不在静态 `linked` 图 | **`ctx.loader.importModule()`**：已实现，记录到 `dynamicDeps`，HMR 合并追踪 | ✅ 内核（插件加载 + 热更新） |
-| 有状态但没外置 | reload 丢失 | **状态迁移协议**：插件导出 `serialize/restore`，HMR 自动迁移 | 协议在插件规范，调用在内核 HMR |
+| 有状态但没外置 | reload 丢失 | **状态迁移协议**：插件导出 `serialize/restore`，HMR 自动迁移 | ✅ 已实现（旧 plugin serialize → 新 plugin restore） |
 | worker / 子进程插件 | HMR 不管理子进程 | **worker 重启**：生命周期绑定 worker，重启 worker 而非主进程 | 插件分类 + 内核生命周期 |
 
 **分工原则**：**内核提供机制，插件规范规定用法。** 内核不知道具体插件形态（P1）——所以：

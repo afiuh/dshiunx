@@ -353,12 +353,25 @@ class Hmr extends Service {
       return rollback()
     }
 
-    const reload = (plugin: any, runtime: Plugin.Runtime) => {
+    const reload = (newPlugin: any, oldPlugin: any, runtime: Plugin.Runtime) => {
       if (!runtime) return
       for (const oldFiber of runtime.fibers) {
-        const fiber = oldFiber.parent.registry.plugin(plugin, oldFiber._config, this.getOuterStack)
+        // State migration: serialize the OLD plugin, restore into the NEW one.
+        let state: any
+        try {
+          state = (oldPlugin as any).serialize?.()
+        } catch (error) {
+          this.ctx.logger.warn(error)
+        }
+        const fiber = oldFiber.parent.registry.plugin(newPlugin, oldFiber._config, this.getOuterStack)
         fiber.entry = oldFiber.entry
         if (fiber.entry) fiber.entry.fiber = fiber
+        if (state !== undefined) {
+          fiber.await().then(
+            () => { try { (newPlugin as any).restore?.(state) } catch (error) { this.ctx.logger.warn(error) } },
+            () => {},
+          )
+        }
       }
     }
 
@@ -375,7 +388,7 @@ class Hmr extends Service {
         }
 
         try {
-          reload(attempts[filename], runtime)
+          reload(attempts[filename], plugin, runtime)
           process.stderr.write(`[hmr] reloaded ${path}\n`)
           this.ctx.logger.info('reload plugin at %C', path)
         } catch (err) {
@@ -391,7 +404,7 @@ class Hmr extends Service {
         if (!runtime) continue
         try {
           this.ctx.registry.delete(attempts[filename])
-          reload(plugin, runtime)
+          reload(plugin, plugin, runtime)
         } catch (err) {
           this.ctx.logger.warn(err)
         }

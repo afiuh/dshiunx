@@ -103,3 +103,42 @@ test('HMR：动态 import 的模块也能追踪（ctx.loader.importModule）', a
 
   await ctx.fiber.dispose()
 })
+
+test('HMR：状态迁移（serialize / restore）', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dshiunx-hmr-state-'))
+  writeFileSync(join(dir, 'package.json'), '{"type":"module"}\n')
+  const entry = join(dir, 'entry.ts')
+  const source = (comment: string) => `${comment}
+let counter = 0
+export default {
+  name: 'state-entry',
+  apply() { counter++; (globalThis as any).__counter = counter },
+  serialize() { return { counter } },
+  restore(state: any) { counter = state.counter; (globalThis as any).__restored = counter },
+}
+`
+  writeFileSync(entry, source('// v1'))
+
+  const ctx = new Context()
+  ctx.baseUrl = pathToFileURL(dir).href + '/'
+  await ctx.plugin(Timer)
+  await ctx.plugin(Loader)
+  await ctx.plugin(Hmr, { root: [dir], ignored: [], debounce: 50 })
+  await ctx.loader.create({ name: pathToFileURL(entry).href })
+  await ctx.loader.await()
+  assert.equal((globalThis as any).__counter, 1, '初始 apply 后 counter 应为 1')
+
+  const reloaded = new Promise<void>((resolve) => {
+    const off = ctx.on('hmr/reload', () => { off(); resolve() })
+  })
+  writeFileSync(entry, source('// v2'))
+  await Promise.race([
+    reloaded,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('HMR 超时')), 8000)),
+  ])
+  await ctx.loader.await()
+  await new Promise(resolve => setTimeout(resolve, 100))
+  assert.equal((globalThis as any).__restored, 1, '旧插件的状态应迁移到新插件')
+
+  await ctx.fiber.dispose()
+})
