@@ -20,7 +20,15 @@ waterfall / parallel / serial / bail：插件之间怎么通信。
 6. **`waterfall`**：组合返回值——前一个监听器的返回值作为后一个的输入。
 7. **`on` / `once`**：注册监听器，返回 disposer；随 owning fiber 自动注销。
 8. **事件类型通过 `declare module` 扩展**：`interface Events { ... }`。
-9. **监听器选项**：`global`（跨 scope）、`prepend`（插到最前）——loader 用它们做全局钩子。
+9. **监听器选项**：`global`（跨 scope）、`prepend`（插到最前）；`options` 也可以是 boolean（`prepend` 的简写）。
+10. **`on` / `once` 的 disposer**：返回 `true` 表示调用时监听器仍注册。
+11. **`parallel` 的错误聚合**：`Promise.allSettled` 收集所有结果，有 rejection 时抛 `AggregateError`。
+12. **`waterfall` 的 `next` 机制**：最后一个参数是 `next`，监听器从外到内组合；不调用 `next()` 就 veto 后续链。
+13. **`dispatch` 的 this / filter / 诊断**：第一个参数若是 object/function 则作为 `thisArg`；按 `Context.filter` 过滤监听器（`global` 跳过）；非 `internal/` 事件会 emit `internal/dispatch`（诊断）。
+
+## 与 DSH 成熟代码的差异
+
+`diff` 结果：1 处修正——`parallel` 的 `dispatch('emit', ...)` 改为 `dispatch('parallel', ...)`（DSH 的 type 标注错误，只影响 `internal/dispatch` 诊断事件，不影响分发逻辑；消费者 `dsh-terminal-bash` 忽略 mode 参数）。
 
 ## 验收
 
