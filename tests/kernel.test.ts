@@ -1,7 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
 import { Context, Service } from '@deepseek-ai/cordis'
+import { mkdtempSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import { pathToFileURL } from 'node:url'
 import Timer from '@deepseek-ai/cordis-plugin-timer'
+import Include from '@deepseek-ai/cordis-plugin-include'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import Group from '@deepseek-ai/cordis-plugin-group'
 
@@ -204,4 +209,52 @@ test('Service：check 谓词阻止依赖者启动', async () => {
   await new Promise(r => setTimeout(r, 50))
   assert.equal(started, false, 'check=false 时依赖者不应启动')
   await consumer.dispose()
+})
+
+test('include：配置文件加载与 patch', async () => {
+  const dir = mkdtempSync(join(tmpdir(), 'dshiunx-include-'))
+  writeFileSync(join(dir, 'package.json'), '{"type":"module"}\n')
+  writeFileSync(join(dir, 'probe.ts'), `export default { name: 'inc-probe', apply(ctx: any, config: any) { (globalThis as any).__inc = config?.tag ?? 'default' } }\n`)
+  writeFileSync(join(dir, 'cordis.yml'), `- id: p\n  name: ./probe.ts\n`)
+
+  const ctx = new Context()
+  ctx.baseUrl = pathToFileURL(dir).href + '/'
+  await ctx.plugin(Loader)
+  const include = await ctx.plugin(Include, { path: 'cordis.yml', patches: [{ id: 'p', config: { tag: 'patched' } }] })
+  await ctx.loader.await()
+  assert.equal((globalThis as any).__inc, 'patched', 'patch 应覆盖配置')
+  await include.dispose()
+})
+
+test('嵌套 group：disabled 级联', async () => {
+  const root = await makeRoot()
+  ;(globalThis as any).__probe = []
+  await root.loader.create({
+    id: 'g', name: 'cordis:group', group: true, disabled: true,
+    config: [{ id: 'leaf', name: './probe.ts', config: { tag: 'leaf' } }],
+  })
+  await root.loader.await()
+  assert.deepEqual((globalThis as any).__probe, [], 'disabled group 的子插件不应加载')
+})
+
+test('intercept：配置合并（intercept 覆盖 base）', async () => {
+  class Configured extends Service {
+    tag: string
+    constructor(ctx: any, config: any) {
+      super(ctx, 'configured')
+      const merged = (this as any)[Service.resolveConfig](config)
+      this.tag = merged.tag
+    }
+  }
+  const ctx = new Context()
+  await ctx.plugin(Configured, { tag: 'base' })
+  const child = ctx.intercept('configured', { tag: 'overridden' })
+  const fiber = child.plugin((c: any) => {
+    const svc = c.get('configured')
+    const merged = svc[Service.resolveConfig]({ tag: 'local' })
+    ;(globalThis as any).__intercept = merged.tag
+  })
+  await fiber
+  assert.equal((globalThis as any).__intercept, 'overridden', 'intercept 配置应覆盖 base')
+  await fiber.dispose()
 })
