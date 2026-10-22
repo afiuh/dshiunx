@@ -8,6 +8,8 @@ import { equalExceptVolatile } from './diff.ts'
 
 /** Serialized plugin entry options stored in loader config files. */
 export interface EntryOptions {
+  /** Extra fields written by patches/plugins. */
+  [key: string]: any
   /** Stable id inside the containing entry tree. */
   id: string
   /** Module specifier imported by the entry tree. */
@@ -22,7 +24,7 @@ export interface EntryOptions {
   inject?: Inject | null
 }
 
-function takeEntries(object: {}, keys: string[]) {
+function takeEntries(object: Record<string, any>, keys: string[]) {
   const result: [string, any][] = []
   for (const key of keys) {
     if (!(key in object)) continue

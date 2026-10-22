@@ -114,7 +114,7 @@ export class Loader extends EntryTree {
 
     ctx.on('internal/update', function (config, noSave, next) {
       if (!this.entry || noSave || this.parent.fiber?.entry === this.entry) return next()
-      const unparse = this.runtime?.Config?.['simplify']
+      const unparse = (this.runtime?.Config as any)?.['simplify']
       this.entry.options.config = unparse ? unparse.call(this.runtime!.Config, config) : config
       this.entry.parent.tree.write()
       return next()

@@ -9,7 +9,7 @@ export const evaluate = new Function('ctx', 'expr', `
 `) as ((ctx: object, expr: string) => any)
 
 /** Recursively replace YAML `!!js` expression nodes with evaluated values. */
-export function interpolate(ctx: object, value: any) {
+export function interpolate(ctx: object, value: any): any {
   if (isJsExpr(value)) {
     return evaluate(ctx, value.__jsExpr)
   } else if (!value || typeof value !== 'object') {

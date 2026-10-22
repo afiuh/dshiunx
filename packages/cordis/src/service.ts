@@ -9,6 +9,8 @@ import { createCallable, joinPrototype, symbols, type Tracker } from './utils.ts
  * registered immediately and is automatically removed with the owning fiber.
  */
 export abstract class Service<out T = never> {
+  /** Dynamic symbol-keyed metadata (lifecycle hooks, tracker, config). */
+  [key: symbol]: any
   /** Symbol key of an instance method run after construction (class plugins). */
   static readonly init: unique symbol = symbols.init
   /** Symbol key of the availability predicate passed to `ctx.provide()`. */
@@ -40,7 +42,7 @@ export abstract class Service<out T = never> {
    * @param name — the service name; defaults to the static `provide` field.
    */
   constructor(protected ctx: Context, name: string) {
-    name ??= this.constructor['provide'] as string
+    name ??= (this.constructor as any)['provide'] as string
 
     let self = this
     const tracker: Tracker = {
@@ -94,8 +96,8 @@ export abstract class Service<out T = never> {
     }
     if (base) configs.unshift(base)
     if (head) configs.push(head)
-    if (this['Config']?.merge) {
-      return this['Config'].merge(...configs)
+    if ((this as any)['Config']?.merge) {
+      return (this as any)['Config'].merge(...configs)
     } else {
       return Object.assign({}, ...configs)
     }

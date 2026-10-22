@@ -14,6 +14,8 @@ import { Fiber } from './fiber.ts'
  * be read from `ctx`.
  */
 export interface Context {
+  /** Dynamic symbol-keyed metadata (isolate/intercept/fiber/entry). */
+  [key: symbol]: any
   /** Isolation map: service name → scope label. Lookups for a name resolve within its label. */
   [symbols.isolate]: Dict<symbol>
   /** Intercept map: service name → config merged into that service's per-plugin config. */
@@ -63,7 +65,7 @@ export class Context {
   }
 
   static {
-    Context.is[Symbol.toPrimitive] = () => Symbol.for('cordis.is')
+    (Context.is as any)[Symbol.toPrimitive] = () => Symbol.for('cordis.is')
     Context.prototype[Context.is as any] = true
   }
 

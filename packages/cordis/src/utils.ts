@@ -89,9 +89,9 @@ export function isConstructor(func: any): func is new (...args: any) => any {
 }
 
 /** Merge two prototype chains while preserving descriptors from `proto1`. */
-export function joinPrototype(proto1: {}, proto2: {}) {
+export function joinPrototype(proto1: {}, proto2: {}): object {
   if (proto1 === Object.prototype) return proto2
-  const result = Object.create(joinPrototype(Object.getPrototypeOf(proto1), proto2))
+  const result: object = Object.create(joinPrototype(Object.getPrototypeOf(proto1), proto2))
   for (const key of Reflect.ownKeys(proto1)) {
     Object.defineProperty(result, key, Object.getOwnPropertyDescriptor(proto1, key)!)
   }
@@ -225,7 +225,7 @@ function applyTraceable(proxy: any, value: any, thisArg: any, args: any[]) {
 /** Create a callable service object that dispatches through `symbols.invoke`. */
 export function createCallable(name: string, proto: {}, tracker: Tracker) {
   const self = function (this: any, ...args: any[]) {
-    const proxy = createTraceable(self['ctx'], self, tracker)
+    const proxy = createTraceable((self as any)['ctx'], self, tracker)
     return applyTraceable(proxy, self, this, args)
   }
   defineProperty(self, 'name', name)
