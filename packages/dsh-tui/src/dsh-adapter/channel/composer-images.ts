@@ -17,7 +17,8 @@ import type {
   TranscriptImage,
 } from './types.js'
 
-export { COMPOSER_IMAGE_TOKEN, COMPOSER_IMAGE_TOKEN_EXACT } from './composer-tokens.js'
+import { COMPOSER_IMAGE_TOKEN, COMPOSER_IMAGE_TOKEN_EXACT } from './composer-tokens.js'
+export { COMPOSER_IMAGE_TOKEN, COMPOSER_IMAGE_TOKEN_EXACT }
 
 export const formatMissingReference = (reference: string): string =>
   COMPOSER_IMAGE_TOKEN_EXACT.test(reference) ? reference : `@${reference}`

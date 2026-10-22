@@ -57,7 +57,7 @@ export function resolveConfig(runtime: Plugin.Runtime, config: any) {
   if (result.issues) {
     throw new ValidationError(result.issues)
   } else {
-    return result.value
+    return (result as any).value
   }
 }
 
@@ -542,7 +542,7 @@ export class Fiber {
 
     // prevent unhandled rejection — both from `task` itself and from the
     // disposer chain if it fails to settle cleanly.
-    task?.catch(() => {
+    (task as Promise<void> | undefined)?.catch(() => {
       if (!runner.epoch) return dispose()
       return finalizeDisposal(dispose)
     }).catch((error) => this.ctx.logger.error(error))
@@ -580,7 +580,7 @@ export class Fiber {
 
   private _updateState(callback: () => void | FiberState) {
     const oldState = this.state
-    this.state = callback() ?? this._getState()
+    this.state = (callback() ?? this._getState()) as FiberState
     if (oldState === this.state) return
     // FIXME internal/fiber-info
     this.context.emit('internal/status', this, oldState)

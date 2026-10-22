@@ -22,7 +22,7 @@ test('HMR 替换模块并保留进程', async () => {
   ctx.baseUrl = pathToFileURL(dir).href + '/'
   await ctx.plugin(Timer)
   await ctx.plugin(Loader)
-  await ctx.plugin(Hmr, { root: [dir], debounce: 50 })
+  await ctx.plugin(Hmr, { root: [dir], ignored: [], debounce: 50 })
   await ctx.loader.create({ name: pathToFileURL(file).href })
   await ctx.loader.await()
   assert.equal((globalThis as any).__hmr, 'v1', '初始版本应加载')

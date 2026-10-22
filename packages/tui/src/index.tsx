@@ -45,7 +45,7 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
   // ── 动作（useChatStore.getState()，不触发重渲染）──────────────
   const store = useChatStore.getState()
 
-  useInput((input: string, key: Record<string, boolean>) => {
+  useInput((input: string, key: any) => {
     handleKey({ input, key }, { channel })
   })
 
@@ -58,7 +58,7 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
           expandedRows={expandedRows}
           selectedId={selectedId}
           onToggleRow={(rowId: number) => store.setExpandedRows((prev) => {
-            const next = new Set(prev)
+            const next = new Set<number>(prev)
             if (next.has(rowId)) next.delete(rowId)
             else next.add(rowId)
             return next
@@ -69,7 +69,7 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
           onToggleAll={() => store.setShowAllMessages(!showAllMessages)}
           onLoadOlder={() => {}}
           olderHistory={undefined}
-          registerRowRef={() => {}}
+          registerRowRef={() => () => {}}
           scrollHandle={undefined}
           forceMountRowId={forceMountRowId}
           newSinceRowId={null}
@@ -79,19 +79,18 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
           failureHint={undefined}
           onOpenSubagent={() => {}}
           onOpenSubagentView={() => {}}
-          onOpenJobs={() => {}}
-          onWatchJobOutput={() => {}}
-          onOpenFile={() => {}}
+          onOpenJobs={() => () => {}}
+          onWatchJobOutput={() => () => {}}
+          onOpenFile={() => () => {}}
           sessionCwd={channel.cwd}
           onPreviewImage={() => {}}
           streamViewToggledRows={streamViewToggledRows}
           onToggleStreamView={(rowId: number) => store.setStreamViewToggledRows((prev) => {
-            const next = new Set(prev)
+            const next = new Set<number>(prev)
             if (next.has(rowId)) next.delete(rowId)
             else next.add(rowId)
             return next
           })}
-          selectionActive={selectionActive}
         />
       </ScrollBox>
       <PromptInput
@@ -122,7 +121,7 @@ export function Tui({ channel }: TuiProps): React.ReactNode {
         activity={undefined}
         selectionActive={selectionActive}
         helpOpen={helpOpen}
-        pluginFields={statusFields}
+        pluginFields={(statusFields as any) ?? []}
         backendMode={undefined}
         modelPicker={undefined}
         effortPicker={undefined}

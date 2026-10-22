@@ -5,7 +5,9 @@ import type { OverlayRenderer } from './types.js'
 
 export const ModelOverlay: OverlayRenderer = ({ channel }) => (
   <Box borderStyle="single" flexDirection="column">
-    <Text bold>Model</Text>
-    {channel.models?.map((m: any) => <Text key={m.id}>{m.name}</Text>) ?? <Text dimColor>loading…</Text>}
+    <Text bold>Model CORE</Text>
+    {channel.models?.map((m: any) => <React.Fragment key={m.id}><Text>{m.name}</Text></React.Fragment>) ?? <Text dimColor>loading…</Text>}
   </Box>
 )
+
+// hmr test

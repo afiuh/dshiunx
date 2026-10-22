@@ -39,9 +39,9 @@ export interface ChatStore {
   selectedId: number | null
   setSelectedId: (v: number | null) => void
   expandedRows: ReadonlySet<number>
-  setExpandedRows: (v: ReadonlySet<number>) => void
+  setExpandedRows: (v: ReadonlySet<number> | ((prev: ReadonlySet<number>) => ReadonlySet<number>)) => void
   streamViewToggledRows: ReadonlySet<number>
-  setStreamViewToggledRows: (v: ReadonlySet<number>) => void
+  setStreamViewToggledRows: (v: ReadonlySet<number> | ((prev: ReadonlySet<number>) => ReadonlySet<number>)) => void
   // 时间线
   timeline: unknown
   setTimeline: (v: unknown) => void
@@ -98,6 +98,10 @@ export interface ChatStore {
   peekSuppressed: string | null
   setPeekSuppressed: (v: string | null) => void
   unseenCount: number
+  statusFields: unknown
+  approvalSnapshot: unknown
+  questionSnapshot: unknown
+  failureHintRowId: number | null
   setUnseenCount: (v: number) => void
   forceMountRowId: number | null
   setForceMountRowId: (v: number | null) => void
@@ -155,9 +159,9 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   selectedId: null,
   setSelectedId: (v) => set({ selectedId: v }),
   expandedRows: new Set(),
-  setExpandedRows: (v) => set({ expandedRows: v }),
+  setExpandedRows: (v) => set((s) => ({ expandedRows: typeof v === 'function' ? v(s.expandedRows) : v })),
   streamViewToggledRows: new Set(),
-  setStreamViewToggledRows: (v) => set({ streamViewToggledRows: v }),
+  setStreamViewToggledRows: (v) => set((s) => ({ streamViewToggledRows: typeof v === 'function' ? v(s.streamViewToggledRows) : v })),
   timeline: { turns: [], activeId: null, pinnedId: null, upId: null, downId: null },
   setTimeline: (v) => set({ timeline: v }),
   models: [],
@@ -209,6 +213,10 @@ export const useChatStore = create<ChatStore>((set, get) => ({
   peekSuppressed: null,
   setPeekSuppressed: (v) => set({ peekSuppressed: v }),
   unseenCount: 0,
+  statusFields: undefined,
+  approvalSnapshot: null,
+  questionSnapshot: null,
+  failureHintRowId: null,
   setUnseenCount: (v) => set({ unseenCount: v }),
   forceMountRowId: null,
   setForceMountRowId: (v) => set({ forceMountRowId: v }),
