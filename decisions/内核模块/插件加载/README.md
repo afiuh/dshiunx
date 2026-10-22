@@ -18,7 +18,13 @@ loader / include / 配置校验：配置树怎么读、模块怎么 import、插
 4. **树操作**：`create` / `remove` / `update`，每次操作写回配置。
 5. **`internal/config` 钩子**：对 entry 的 config 做 `!!js` 表达式插值（树载体 Group/Include 跳过）。
 6. **`internal/update` 钩子**：配置变更时把 fiber 的 config 写回 `entry.options.config`（用 `Config.simplify` 反向序列化）。
-7. **`internal/plugin` 钩子**：fiber 创建时绑定 entry；用户自 dispose 时把 entry 标记 `disabled` 并写回。
+7. **`internal/plugin` 钩子**：fiber 创建时绑定 entry；用户自 dispose 时把 entry 标记 `disabled` 并写回。只处理“用户自 dispose”这一种，其余 5 种情况跳过：
+   - case 1：fiber 已创建（`uid` 非 0）
+   - case 2：fiber 未被 loader 跟踪（无 `entry`）
+   - case 3：fiber 是 entry 下的子插件（`parent.fiber.entry === fiber.entry`）
+   - case 4：fiber 因插件删除而 dispose（HMR 的 `registry.delete`，runtime 已不在 registry）
+   - case 5：entry 所属树正在卸载（tree owner 无 uid 或 UNLOADING）
+   - case 6：entry 已被 loader 标记 disabled
 8. **`Service.check`**：`await` 拦截——loader 条目未加载完时，依赖者保持 pending。
 9. **`locate(fiber)`**：找 fiber 所属的 entry id。
 10. **`exit()`**：宿主钩子，用于全量重启（HMR 的 external 变更）。
