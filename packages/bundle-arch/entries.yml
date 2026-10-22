@@ -867,5 +867,5 @@
     config:
       base: ../..
       root:
-      - packages/tui/src
+      - packages
       debounce: 200
