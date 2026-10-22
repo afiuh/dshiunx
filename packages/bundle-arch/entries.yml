@@ -865,6 +865,7 @@
   - id: cordis-plugin-hmr
     name: '@deepseek-ai/cordis-plugin-hmr'
     config:
+      base: ../..
       root:
       - packages/tui/src
       debounce: 200

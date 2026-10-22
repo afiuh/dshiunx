@@ -117,16 +117,17 @@ class Hmr extends Service {
       this.externals = new Set()
     }
 
+    // dshiunx: 不展开 ...this.config（它的 root/ignored/base/debounce 会覆盖
+    // chokidar 的选项，导致 watch 收不到 change）。
     this.watcher = watch(root, {
-      ...this.config,
-      cwd: watchBaseDir,
-      ignored: path => match(relative(watchBaseDir, path)),
+      ignored: path => match(path),
       ignoreInitial: true,
     })
 
     const partialReload = this.ctx.debounce(() => this.partialReload(), this.config.debounce)
 
     this.watcher.on('change', async (path) => {
+      process.stderr.write(`[hmr] change: ${path}\n`)
       this.ctx.logger.debug('change detected at %C', path)
       const filename = resolve(watchBaseDir, path)
       const configuredFilename = resolve(this.baseDir, path)
@@ -373,6 +374,7 @@ class Hmr extends Service {
 
         try {
           reload(attempts[filename], runtime)
+          process.stderr.write(`[hmr] reloaded ${path}\n`)
           this.ctx.logger.info('reload plugin at %C', path)
         } catch (err) {
           this.ctx.logger.warn('failed to reload plugin at %C', path)
