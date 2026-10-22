@@ -95,14 +95,19 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 
 规范后仍不能热更的形态，以及对应的扩展方案：
 
-| 形态 | 原因 | 扩展方案 |
-|---|---|---|
-| externals（框架入口静态依赖） | 改引导代码 = 重启 | **缩小 externals**：`bin/dx.ts` 只留引导，业务逻辑全走 loader |
-| native 模块（node-pty / koffi / sixel） | 进程级 ABI，不能替换 | **进程隔离**：native 能力做成独立进程/worker 插件，HMR = 重启进程 |
-| 配置文件（entries.yml） | 不走模块图 | **include 管理**：由 `cordis-plugin-include` 加载，改配置 = `refresh()` |
-| 动态 `import()` | 不在静态 `linked` 图 | **`ctx.import()` 包装**：记录到依赖图，HMR 可追踪 |
-| 有状态但没外置 | reload 丢失 | **状态迁移协议**：插件导出 `serialize/restore`，HMR 自动迁移 |
-| worker / 子进程插件 | HMR 不管理子进程 | **worker 重启**：插件生命周期绑定 worker，重启 worker 而非主进程 |
+| 形态 | 原因 | 扩展方案 | 实现位置 |
+|---|---|---|---|
+| externals（框架入口静态依赖） | 改引导代码 = 重启 | **缩小 externals**：`bin/dx.ts` 只留引导，业务逻辑全走 loader | 插件装配（插件模块） |
+| native 模块（node-pty / koffi / sixel） | 进程级 ABI，不能替换 | **进程隔离**：native 能力做成独立进程/worker 插件，HMR = 重启进程 | 插件分类/规范（插件模块）+ 内核进程管理 |
+| 配置文件（entries.yml） | 不走模块图 | **include 管理**：`cordis-plugin-include` 的 `refresh()` | 内核（插件加载） |
+| 动态 `import()` | 不在静态 `linked` 图 | **`ctx.import()` 包装**：记录到依赖图 | 内核（热更新/插件加载） |
+| 有状态但没外置 | reload 丢失 | **状态迁移协议**：插件导出 `serialize/restore`，HMR 自动迁移 | 协议在插件规范，调用在内核 HMR |
+| worker / 子进程插件 | HMR 不管理子进程 | **worker 重启**：生命周期绑定 worker，重启 worker 而非主进程 | 插件分类 + 内核生命周期 |
+
+**分工原则**：**内核提供机制，插件规范规定用法。** 内核不知道具体插件形态（P1）——所以：
+
+- 内核负责：依赖图收集、状态迁移的调用点、worker 生命周期、配置 refresh
+- 插件模块负责：native/worker 插件的实现标准、`serialize/restore` 接口、`ctx.import()` 使用规范、externals 缩小
 
 **终极目标**：所有插件都能热更——native 走进程替换、配置走 include、动态 import 走包装 API、状态走迁移协议。
 
