@@ -8,10 +8,10 @@ import * as yaml from 'js-yaml'
 
 const JsExpr = new yaml.Type('tag:yaml.org,2002:js', {
   kind: 'scalar',
-  resolve: (data) => typeof data === 'string',
-  construct: (data) => ({ __jsExpr: data }),
+  resolve: (data: any) => typeof data === 'string',
+  construct: (data: any) => ({ __jsExpr: data }),
   predicate: isJsExpr,
-  represent: (data) => data['__jsExpr'],
+  represent: (data: any) => data['__jsExpr'],
 })
 
 /**

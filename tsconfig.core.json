@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true
+  },
+  "include": [
+    "types/**/*.d.ts",
+    "packages/cordis/src/**/*.ts",
+    "packages/cordis-plugin-loader/src/**/*.ts",
+    "packages/cordis-plugin-group/src/**/*.ts",
+    "packages/cordis-plugin-include/src/**/*.ts",
+    "packages/cordis-plugin-hmr/src/**/*.ts",
+    "packages/cordis-plugin-timer/src/**/*.ts",
+    "packages/cosmokit/src/**/*.ts",
+    "packages/schemastery/src/**/*.ts"
+  ]
+}
