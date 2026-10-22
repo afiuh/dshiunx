@@ -19,6 +19,13 @@ group / isolate / scope / EntryTree：插件怎么套插件、服务怎么隔离
 5. **isolate 插件**：`ctx.isolate(name, label)` 创建独立的服务 scope；同名 label 合并作用域。
 6. **子 scope 必须继承 root**（D40）：否则子树看不到宿主服务。
 7. **group 的 config 是字面量**：树载体（Group/Include）不参与 `!!js` 插值，避免把子条目的表达式当成自己的。
+8. **Realm 两种**：
+   - `LocalRealm`：`isolate: { name: true }`，suffix `#<entryId>`，本 entry 独有
+   - `GlobalRealm`：`isolate: { name: 'label' }`，suffix `@<label>`，同 label 的 entry 共享
+9. **isolate 的 label 语义**：`true` = 局部隔离；字符串 = 按 label 合并作用域（同名 label 的两个 isolate 看到同一个服务）。
+10. **`loader/patch-context` 七步**：生成新 isolate map → 计算服务 diff → 设置原型 + swap → reload fiber → 迁移服务实现（同 delimiter）→ reflect notify → 清理 delimiter。
+11. **realm 垃圾回收**：`loader/partial-dispose` 时，若没有 entry 再引用某个 label，删除该 realm；realm 空了就删 label。
+12. **`getTasks()` / `await()`**：收集所有 entry 的 `_initTask` 和 `fiber.inertia`；loader 的 `Service.check` 用它做 `await` 拦截（条目未加载完时依赖者保持 pending）。
 
 ## 与 Entry 的边界
 
