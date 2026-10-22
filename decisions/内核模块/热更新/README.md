@@ -144,18 +144,32 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 | subagent 也是 **in-process** | `subagent-spawn-in-process`：共享 agent factory / LLM / tool 服务 |
 | worker_threads 只用于**非插件**场景 | typert generator、文档预览（excel/pdf）、file-upload |
 
-**DSH 不做 worker 插件的原因**：
-1. **信任模型**：插件是官方/可信的，不需要进程隔离
-2. **简单性**：cordis 的服务/生命周期是单进程语义，跨进程要 RPC 代理，收益不明显
-3. **隔离需求用 sandbox 解决**：限制子进程权限，而不是隔离插件
-4. **性能**：插件调用服务高频，RPC 开销大
+**修正：DSH 的第三方插件也不是“可信”的**。`plugin-manager` README 明确写着：
 
-**dshiunx 需要 worker 的原因**：
-1. **AI 自进化**：AI 写的插件不可信，需要隔离（防崩溃/死循环）
+> installed Host code executes **in-process outside the workspace sandbox**
+
+也就是说：DSH 的插件市场有第三方/AI 写的插件，它们**在进程内运行、没有沙箱隔离**。DSH 的安全模型是“**安装时审批**”（`danger-full-access` 或 approval），安装后信任。
+
+**DSH 不做 worker 的真实原因**：
+1. **安装有人工把关**：用户点安装/审批，有“人类判断”环节
+2. **简单性**：cordis 的服务/生命周期是单进程语义
+3. **隔离需求用 sandbox 解决**：限制子进程权限，不隔离插件本身
+4. **性能**：实测 in-process 0.023µs/call vs worker RPC 7.3µs/call（**314x**）
+
+**dshiunx 需要 worker 的真实原因**：
+1. **AI 自动生成插件，没有人工安装审批**——这是与 DSH 的根本差异
 2. **native 插件**：koffi / pty 可能崩溃
 3. **不重启热更**：worker 内重载，主进程不受影响
 
-**结论**：不是 DSH 没想到，是它的信任模型不需要。dshiunx 的“AI 写插件”场景改变了信任模型，所以需要 worker 隔离。
+**结论（修正）**：不是“DSH 信任插件”，而是“DSH 用安装审批替代运行时隔离”。dshiunx 的 AI 自动写插件没有审批环节，所以需要运行时隔离来补上这个安全缺口。
+
+**性能结论**：worker RPC 单次 7.3µs，对**工具级调用**（毫秒级）可忽略；对**高频事件**（每 token 触发）会累加。所以应分级隔离，而不是全量 worker：
+
+| 插件类型 | 隔离方式 | 理由 |
+|---|---|---|
+| 可信插件（官方/用户手写） | in-process | 无 RPC 开销 |
+| AI 生成 / 第三方 | worker | 隔离优先，工具级调用可接受 7µs |
+| 高频事件插件 | in-process（仅可信） | RPC 开销不可接受 |
 
 ### worker 内 HMR：已验证可行（2026-10-22）
 
