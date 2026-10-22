@@ -29,4 +29,4 @@
 ## 风险与缓解
 
 - 风险：范围膨胀、过早抽象、性能、AI 内核复杂度
-- 缓解：先做 `LayoutTree` + TUI 平铺，验证抽象；不做 Web，只做布局树
+- 缓解：先做 `LayoutTree` + TUI 平铺，验证抽象；Web 作为 renderer 后做

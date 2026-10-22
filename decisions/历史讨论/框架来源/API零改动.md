@@ -6,7 +6,7 @@
 
 1. 框架复制进来后，面临“改不改签名”的问题。
 2. 改签名会让后续升级 merge 成本上升，插件生态也要跟着改。
-3. 收敛：源码一行不改，包名保留，签名/import 路径与上游一致。
+3. 收敛：默认不改；必要的修改点登记在案，每处写原因。
 
 ## 用户原话
 
@@ -14,7 +14,8 @@
 
 ## 决定
 
-- 源码一行不改（原样复制）
+- **默认不改**：源码原样复制，签名 / import 路径与上游一致
+- **必要修改点登记**：目前 3 处（`agent-preset-registry` 的 `owner = ctx.root`、`sandbox-windows-acl` 空壳、`terminal-bash` 去 pwsh 依赖）
 - 包名保留 `@deepseek-ai/*`（本地 workspace，不发布）
 - import 路径、类型、函数签名与上游一致
 - 自有东西（arch bundle、profile、系统集成）全部在框架之上
