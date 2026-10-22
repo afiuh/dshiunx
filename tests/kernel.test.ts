@@ -1,6 +1,7 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { Context } from '@deepseek-ai/cordis'
+import { Context, Service } from '@deepseek-ai/cordis'
+import Timer from '@deepseek-ai/cordis-plugin-timer'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
 import Group from '@deepseek-ai/cordis-plugin-group'
 
@@ -158,4 +159,49 @@ test('volatile：改值不重挂插件', async () => {
   await new Promise(resolve => setTimeout(resolve, 50))
   assert.equal((globalThis as any).__volatile_updated, 'b', 'volatile 变化应触发 loader/volatile-update')
   assert.equal((globalThis as any).__volatile_remounts, 1, 'volatile 变化不应重挂插件')
+})
+
+test('时间与调度：fiber dispose 后定时器清理', async () => {
+  const ctx = new Context()
+  await ctx.plugin(Timer)
+  let fired = 0
+  const fiber = ctx.plugin(Object.assign((c: any) => {
+    c.timeout(() => { fired++ }, 50)
+  }, { inject: ['timer'] }))
+  await fiber
+  await fiber.dispose()
+  await new Promise(r => setTimeout(r, 100))
+  assert.equal(fired, 0, 'dispose 后定时器不应触发')
+})
+
+test('事件：parallel 错误聚合 / once / prepend', async () => {
+  const ctx = new Context()
+  const log: string[] = []
+  ;(ctx as any).on('p', async () => { throw new Error('boom') })
+  await assert.rejects(() => (ctx as any).parallel('p'), AggregateError)
+
+  ;(ctx as any).once('o', () => { log.push('once') })
+  ;(ctx as any).emit('o')
+  ;(ctx as any).emit('o')
+  assert.deepEqual(log, ['once'], 'once 只触发一次')
+
+  log.length = 0
+  ;(ctx as any).on('x', () => { log.push('a') })
+  ;(ctx as any).on('x', () => { log.push('b') }, { prepend: true })
+  ;(ctx as any).emit('x')
+  assert.deepEqual(log, ['b', 'a'], 'prepend 应插到最前')
+})
+
+test('Service：check 谓词阻止依赖者启动', async () => {
+  class Gated extends Service {
+    [Service.check]() { return false }
+    constructor(ctx: any) { super(ctx, 'gated') }
+  }
+  const ctx = new Context()
+  await ctx.plugin(Gated)
+  let started = false
+  const consumer = ctx.plugin(Object.assign((_c: any) => { started = true }, { inject: ['gated'] }))
+  await new Promise(r => setTimeout(r, 50))
+  assert.equal(started, false, 'check=false 时依赖者不应启动')
+  await consumer.dispose()
 })
