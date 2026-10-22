@@ -493,6 +493,9 @@
       ],
       "@dshiunx/tui-input": [
         "packages/tui-input/src/index.ts"
+      ],
+      "@deepseek-ai/cordis-plugin-logger-console": [
+        "packages/cordis-plugin-logger-console/src/index.ts"
       ]
     }
   }

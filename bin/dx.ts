@@ -14,6 +14,7 @@
  *   dx --help              帮助
  */
 import { boot } from '@deepseek-ai/dsh-app-boot'
+import ConsoleExporter from '@deepseek-ai/cordis-plugin-logger-console'
 import { fileURLToPath } from 'node:url'
 import { writeFileSync, unlinkSync } from 'node:fs'
 import { provideCmdline } from '@deepseek-ai/dsh-cmdline'
@@ -72,6 +73,8 @@ const ctx = await boot('dx', configPath, [], (hostCtx) => {
     exit: (code: number) => process.exit(code),
   })
 })
+
+await ctx.plugin(ConsoleExporter)
 
 const loaded = [...ctx.loader.entries()]
 console.log(`dx: loaded ${loaded.length} entries`)
