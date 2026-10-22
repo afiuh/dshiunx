@@ -114,6 +114,41 @@ worker 只是**进程级隔离**的一种，不是唯一。现有机制分三层
 | native 能力必须封装成服务 | 服务契约稳定，实现可替换 |
 | 有状态插件必须支持 `serialize/restore` | 句柄/状态可迁移（HMR 状态迁移） |
 
+## 5.1 隔离分级与动态策略
+
+### 分级维度
+
+| 维度 | 取值 | 影响 |
+|---|---|---|
+| **trust** | trusted / untrusted | 默认隔离级别 |
+| **isolation** | none / fiber / worker / sandbox | 实际隔离方式 |
+| **frequency** | high / low | 高频事件不适合 worker（RPC 开销） |
+| **resource** | cpu / memory / native | 资源型适合 worker |
+
+### 判定优先级（高 → 低）
+
+1. **entry 显式配置**：`entries.yml` 的 `isolation: worker`
+2. **插件 manifest**：`isolation: 'worker' | 'none'`
+3. **trust 默认**：AI 生成 / 第三方 → worker；官方 / 手写 → none
+4. **运行时策略**：`isolationPolicy` 服务（可配置）
+
+### 动态调整
+
+| 方向 | 触发 | 行为 |
+|---|---|---|
+| **升级** | 崩溃 N 次 / CPU 超阈值 / 内存超阈值 | 自动从 none 升到 worker |
+| **降级** | 不自动（避免抖动） | 由配置显式降级 |
+| **特殊对待** | 白名单 / 黑名单 | 强制 none / 强制 worker |
+
+### 接口（规划）
+
+- `Plugin.Base.isolation?: 'none' | 'worker' | 'sandbox'`
+- `EntryOptions.isolation?: ...`
+- `ctx.plugin(plugin, config, { isolation })`
+- `WorkerHost` 按判定结果选择加载方式
+
+**原则**：默认按 trust 分级；任何一级都可以被显式配置覆盖；动态调整只升不降，避免抖动。
+
 ## 6. 自进化检查
 
 满足以下条件的插件**可热更**：
