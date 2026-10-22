@@ -149,6 +149,45 @@ worker 只是**进程级隔离**的一种，不是唯一。现有机制分三层
 
 **原则**：默认按 trust 分级；任何一级都可以被显式配置覆盖；动态调整只升不降，避免抖动。
 
+## 5.2 关键修正：同步 ctx 语义决定插件必须 in-process
+
+### DSH 的证据
+
+`docs/subsystems/subagent.md`：
+
+> For in-process providers, `ctx.agents.get(info.id)` resolves during this notification.
+
+- **in-process**：`ctx.get` 同步可见（服务共享）
+- **跨进程**（DSH SDK provider）：需要 separate child runtime，不能同步 `ctx.get`
+
+### 结论
+
+**cordis 的核心是同步 ctx**（`get` / `provide` / `emit`）。跨进程 = 异步 RPC = 破坏同步语义。
+
+所以 DSH 的选择是：**插件一律 in-process**，worker 只用于“非插件”场景（typert generator、文档预览）。
+
+### dshiunx 的修正
+
+之前“AI 生成插件默认 worker”的设计**是错的**——它会破坏同步 ctx，代价太大。
+
+修正为：
+
+| 插件类型 | 隔离方式 | 理由 |
+|---|---|---|
+| **所有插件（含 AI 生成）** | **in-process**（fiber + isolate） | 保持同步 ctx |
+| **纯执行器**（不需要 ctx） | worker | 异步 RPC 可接受（批处理/计算/文档解析） |
+| **需要权限限制** | sandbox | 限制子进程权限 |
+
+**AI 插件的风险控制**（替代 worker 隔离）：
+
+1. **生成时约束**：插件规范（ESM/静态 import/effect 清理/状态外置）
+2. **加载前测试**：跑测试/类型检查，不过不加载
+3. **资源限制**：`--max-old-space-size`、事件循环超时检测
+4. **回滚**：git 每步提交，出问题 revert
+5. **sandbox**：限制子进程权限（文件/网络）
+
+**worker 的定位**：纯执行器（不需要 ctx 的插件），不是“不可信插件的隔离层”。
+
 ## 6. 自进化检查
 
 满足以下条件的插件**可热更**：
