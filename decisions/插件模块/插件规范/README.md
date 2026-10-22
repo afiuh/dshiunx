@@ -66,13 +66,45 @@
 | 服务名 | isolate scope 内唯一 |
 | 可选能力 | 用符号（`init` / `check` / `invoke` / `config`） |
 
-## 5. 隔离边界
+## 5. 隔离机制全景
 
-| 写法 | 语义 |
-|---|---|
-| `isolate: { name: true }` | 本 entry 独有（LocalRealm） |
-| `isolate: { name: 'label' }` | 同 label 共享（GlobalRealm） |
-| 不写 | 继承父 scope |
+worker 只是**进程级隔离**的一种，不是唯一。现有机制分三层：
+
+### 进程内（已有）
+
+| 机制 | 隔离什么 | 粒度 | 实现 |
+|---|---|---|---|
+| **fiber** | 生命周期 / effect / 状态 | 插件实例 | 每个 `ctx.plugin()` 一个 fiber，dispose 不影响其他 |
+| **isolate（LocalRealm）** | 服务实例 | entry | `isolate: { name: true }` |
+| **isolate（GlobalRealm）** | 服务实例 | 同 label | `isolate: { name: 'label' }` |
+| **scope（group/preset）** | 服务可见性 | 子树 | `owner = ctx.root`（D40） |
+| **intercept** | 服务配置 | entry | `intercept: { name: config }` |
+
+### 进程级（部分有 / 规划）
+
+| 机制 | 隔离什么 | 现状 |
+|---|---|---|
+| **sandbox** | 子进程权限（文件 / 网络 / 系统调用） | 有 `dsh-sandbox-policy`（dshiunx 未装 sandbox-local，`danger-full-access`） |
+| **子进程** | OS 命令 / 终端 | 有 `dsh-subprocess-local`（不是插件隔离） |
+| **worker** | 故障 / 崩溃 / CPU / 内存 | 规划（AI 生成插件的隔离层） |
+
+### 模块级（已有）
+
+| 机制 | 隔离什么 | 实现 |
+|---|---|---|
+| **loadCache / require.cache** | 模块版本 | HMR 清缓存 + 重新 import |
+| **entry 树** | 配置 / id | group 子树、`父:子` id |
+
+### 隔离方式的选择（不是全量 worker）
+
+| 插件类型 | 用哪层隔离 | 理由 |
+|---|---|---|
+| 可信插件 | fiber + isolate（in-process） | 无 RPC 开销 |
+| AI 生成 / 第三方 | worker（进程级） | 故障隔离，工具级调用可接受 7µs |
+| 高频事件插件 | fiber（in-process，仅可信） | RPC 开销不可接受 |
+| 需要文件/网络限制的插件 | sandbox | 权限隔离 |
+
+**结论**：worker 是“故障隔离”的补充，不是替代。fiber/isolate 解决“状态/服务隔离”，sandbox 解决“权限隔离”，worker 解决“崩溃/资源隔离”。
 
 ## 5.1 native 模块约束
 
