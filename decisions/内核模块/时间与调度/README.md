@@ -19,6 +19,13 @@
 5. **`setTimeout` / `setInterval`**：deprecated 别名，保留兼容。
 6. **timer 是 Service**：`ctx.timer`，方法 mixin 到 ctx。
 7. **不做版本检查**（P7）。
+8. **`throttle` 语义**：leading 立即执行；剩余时间 > 0 时 trailing 补一次；`noTrailing` 关闭 trailing。
+9. **`debounce` 语义**：每次调用重置定时器，尾部执行；fiber dispose 时取消。
+10. **`_schedule` 机制**：用 `ctx.effect` 清理 timer；wrapper 每次调用先 `clearTimeout`。
+
+## 与 DSH 成熟代码的差异
+
+`diff` 结果：与 `deepseek-harness/vendor/timer/src/index.ts` **完全一致**。
 
 ## 验收
 
