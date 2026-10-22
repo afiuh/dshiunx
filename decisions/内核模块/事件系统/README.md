@@ -25,6 +25,8 @@ waterfall / parallel / serial / bail：插件之间怎么通信。
 11. **`parallel` 的错误聚合**：`Promise.allSettled` 收集所有结果，有 rejection 时抛 `AggregateError`。
 12. **`waterfall` 的 `next` 机制**：最后一个参数是 `next`，监听器从外到内组合；不调用 `next()` 就 veto 后续链。
 13. **`dispatch` 的 this / filter / 诊断**：第一个参数若是 object/function 则作为 `thisArg`；按 `Context.filter` 过滤监听器（`global` 跳过）；非 `internal/` 事件会 emit `internal/dispatch`（诊断）。
+14. **`serial` / `bail` 的监听器返回值**：必须显式返回 `undefined` 才不中断；任何非 `null` / `false` / `undefined` 的值都会被当作 bail 值（`log.push()` 返回的数字也会 bail）。
+15. **`waterfall` 的 `next` 是最后一个参数**：`waterfall(name, ...args, next)`；监听器签名 `(...args, next)`，不调用 `next()` 就 veto 后续链。
 
 ## 与 DSH 成熟代码的差异
 
