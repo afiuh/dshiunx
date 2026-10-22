@@ -149,46 +149,51 @@ worker 只是**进程级隔离**的一种，不是唯一。现有机制分三层
 
 **原则**：默认按 trust 分级；任何一级都可以被显式配置覆盖；动态调整只升不降，避免抖动。
 
-## 5.2 关键修正：同步 ctx 语义决定插件必须 in-process
+## 5.2 插件形态开放（修正）
 
-### DSH 的证据
+**插件不限于 in-process。** 作为一个开放框架，插件可以运行在任意位置。
 
-`docs/subsystems/subagent.md`：
+### 四种形态
 
-> For in-process providers, `ctx.agents.get(info.id)` resolves during this notification.
+| 形态 | ctx 语义 | 隔离级别 | 适用 |
+|---|---|---|---|
+| **in-process** | 完整同步 ctx（`get` / `provide` / `emit` / `effect`） | fiber + isolate | 大多数插件、官方插件、高频事件 |
+| **worker** | 异步 RPC（ctx 代理或显式 `rpc`） | 进程级（故障隔离） | AI 生成、第三方、纯执行器 |
+| **子进程** | 消息协议（stdio / IPC） | 进程级 | 需要独立运行时、崩溃隔离 |
+| **远程** | HTTP / WebSocket | 网络级 | 分布式、多端（未来） |
 
-- **in-process**：`ctx.get` 同步可见（服务共享）
-- **跨进程**（DSH SDK provider）：需要 separate child runtime，不能同步 `ctx.get`
+### 统一抽象
 
-### 结论
+插件协议不是“必须用 ctx”，而是：
 
-**cordis 的核心是同步 ctx**（`get` / `provide` / `emit`）。跨进程 = 异步 RPC = 破坏同步语义。
+- **manifest**：name / inject / provide / Config / isolation
+- **生命周期**：load / reload / dispose
+- **消息**：请求 / 响应 / 事件（形态不同，传输不同）
 
-所以 DSH 的选择是：**插件一律 in-process**，worker 只用于“非插件”场景（typert generator、文档预览）。
+`ctx` 只是 **in-process 形态**的便利接口；worker/子进程/远程形态用 `rpc` 或消息协议。
 
-### dshiunx 的修正
+### 形态选择
 
-之前“AI 生成插件默认 worker”的设计**是错的**——它会破坏同步 ctx，代价太大。
+由 **isolation 分级**决定（trust / frequency / resource），不是硬编码：
 
-修正为：
+```
+entry.isolation 显式 → 用它
+manifest.isolation → 用它
+trust 默认 → AI 生成走 worker；官方走 in-process
+```
 
-| 插件类型 | 隔离方式 | 理由 |
-|---|---|---|
-| **所有插件（含 AI 生成）** | **in-process**（fiber + isolate） | 保持同步 ctx |
-| **纯执行器**（不需要 ctx） | worker | 异步 RPC 可接受（批处理/计算/文档解析） |
-| **需要权限限制** | sandbox | 限制子进程权限 |
+### 修正说明
 
-**AI 插件的风险控制**（替代 worker 隔离）：
+之前“同步 ctx 语义决定插件必须 in-process”**只适用于 in-process 形态**，不是所有插件。开放框架允许插件选择自己的形态：
 
-1. **生成时约束**：插件规范（ESM/静态 import/effect 清理/状态外置）
-2. **加载前测试**：跑测试/类型检查，不过不加载
-3. **资源限制**：`--max-old-space-size`、事件循环超时检测
-4. **回滚**：git 每步提交，出问题 revert
-5. **sandbox**：限制子进程权限（文件/网络）
+- 需要同步 ctx 的插件 → in-process
+- 需要故障隔离的插件 → worker（接受异步 RPC）
+- 需要独立运行时的插件 → 子进程
+- 需要跨端的插件 → 远程
 
-**worker 的定位**：纯执行器（不需要 ctx 的插件），不是“不可信插件的隔离层”。
+**代价**：不同形态的插件不能直接共享服务（跨进程要 RPC）。这是形态选择的代价，不是框架的限制。
 
-## 6. 自进化检查
+## 6. 自进化检查## 6. 自进化检查
 
 满足以下条件的插件**可热更**：
 
