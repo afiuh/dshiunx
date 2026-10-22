@@ -100,7 +100,7 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 | externals（框架入口静态依赖） | 改引导代码 = 重启 | **缩小 externals**：`bin/dx.ts` 只留引导，业务逻辑全走 loader | 插件装配（插件模块） |
 | native 模块（node-pty / koffi / sixel） | 进程级 ABI，不能替换 | **进程隔离**：native 能力做成独立进程/worker 插件，HMR = 重启进程 | 插件分类/规范（插件模块）+ 内核进程管理 |
 | 配置文件（entries.yml） | 不走模块图 | **include 管理**：`cordis-plugin-include` 的 `refresh()` | 内核（插件加载） |
-| 动态 `import()` | 不在静态 `linked` 图 | **`ctx.import()` 包装**：记录到依赖图 | 内核（热更新/插件加载） |
+| 动态 `import()` | 不在静态 `linked` 图 | **`ctx.loader.importModule()`**：已实现，记录到 `dynamicDeps`，HMR 合并追踪 | ✅ 内核（插件加载 + 热更新） |
 | 有状态但没外置 | reload 丢失 | **状态迁移协议**：插件导出 `serialize/restore`，HMR 自动迁移 | 协议在插件规范，调用在内核 HMR |
 | worker / 子进程插件 | HMR 不管理子进程 | **worker 重启**：生命周期绑定 worker，重启 worker 而非主进程 | 插件分类 + 内核生命周期 |
 

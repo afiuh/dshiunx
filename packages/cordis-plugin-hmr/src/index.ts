@@ -27,8 +27,9 @@ declare module '@deepseek-ai/cordis' {
  * Recursively collect all module dependencies from a ModuleJob.
  * Skips node: builtins and node_modules to focus on user code.
  */
-async function loadDependencies(job: ModuleJob, ignored = new Set<string>()) {
+async function loadDependencies(job: ModuleJob, ignored = new Set<string>(), extra?: Set<string>) {
   const dependencies = new Set<string>()
+  if (extra) for (const url of extra) dependencies.add(url)
   async function traverse(job: ModuleJob) {
     if (ignored.has(job.url) || dependencies.has(job.url)) return
     if (job.url.startsWith('node:') || job.url.includes('/node_modules/')) return
@@ -283,16 +284,16 @@ class Hmr extends Service {
     // Check each pending plugin's dependency tree for accepted files
     for (const [job, plugin] of pending) {
       this.declined.delete(job.url)
-      const dependencies = [...await loadDependencies(job, this.declined)]
+      const runtime = this.ctx.registry.get(plugin)
+      const fiber = runtime ? [...runtime.fibers][0] : undefined
+      const dynamic = fiber?.entry ? this.ctx.loader.dynamicDeps.get(fiber.entry.id) : undefined
+      const dependencies = [...await loadDependencies(job, this.declined, dynamic)]
       this.declined.add(job.url)
 
       if (!dependencies.some(dep => this.accepted.has(dep))) continue
       dependencies.forEach(dep => this.accepted.add(dep))
 
-      reloads.set(plugin, {
-        filename: job.url,
-        runtime: this.ctx.registry.get(plugin),
-      })
+      reloads.set(plugin, { filename: job.url, runtime })
     }
 
     /**

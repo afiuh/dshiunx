@@ -86,6 +86,9 @@ export class Loader extends EntryTree {
 
   public builtins: Dict<any> = Object.create(null)
 
+  /** Dynamic imports per entry id (registered by `importModule`). */
+  public dynamicDeps = new Map<string, Set<string>>()
+
   constructor(ctx: Context, public config: Loader.Config = {}) {
     super(ctx)
     if (config.baseUrl) {
@@ -195,6 +198,32 @@ export class Loader extends EntryTree {
 
   /** Hook for hosts that can restart the process on full-reload requests. */
   exit() {
+  }
+
+  /** Import a module for the current entry and register it for HMR tracking. */
+  async importModule(specifier: string): Promise<any> {
+    const entry = this.ctx.fiber.entry
+    const module = await this.import(specifier)
+    if (entry) {
+      let url: string | undefined
+      try {
+        if (this.internal) {
+          const resolved = this.internal.version === 'v2'
+            ? this.internal.resolveSync(this.ctx.baseUrl!, { specifier, attributes: {} })
+            : await this.internal.resolve(specifier, this.ctx.baseUrl!, {})
+          url = (resolved as any)?.url
+        }
+      } catch {}
+      if (!url && specifier.startsWith('.')) {
+        url = new URL(specifier, this.ctx.baseUrl).href
+      }
+      if (url) {
+        let set = this.dynamicDeps.get(entry.id)
+        if (!set) this.dynamicDeps.set(entry.id, set = new Set())
+        set.add(url)
+      }
+    }
+    return module
   }
 
   /** Normalize ESM/CJS/default export shapes before applying a plugin. */
