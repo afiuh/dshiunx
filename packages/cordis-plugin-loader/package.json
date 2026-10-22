@@ -11,5 +11,10 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/cosmokit": "*",
+    "@deepseek-ai/schemastery": "*"
   }
 }

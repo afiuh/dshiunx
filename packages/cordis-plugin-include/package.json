@@ -11,5 +11,9 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
+  },
+  "dependencies": {
+    "@deepseek-ai/cordis": "*",
+    "@deepseek-ai/cordis-plugin-loader": "*"
   }
 }

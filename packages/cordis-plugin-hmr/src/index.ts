@@ -97,7 +97,8 @@ class Hmr extends Service {
     yield () => this.watcher?.close()
 
     const { loader } = this.ctx
-    const { root, ignored } = this.config
+    const root = this.config.root ?? ['.']
+    const ignored = this.config.ignored ?? []
     if (!this.config.base) {
       this.ctx.logger.info('watching %o', root)
     } else {
@@ -124,7 +125,7 @@ class Hmr extends Service {
       ignoreInitial: true,
     })
 
-    const partialReload = this.ctx.debounce(() => this.partialReload(), this.config.debounce)
+    const partialReload = this.ctx.debounce(() => this.partialReload(), this.config.debounce ?? 100)
 
     this.watcher.on('change', async (path) => {
       process.stderr.write(`[hmr] change: ${path}\n`)
@@ -403,11 +404,11 @@ class Hmr extends Service {
 }
 
 namespace Hmr {
-  export interface Config extends ChokidarOptions {
+  export interface Config extends Omit<ChokidarOptions, 'ignored'> {
     base?: string
-    root: string[]
-    debounce: number
-    ignored: string[]
+    root?: string[]
+    debounce?: number
+    ignored?: string[]
   }
 
   export const Config: z<Config> = z.object({
