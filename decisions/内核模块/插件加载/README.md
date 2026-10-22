@@ -23,6 +23,15 @@ loader / include / 配置校验：配置树怎么读、模块怎么 import、插
 9. **`locate(fiber)`**：找 fiber 所属的 entry id。
 10. **`exit()`**：宿主钩子，用于全量重启（HMR 的 external 变更）。
 
+11. **Config schema 验证**：插件导出 `Config`（Standard Schema），loader 在 `apply` 前调用 `resolveConfig` 验证；未提供字段用 schema 默认值补齐；失败抛 `ValidationError`，fiber 进入 `FAILED`。
+12. **Volatile 字段**：`.volatile()` 标记的字段，变化时更新稳定引用、**不重挂插件**；通过 `.get()` 读取；变化经 `loader/volatile-update` 事件通知（参数是变化路径）；loader 比较配置时忽略 volatile 字段。
+13. **`!!js` 适用范围**：仅在 `config` 与 `disabled` 字段内有效；`disabled` 在每次挂载决策时基于 loader 上下文求值；其余元数据（`name`、`id`、`inject`）保持静态。
+14. **明确报错**：配置无效时 `ValidationError: invalid config: ...`；fiber 进入 FAILED；宿主启动器打印错误并以非零状态退出。
+
+## 与 DSH 成熟代码的差异
+
+`diff -r` 结果：我们的 loader 与 `deepseek-harness/vendor/loader` **行为完全一致**，唯一差异是 `index.ts` 一处类型断言（`as unknown as Record<...>`，为 tsc 通过）。属**设计前提**，无行为差异。
+
 ## 与 Registry 的边界
 
 | | Registry（依赖注入与生命周期） | Loader（本模块） |
