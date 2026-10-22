@@ -2,6 +2,13 @@
 module.exports = {
   forbidden: [
     {
+      name: 'kernel-no-plugins',
+      severity: 'error',
+      comment: '内核（cordis/cordis-plugin-*/cosmokit/schemastery）不得依赖任何具体插件（dsh-*/tui*）',
+      from: { path: '^packages/(cordis|cosmokit|schemastery)' },
+      to: { path: '^packages/(dsh-|tui)' },
+    },
+    {
       name: 'no-circular',
       severity: 'warn',
       from: {},
