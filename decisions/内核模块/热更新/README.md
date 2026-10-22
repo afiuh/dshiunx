@@ -100,18 +100,57 @@ HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、�
 | 形态 | 原因 | 扩展方案 | 实现位置 |
 |---|---|---|---|
 | externals（框架入口静态依赖） | 改引导代码 = 重启 | **缩小 externals**：`bin/dx.ts` 只留引导，业务逻辑全走 loader | 插件装配（插件模块） |
-| native 模块（node-pty / koffi / sixel） | 进程级 ABI，不能替换 | **进程隔离**：native 能力做成独立进程/worker 插件，HMR = 重启进程 | 插件分类/规范（插件模块）+ 内核进程管理 |
+| native 模块（node-pty / koffi / sixel） | `.node` 加载后不能卸载 | **服务封装 + 三层边界**：插件 JS 热更 / 句柄 serialize-restore 传递 / `.node` 升级重启 worker | 插件规范（服务封装）+ 内核 HMR |
 | 配置文件（entries.yml） | 不走模块图 | **include 管理**：`cordis-plugin-include` 的 `refresh()` | 内核（插件加载） |
 | 动态 `import()` | 不在静态 `linked` 图 | **`ctx.loader.importModule()`**：已实现，记录到 `dynamicDeps`，HMR 合并追踪 | ✅ 内核（插件加载 + 热更新） |
 | 有状态但没外置 | reload 丢失 | **状态迁移协议**：插件导出 `serialize/restore`，HMR 自动迁移 | ✅ 已实现（旧 plugin serialize → 新 plugin restore） |
-| worker / 子进程插件 | HMR 不管理子进程 | **worker 重启**：生命周期绑定 worker，重启 worker 而非主进程 | 插件分类 + 内核生命周期 |
+| worker / 子进程插件 | HMR 不管理子进程 | **单 cordis + 远程 fiber**：worker 只跑代码，ctx 是 RPC 代理，不重启 worker | 内核（远程 fiber）+ 插件规范 |
 
 **分工原则**：**内核提供机制，插件规范规定用法。** 内核不知道具体插件形态（P1）——所以：
 
 - 内核负责：依赖图收集、状态迁移的调用点、worker 生命周期、配置 refresh
 - 插件模块负责：native/worker 插件的实现标准、`serialize/restore` 接口、`ctx.import()` 使用规范、externals 缩小
 
-**终极目标**：所有插件都能热更——native 走进程替换、配置走 include、动态 import 走包装 API、状态走迁移协议。
+**终极目标**：所有插件都能热更——native 走服务封装、配置走 include、动态 import 走包装 API、状态走迁移协议。
+
+## worker 与 native 的架构方案
+
+### worker 热更：单 cordis + 远程 fiber（不重启 worker）
+
+**不采用**“多个 cordis 主从互联”——那会把单进程框架硬拆成分布式，registry/loader/HMR 都要维护两套，成本翻倍。
+
+**采用**：
+
+```
+主进程：唯一 cordis
+├── 普通插件（本地 fiber）
+└── worker 插件（远程 fiber）
+    └── worker：只跑插件代码，没有 cordis
+```
+
+- 插件在主进程有 fiber；`ctx` 是 RPC 代理（`get` / `provide` / `emit` / `effect` / `dispose`）
+- 生命周期、服务、事件全在主进程
+- HMR 只有一套：主进程检测变更 → 通知 worker 重新 `import` → 主进程重建 fiber
+- worker 只负责“执行代码 + 持有 native 句柄”
+
+### native 模块：服务封装 + 三层变更边界
+
+```
+插件 JS（经常变）→ 服务接口（稳定）→ native 实现（极少变）
+```
+
+| 层 | 变更频率 | 热更方式 |
+|---|---|---|
+| 插件 JS 代码 | 高 | ✅ 热更 |
+| native 句柄（pty/连接） | 不重启 | ✅ `serialize/restore` 引用传递 |
+| `.node` 文件 | 极低 | ⚠️ 重启 worker（主进程/会话不断） |
+
+**前提**：
+1. 插件不得直接 `import` native 模块，必须依赖服务接口
+2. native 实现隔离在服务里，可独立升级/替换
+3. 有状态插件支持 `serialize/restore`
+
+**结论**：日常改代码不重启；只有升级 `.node` 文件才重启 worker——这是合理边界，不是妥协。
 
 ## 排错案例：改深层依赖，HMR 不重载（2026-10-22）
 

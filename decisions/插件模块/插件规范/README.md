@@ -74,6 +74,14 @@
 | `isolate: { name: 'label' }` | 同 label 共享（GlobalRealm） |
 | 不写 | 继承父 scope |
 
+## 5.1 native 模块约束
+
+| 规则 | 理由 |
+|---|---|
+| 插件不得直接 `import` native 模块 | 依赖服务接口，隔离 native 变更 |
+| native 能力必须封装成服务 | 服务契约稳定，实现可替换 |
+| 有状态插件必须支持 `serialize/restore` | 句柄/状态可迁移（HMR 状态迁移） |
+
 ## 6. 自进化检查
 
 满足以下条件的插件**可热更**：
