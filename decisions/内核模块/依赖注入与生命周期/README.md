@@ -20,17 +20,19 @@ Context / Fiber / Effect / Service / Registry / Reflect：服务怎么注册、�
 | 4 | [Fiber.md](./Fiber.md) | 状态机、effect、dispose、runtime | Context、Service |
 | 5 | [Registry.md](./Registry.md) | inject / provide / get、插件注册、服务查找 | Context、Service、Reflect、Fiber |
 
-## 处理顺序
+## 处理顺序（按依赖分组，不必线性）
 
-1. **Context**——地基，其余 4 个都依赖它
-2. **Service**——先定义“服务是什么”，后面才能谈“怎么访问”“怎么注册”
-3. **Reflect**——服务怎么被 `ctx.get()` 拿到（Proxy 语义），依赖 Service
-4. **Fiber**——一个插件实例的生命周期单元，依赖 Context + Service
-5. **Registry**——把插件、fiber、服务组织起来，依赖前四个
+**硬前置**
+- Context：所有文件都依赖它，必须先定
 
-**为什么 Reflect 先于 Fiber**：Fiber 的 effect 和 dispose 会通过 ctx 访问服务，先定清楚服务访问语义，Fiber 的生命周期才没有歧义。
+**可并行**
+- Service + Reflect：服务定义与服务访问是一体两面，可以一起研究
+- Fiber：依赖 Context + Service，可与 Service/Reflect 并行推进（只要服务语义先定）
 
-**为什么 Registry 最后**：它是把前面四个机制组装成“插件系统”的那一层，依赖最深。
+**最后**
+- Registry：组装层，依赖前四个
+
+实际安排可以跳、可以并行、可以回头补；只要不违反依赖方向。
 
 ## 下一级拆分
 
