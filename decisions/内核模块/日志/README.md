@@ -19,6 +19,15 @@
 5. **命名 logger**：`ctx.logger(name)` 返回带名字的 logger。
 6. **logger 是 Service**：随 owning fiber 注销。
 7. **不做版本检查**（P7）：logger 只按名字解析。
+8. **级别过滤优先级**：`exporter.levels[name]` > `levels.default` > `logger.level` > `INFO`。
+9. **占位符**：`%c` / `%C` 等是自定义 formatter；`%o` / `%O` 在 Node exporter 里用 `util.inspect`（深度 Infinity、单行）。
+10. **两种调用形式**：`ctx.logger()` 返回命名 logger；`ctx.logger.info()` 直接用默认 logger。
+11. **`logger-console` 是独立插件**（不在内核）：`ConsoleExporter` 负责输出，支持颜色（`supports-color`）。
+12. **结构化优先**：`Message` 是结构化记录（level、name、args、timestamp），格式化由 exporter 决定。
+
+## 与 DSH 成熟代码的差异
+
+`diff` 结果：`logger.ts` 与 `vendor/cordis/src/logger.ts` **完全一致**；`logger-console` 是独立插件，未 vendor 进内核（需要时单独挂载）。
 
 ## 验收
 
