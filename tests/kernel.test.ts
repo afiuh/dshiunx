@@ -142,3 +142,20 @@ test('waterfall：不调用 next 就 veto', () => {
   ;(ctx as any).on('w', (_v: number, next: () => number) => next() + 1)
   assert.equal((ctx as any).waterfall('w', 0, () => 0), 'vetoed', '不调用 next 的监听器应 veto 后续链')
 })
+
+test('volatile：改值不重挂插件', async () => {
+  const root = await makeRoot()
+  ;(globalThis as any).__volatile_tag = undefined
+  ;(globalThis as any).__volatile_updated = undefined
+  ;(globalThis as any).__volatile_remounts = 0
+
+  const id = await root.loader.create({ id: 'v', name: './volatile-probe.ts', config: { tag: 'a' } })
+  await root.loader.await()
+  assert.equal((globalThis as any).__volatile_tag, 'a')
+  assert.equal((globalThis as any).__volatile_remounts, 1)
+
+  await root.loader.update(id, { config: { tag: 'b' } })
+  await new Promise(resolve => setTimeout(resolve, 50))
+  assert.equal((globalThis as any).__volatile_updated, 'b', 'volatile 变化应触发 loader/volatile-update')
+  assert.equal((globalThis as any).__volatile_remounts, 1, 'volatile 变化不应重挂插件')
+})
