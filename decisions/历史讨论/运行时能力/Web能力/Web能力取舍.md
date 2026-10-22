@@ -12,6 +12,6 @@
 
 - 保留 `web` / `web-deepseek-api` / `tool-web`
 - 保留 `web-fetch-http`（静态抓取不花 API 额度）
-- `web-search-deepseek` 先不启用
+- `web-search-deepseek` 已挂载（entries id 204），是否保留待评估
 - `websearch`/`webfetch` 脚本保留为命令行快捷方式
 - `agent-browser` 保留，作为动态/交互补充

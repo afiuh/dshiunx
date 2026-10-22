@@ -18,3 +18,8 @@
 
 - dshiunx 当前用 npm，不安装 pnpm
 - 提交 `package-lock.json`；依赖显式声明
+
+## 后续变化
+
+后来「去包管理器化」进一步：内部包不走 npm 解析，改用 tsconfig paths；外部依赖仍由 npm 安装。
+当前核心包已显式声明 `dependencies`（版本 `*`），与「去包管理器化」的“删除 dependencies”存在冲突，**依赖声明策略待重新决策**。
