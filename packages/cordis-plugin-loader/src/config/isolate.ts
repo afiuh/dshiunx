@@ -160,7 +160,7 @@ export default function isolate(ctx: Context) {
       if (!realm) continue
 
       // realm garbage collection
-      for (const entry of ctx.get('loader')!.entries()) {
+      for (const entry of ctx.loader.entries()) {
         // has reference to this realm
         if (entry.options.isolate?.[name] === realm.label) return
       }

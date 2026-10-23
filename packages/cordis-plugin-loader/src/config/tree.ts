@@ -111,15 +111,15 @@ export abstract class EntryTree {
   /** Import a plugin module from a specifier or `cordis:` builtin. */
   import(name: string, getOuterStack?: () => string[]) {
     if (name.startsWith('cordis:')) {
-      return this.ctx.get('loader')!.builtins[name.slice(7)]
+      return this.ctx.loader.builtins[name.slice(7)]
     }
     return composeError(async (info) => {
       // ModuleJob.run
       // onImport.tracePromise.__proto__
       // internal.import
       info.offset += 3
-      if (this.ctx.get('loader')!.internal) {
-        return await this.ctx.get('loader')!.internal!.import(name, this.ctx.baseUrl!, {})
+      if (this.ctx.loader.internal) {
+        return await this.ctx.loader.internal.import(name, this.ctx.baseUrl!, {})
       } else if (name.startsWith('.')) {
         return await import(/* @vite-ignore */new URL(name, this.ctx.baseUrl).href)
       } else {

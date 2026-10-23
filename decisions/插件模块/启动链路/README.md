@@ -39,17 +39,24 @@
 
 7. **`internal/update` 钩子**：捕获 `Fiber.update()` 丢弃的 restart promise，避免未处理 rejection。
 
-## 与 DSH 的差异（preset scope 的 loader 访问）
+## 与 DSH 对齐（2026-10-23 修正）
 
-| | DSH | 我们 |
-|---|---|---|
-| `agent-preset-registry` 的 owner | `ctx`（entry ctx） | **`ctx.root`**（D39 修复，解决 D40 服务可见性） |
-| `EntryTree` 访问 loader | `this.ctx.loader`（属性访问，entry ctx 有 loader inject） | **`this.ctx.get('loader')!`**（反射 API，不依赖 inject） |
-| 结果 | preset scope 看不到 root 服务（D40 问题） | 能看到 root 服务；`ctx.get` 绕开 inject 要求 |
+**之前的判断错了**：`owner = ctx.root` 是不必要的补偿。
 
-**为什么改**：`owner = ctx.root` 后，scope 继承 root，root 的 fiber 不提供 loader，`ctx.loader` 属性访问被拒绝（`cannot get property "loader" without inject`）。改用 `ctx.get('loader')!` 后，反射 API 不受 inject 限制。
+查证 DSH：
+- `agent-preset-registry` 在 patch 的 `- insert:`（**Include 的子 entry，不是 root**）
+- `owner = ctx`（entry ctx）
+- 服务查找是**全局 store（按 isolate 标签）**，不是 fiber 链——`reflect.ts` 的 `_getImpl` 用 `this.store[key]`
 
-**代价**：与 DSH 的 loader 有 4 处差异（`group.create` / `tree.import` ×2 / `isolate`），已登记。
+**回滚验证**：
+- `owner = ctx` + `ctx.loader`（4 处 `ctx.get` 回滚）
+- strict 0；`waiting for` / `cannot get property` 均为 0；启动 96 entries
+- **D40 没有复现**——`owner = ctx` 就能看到宿主服务（isolate 标签相同）
+
+**结论**：
+- 与 DSH 一致：`owner = ctx` + `ctx.loader`
+- `ctx.get('loader')!` 的 4 处修改已回滚
+- D40 的 `owner = ctx.root` 补偿作废
 
 ## 启动日志修复
 

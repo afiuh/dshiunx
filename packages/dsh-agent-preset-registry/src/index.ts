@@ -63,7 +63,7 @@ export class AgentPresetRegistry extends TypertRemoteService {
 
   constructor(ctx: Context, public config: Config) {
     super(ctx, 'agentPresets')
-    this.owner = ctx.root
+    this.owner = ctx
     ctx.sessionProjections.register(agentPresetProjectionDefinition)
     ctx.inject(['settings'], (child) => { child.effect(() => child.settings.configure({ auto: false }, ctx.fiber)) })
     ctx.on('session/event', (session, event) => {
