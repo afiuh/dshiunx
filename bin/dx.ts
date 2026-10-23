@@ -56,7 +56,7 @@ if (flag('--help') || flag('-h')) {
 const entriesDir = fileURLToPath(new URL('../packages/bundle-arch/', import.meta.url))
 const configPath = `${entriesDir}entries.yml`
 
-const ctx = await boot('dx', configPath, [], (hostCtx) => {
+const ctx = await boot('dx', configPath, [], async (hostCtx) => {
   hostCtx.provide('profileContext', {
     name: 'dshiunx',
     dir: `${process.cwd()}/profiles/default`,
@@ -72,9 +72,9 @@ const ctx = await boot('dx', configPath, [], (hostCtx) => {
     args: process.argv.slice(2),
     exit: (code: number) => process.exit(code),
   })
+  // 在 entries 挂载前挂载日志出口，否则 boot 期间的 logger 日志会丢失
+  await hostCtx.plugin(ConsoleExporter)
 })
-
-await ctx.plugin(ConsoleExporter)
 
 const loaded = [...ctx.loader.entries()]
 console.log(`dx: loaded ${loaded.length} entries`)
