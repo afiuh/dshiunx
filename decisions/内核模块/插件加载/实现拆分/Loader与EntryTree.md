@@ -1,17 +1,14 @@
-# Loader 与 EntryTree
+# Loader与EntryTree
 
 **父级**：[插件加载](../插件加载.md)
 
-## 要做什么
+## 为什么需要
 
 Loader 拥有 entry 树 + 持久化钩子。
 
-## 参考什么
+## 准备怎么实现
 
-- 源码：`packages/cordis-plugin-loader/src/index.ts:77`（`class Loader extends EntryTree`）
-- 源码：`packages/cordis-plugin-loader/src/config/tree.ts`
-
-## 宏观想法
+### 宏观想法
 
 Loader 是 EntryTree 的子类，拥有 entry 树 + 持久化钩子（`write()` 由子类实现）。
 
@@ -19,7 +16,7 @@ Loader 是 EntryTree 的子类，拥有 entry 树 + 持久化钩子（`write()` 
 entry 树操作（create/update/remove）→ 写回配置
 ```
 
-## 决策
+### 细节实现
 
 1. **Loader 是 EntryTree 的子类**：拥有 entry 树 + 持久化钩子（`write()` 由子类实现）
 2. **树操作**（`tree.ts:76-100`）：
@@ -30,3 +27,8 @@ entry 树操作（create/update/remove）→ 写回配置
 4. **`locate(fiber)`**（`index.ts:190`）：找 fiber 所属的 entry id
 5. **`exit()`**（`index.ts:200`）：宿主钩子，用于全量重启（HMR 的 external 变更）
 6. **`getTasks()` / `await()`**（`tree.ts:39/47`）：收集 entry 的 `_initTask` 和 `fiber.inertia`，等所有任务完成
+
+## 参考什么
+
+- 源码：`packages/cordis-plugin-loader/src/index.ts:77`（`class Loader extends EntryTree`）
+- 源码：`packages/cordis-plugin-loader/src/config/tree.ts`
