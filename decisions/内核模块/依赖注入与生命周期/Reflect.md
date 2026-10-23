@@ -19,7 +19,7 @@
 ## 决定
 
 1. **ctx 是 Proxy**：`get` / `set` / `has` 三个 trap 负责服务解析、写入、存在性判断。
-2. **服务解析沿 fiber 链向上**：从当前 fiber 的 store 开始，逐级看 parent；遇到 `inject` 声明但服务不在当前 scope，报错；isolate 标签不一致则停止。
+2. **服务查找是全局 store（按 isolate 标签）**：`_getImpl` 用 `this.store[key]`，key 来自当前 ctx 的 isolate map——不是沿 fiber 链向上（D40 修正，2026-10-23）。
 3. **`get(name, strict=true)`**：strict 时只返回提供者 fiber 处于 `ACTIVE` 的服务；`strict=false` 返回 PENDING 服务的值（TUI 用过这个绕过）。
 4. **`provide(name, value, check)`**：注册服务，绑定到当前 fiber 的 effect；dispose 时删除并通知依赖者。
 5. **`set` 只能由提供者调用**：`impl.fiber !== ctx.fiber` 时抛错。
