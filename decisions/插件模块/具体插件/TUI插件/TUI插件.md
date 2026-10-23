@@ -17,6 +17,32 @@ TUI、LayoutTree、Web renderer。
 3. TUI 只读状态 + 渲染，不修改业务（边界）
 4. `dsh-tui`（20 万行）是参考源码，不启用
 
+## 历史决策（来自归档 05/06）
+
+### D51 · TUI 解耦进展（2026-10-21）
+
+- 5 个 store（`helpStore` / `modelsStore` / `overlayStore` / `selectionStore` / `timelineStore`）
+- `Chat` 23 个 `useSyncExternalStore`
+- 剩余 56 个 `useState`
+- 已解耦插件：`tui-protocol` / `tui-chat` / `tui-status` + 6 个模块边界
+- 下一步：组件库（118 个）、逻辑插件（6 个函数）、渲染插件（664 行）
+
+### D52 · Chat.tsx 重写：功能统计（2026-10-21）
+
+- 用户决定：重写 `Chat.tsx` 的 UI 逻辑（不复用 7162 行）
+- 功能统计：74 命令 / 41 弹窗 / 18 快捷键 / 72 状态字段 / 12 `useState` / 35 `useEffect`
+
+### D53 · 不拆 Chat，参考 pi-tui（2026-10-21）
+
+- 用户决定：不拆 Chat，统计信息/功能，参考 pi-tui 实现
+- 信息统计：73 个字段（消息/转录、输入、状态栏、侧栏）
+
+### 解耦结论
+
+- TUI 从 `dsh-tui`（20 万行）拆出，**保留功能不保留结构**
+- 当前：`packages/tui` 1076 行 + `tui-store` 248 行 + `tui-controller` 147 行
+- 剩余：组件库 / 逻辑插件 / 渲染插件（待做）
+
 ## 边界
 
 | | TUI 插件 | 智能体插件 |
