@@ -37,9 +37,10 @@ function send(method, params, isRequest = true) {
   return new Promise((resolve) => pending.set(id, resolve))
 }
 
-const init = await send('initialize', { processId: process.pid, rootUri: 'file://' + process.cwd(), capabilities: {} })
+const init = await send('initialize', { processId: process.pid, rootUri: 'file://' + process.cwd(), workspaceFolders: [{ uri: 'file://' + process.cwd(), name: 'dshiunx' }], capabilities: {} })
 console.log('server:', init.result?.serverInfo?.name, init.result?.serverInfo?.version)
 await send('initialized', {}, false)
+await new Promise((r) => setTimeout(r, 2000))
 const source = readFileSync(file, 'utf8')
 await send('textDocument/didOpen', { textDocument: { uri, languageId: 'typescriptreact', version: 1, text: source } }, false)
 const line30 = source.split('\n')[30]
@@ -50,7 +51,12 @@ const def = await send('textDocument/definition', { textDocument: { uri }, posit
 console.log('\\n[useChatStore 定义]')
 for (const loc of def.result ?? []) console.log(`  ${loc.uri.replace('file://', '')}:${loc.range.start.line + 1}`)
 
-// 查 Tui 的引用
+// 查 useChatStore 的实现（goToImplementation）
+const impl = await send('textDocument/implementation', { textDocument: { uri }, position: { line: 30, character: char } })
+console.log('\\n[useChatStore 实现]')
+for (const loc of impl.result ?? []) console.log(`  ${loc.uri.replace('file://', '').split('/').slice(-2).join('/')}:${loc.range.start.line + 1}`)
+
+// 查 useChatStore 的引用
 const refs = await send('textDocument/references', { textDocument: { uri }, position: { line: 30, character: char }, context: { includeDeclaration: true } })
 console.log('\\n[useChatStore 引用]', refs.result?.length ?? 0, '处')
 for (const loc of (refs.result ?? []).slice(0, 10)) console.log(`  ${loc.uri.replace('file://', '').split('/').slice(-2).join('/')}:${loc.range.start.line + 1}`)
