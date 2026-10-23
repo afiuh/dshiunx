@@ -26,7 +26,7 @@ EntryTree（抽象：树操作 create/update/remove）
 2. **树操作**（`tree.ts:76-100`）：
    - `create(options, parent = null, position = Infinity)` → `group.tree.write()`
    - `remove(id)` → `entry.parent.tree.write()`
-   - `update(id, options, parent?, position?)` → 更新 + 写回
+   - `update(id, options, parent?, position?)`（`tree.ts:91-105`）→ 可选移动 group（`unlink` + `splice` + `entry.parent = target`）→ `entry.update(options, false, true)`
 3. **`resolve(id)`**（`tree.ts:61`）：按 `:` 分段（`EntryTree.sep = ':'`）逐层下降，找不到抛错
 4. **`locate(fiber)`**（`index.ts:190`）：找 fiber 所属的 entry id
 5. **`exit()`**（`index.ts:200`）：宿主钩子，用于全量重启（HMR 的 external 变更）
