@@ -18,15 +18,8 @@ plugin 形状 → resolve → Runtime → Fiber
 
 **为什么以 callback 为键**：同一插件可以挂载多次（多个 fiber），但 Config schema 共享。
 
+
 ### 细节实现
-## 讨论链
-
-1. 起点：插件有三种形状（函数 / 类 / `{ apply }` 对象），需要统一注册。
-2. 关键判断：同一个插件 callback 可以被多次挂载，但共享一个 runtime 记录。
-3. 收敛：Registry 以 callback 为身份键，维护 `Runtime`（fibers 列表 + Config），每次 `plugin()` 创建一个新 fiber。
-
-
-## 决定
 
 1. **插件形状**：`function` / `class`（构造函数）/ `{ apply }` 对象；`resolve()` 统一成 callback。
 2. **Runtime 以 callback 为键**：`fibers` 是该插件的所有存活实例；`Config` 是共享的 schema。
