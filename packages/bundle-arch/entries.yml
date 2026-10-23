@@ -44,7 +44,7 @@
   name: '@deepseek-ai/dsh-bash-sandbox'
   config:
     timeoutMs: 60000
-  disabled: process.platform === 'win32'
+  disabled: !!js process.platform === 'win32'
 - id: approval
   name: '@deepseek-ai/dsh-user-approval'
   config:
@@ -53,7 +53,7 @@
   name: '@deepseek-ai/dsh-shell-env'
 - id: tool-bash
   name: '@deepseek-ai/dsh-tool-bash'
-  disabled: process.platform === 'win32'
+  disabled: !!js process.platform === 'win32'
 - id: tool-jobs
   name: '@deepseek-ai/dsh-tool-jobs'
 - id: fs-observation-policy
@@ -258,7 +258,7 @@
   name: '@deepseek-ai/dsh-terminal-bash'
   config:
     timeoutMs: 300000
-  disabled: process.platform === 'win32'
+  disabled: !!js process.platform === 'win32'
 - id: persistent-bash
   name: '@deepseek-ai/dsh-tool-bash-persistent'
   config:
@@ -280,7 +280,7 @@
 
       * Please run long lived commands in the background, e.g. ''sleep 10 &'' or start
       a server in the background.'
-  disabled: process.platform === 'win32'
+  disabled: !!js process.platform === 'win32'
 - id: sessions
   name: '@deepseek-ai/dsh-session-persistence-jsonl'
   config:
