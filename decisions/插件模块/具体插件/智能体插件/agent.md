@@ -32,8 +32,12 @@
 
 ### 配置（agent-loop）
 
-- `Config` 字段见源码 `interface Config`（303 行起）
-- 我们的配置：`bundles/base` 的 `agent-loop` 条目（无额外 config）
+| 字段 | 说明 |
+|---|---|
+| `maxParallelToolCalls` | 最大并行工具调用数 |
+| `agents` | 启动时创建的 agent 列表（`id` / `sessionId?` / `cwd?` / `resumeSessionId?`） |
+
+我们的配置：`bundles/base` 的 `agent-loop` 条目（无额外 config，用默认）。
 
 ## 与 DSH 一致
 
