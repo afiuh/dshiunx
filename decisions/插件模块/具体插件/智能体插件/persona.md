@@ -2,6 +2,14 @@
 
 **父级**：[智能体插件](./智能体插件.md)
 
+## 宏观想法
+
+角色/人格：给系统提示加 prefix（`deployment:persona-prefix` 分区）。
+
+```
+prefix → system-prompt 分区
+```
+
 ## 负责什么
 
 角色/人格：给系统提示加 prefix（`deployment:persona-prefix` 分区）。

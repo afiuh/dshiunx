@@ -2,6 +2,14 @@
 
 **父级**：[智能体插件](./智能体插件.md)
 
+## 宏观想法
+
+系统提示拼装：persona / harness identity / runtime context / 项目指令。
+
+```
+personaPrefix → harness:identity → runtime:context → 工具指导
+```
+
 ## 职责
 
 系统提示拼装：persona / harness identity / runtime context / 项目指令。
