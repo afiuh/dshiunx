@@ -11,6 +11,11 @@
 - **externals = `bin/dx.ts` 的静态依赖树**：改引导代码 = 重启
 - **缩小 externals**：`bin/dx.ts` 只留引导，业务逻辑全走 loader（扩展路线）
 
+## 参考什么
+
+- 源码：`packages/cordis-plugin-hmr/src/index.ts` 的 externals 判断
+- 入口：`bin/dx.ts` 的静态依赖树
+
 ## 决策
 
 1. externals 变更 → `loader.exit()` 全量重启

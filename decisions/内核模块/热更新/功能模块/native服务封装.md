@@ -23,6 +23,11 @@
 | native 句柄（pty/连接） | 不重启 | ✅ `serialize/restore` 引用传递 |
 | `.node` 文件 | 极低 | ⚠️ 重启 worker（主进程/会话不断） |
 
+## 参考什么
+
+- DSH：native 插件（`node-pty` / `koffi` / `sixel`）的加载方式
+- 内核：`cordis` 的 `ctx.effect`（清理）
+
 ## 决策
 
 1. 插件不得直接 `import` native 模块，必须依赖服务接口

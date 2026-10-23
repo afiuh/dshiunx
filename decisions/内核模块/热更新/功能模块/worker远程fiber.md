@@ -20,6 +20,12 @@
     └── worker：只跑插件代码，没有 cordis
 ```
 
+## 参考什么
+
+- DSH：`docs/architecture.md`（in-process 挂载）
+- DSH：`plugin-manager` README（安装审批替代运行时隔离）
+- 原型：2026-10-22 worker HMR 验证（`--expose-internals`）
+
 ## 决策
 
 1. 插件在主进程有 fiber；`ctx` 是 RPC 代理（`get` / `provide` / `emit` / `effect` / `dispose`）

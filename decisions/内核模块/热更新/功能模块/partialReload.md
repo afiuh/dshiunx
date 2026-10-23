@@ -11,6 +11,11 @@
 - **清两层缓存**（ESM `loadCache` + CJS `require.cache`）：两种模块格式都要覆盖
 - **重建 fiber**（`registry.delete(plugin)` + 新 plugin）：fiber 是生命周期单元
 
+## 参考什么
+
+- 源码：`packages/cordis-plugin-hmr/src/index.ts` 的 `partialReload()`
+- 内核：`cordis` 的 `registry.delete()` + `ctx.plugin()`
+
 ## 决策
 
 1. 清 ESM `loadCache` + CJS `require.cache`
