@@ -10,6 +10,14 @@
 
 - 源码：`packages/cordis-plugin-loader/src/internal.ts`（`internal/config` 钩子）
 
+## 宏观想法
+
+配置里的 !!js 表达式在条目激活时求值（树载体 Group/Include 跳过）。
+
+```
+YAML 解析 → __jsExpr → evaluate(ctx)
+```
+
 ## 决策
 
 1. **`internal/config` 钩子**（`loader/src/index.ts:107`）：对 entry 的 config 做 `!!js` 表达式插值（树载体 Group/Include 跳过）

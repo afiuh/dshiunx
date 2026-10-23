@@ -10,6 +10,14 @@
 
 - 源码：`packages/cordis-plugin-loader/src/config/entry.ts:120`（`update`）
 
+## 宏观想法
+
+配置变更时增量更新 entry（不重启）：整体替换或增量合并。
+
+```
+update(options) → diff → partial-dispose / volatile / init
+```
+
 ## 决策
 
 1. **`Entry.update` 路径**：`create` 时整体替换 options，否则增量合并 + `sortKeys`

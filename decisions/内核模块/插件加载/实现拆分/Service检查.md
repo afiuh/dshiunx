@@ -10,6 +10,14 @@ loader 条目未加载完时，依赖者保持 pending（await 拦截）。
 
 - 源码：`packages/cordis-plugin-loader/src/index.ts:178`（`[Service.check]()`）
 
+## 宏观想法
+
+loader 条目未加载完时，依赖者保持 pending（await 拦截）。
+
+```
+getTasks() → Service.check → pending
+```
+
 ## 决策
 
 1. `[Service.check]`：`config.await && this.getTasks().length` 返回 false（依赖者保持 pending）

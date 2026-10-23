@@ -10,6 +10,14 @@
 
 - 源码：`packages/cordis-plugin-include/src/`
 
+## 宏观想法
+
+文件-backed EntryTree：配置从 YAML/JSON/JS 文件来，可热更。
+
+```
+文件 → 解析 → root.update → 写回（原子写）
+```
+
 ## 决策
 
 1. **Include 是文件-backed EntryTree**：支持 YAML / JSON / JS

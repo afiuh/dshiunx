@@ -10,6 +10,14 @@
 
 - 源码：`packages/cordis-plugin-loader/src/config/diff.ts`（`applyEntryPatches`）
 
+## 宏观想法
+
+多 bundle/patch 叠加成最终配置（insert/覆盖/警告）。
+
+```
+patches → applyEntryPatches → 最终 entries
+```
+
 ## 决策
 
 1. `applyEntryPatches`（`config/diff.ts`）支持 `insert`（插到 group 或根）

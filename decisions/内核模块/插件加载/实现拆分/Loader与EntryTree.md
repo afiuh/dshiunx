@@ -11,6 +11,14 @@ Loader 拥有 entry 树 + 持久化钩子。
 - 源码：`packages/cordis-plugin-loader/src/index.ts:77`（`class Loader extends EntryTree`）
 - 源码：`packages/cordis-plugin-loader/src/config/tree.ts`
 
+## 宏观想法
+
+Loader 是 EntryTree 的子类，拥有 entry 树 + 持久化钩子（`write()` 由子类实现）。
+
+```
+entry 树操作（create/update/remove）→ 写回配置
+```
+
 ## 决策
 
 1. **Loader 是 EntryTree 的子类**：拥有 entry 树 + 持久化钩子（`write()` 由子类实现）

@@ -10,6 +10,14 @@
 
 - 源码：`packages/cordis-plugin-loader/src/config/entry.ts:166`（`_commitVolatile`）
 
+## 宏观想法
+
+配置变化时不重挂插件，只更新稳定引用（通过 .get() 读取）。
+
+```
+配置 diff → volatile-only → updateVolatile + emit
+```
+
 ## 决策
 
 1. `.volatile()` 标记的字段，变化时更新稳定引用、**不重挂插件**
