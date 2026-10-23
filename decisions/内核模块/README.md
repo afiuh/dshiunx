@@ -12,7 +12,7 @@
 
 | 子模块 | 负责什么 |
 |---|---|
-| [依赖注入与生命周期](./依赖注入与生命周期/README.md) | Context / Fiber / Effect / Service / Registry / Reflect：服务怎么注册、查找、随生命周期创建和销毁 |
+| [依赖注入与生命周期](./依赖注入与生命周期/依赖注入与生命周期.md) | Context / Fiber / Effect / Service / Registry / Reflect：服务怎么注册、查找、随生命周期创建和销毁 |
 | [事件系统](./事件系统/README.md) | waterfall / parallel / serial / bail：插件之间怎么通信 |
 | [日志](./日志/README.md) | `ctx.logger`：级别、格式化、导出 |
 | [时间与调度](./时间与调度/README.md) | `ctx.setTimeout` / `setInterval` / 防抖：生命周期与 HMR 的时间基础 |
