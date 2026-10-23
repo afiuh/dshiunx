@@ -6,11 +6,50 @@
 
 HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、状态怎么保留。
 
+## 要做什么（问题）
+
+HMR 要解决四个问题：
+
+| # | 问题 | 为什么重要 |
+|---|---|---|
+| 1 | 改代码不重启进程 | 开发体验（每次重启 10s+） |
+| 2 | 插件能在运行时替换 | 自进化（P6：AI 运行时改造系统） |
+| 3 | 状态不丢 | 会话不断（用户不丢上下文） |
+| 4 | 边界清晰 | 什么能热更、什么不能（不假装全能） |
+
+## 准备怎么实现（核心决策 + 为什么）
+
+| 决策 | 选了什么 | 不选什么 | 为什么 |
+|---|---|---|---|
+| 监听 | chokidar | `fs.watch` | 跨平台、递归、ignore 匹配 |
+| 依赖图 | ESM `ModuleJob.linked` | 静态分析/正则 | 运行时准确，不需要解析 import |
+| 原子重载单元 | 插件入口 | 单文件 | fiber 是插件级，重载必须整插件 |
+| 状态 | `serialize/restore` | 保留模块变量 | 模块重载会清变量，必须显式迁移 |
+| worker | 单 cordis + 远程 fiber | 多 cordis 主从 | 多 cordis 成本翻倍（registry/loader/HMR 两套） |
+| 版本检查 | 不做（P7） | semver 检查 | 结构契约（能跑就是能跑） |
+| native | 服务封装 + 三层边界 | 直接 import | `.node` 不能卸载，必须隔离 |
+
+## 下一层（功能模块）
+
+| 子模块 | 要做什么 | 对应源码 |
+|---|---|---|
+| 监听与防抖 | chokidar watch + debounce | `src/index.ts` |
+| 依赖图 | ESM linked + dynamicDeps | `src/index.ts` |
+| 三集合 | stashed/accepted/declined | `src/index.ts` |
+| partialReload | 清缓存 + 重建 fiber | `src/index.ts` |
+| 状态迁移 | serialize/restore | `src/index.ts` |
+| externals | 全量重启边界 | `src/index.ts` |
+| worker 远程 fiber | 单 cordis + RPC 代理 | 规划 |
+| native 服务封装 | 三层边界 | 规划 |
+| 排错 | loadCache vs require.cache | `src/index.ts` |
+
 ## 相关源码
 
 `packages/cordis-plugin-hmr/src/`
 
-## 决策
+## 详细决策（怎么实现的细节）
+
+### 决策清单
 
 1. **监听**：chokidar `watch(root)`，`ignoreInitial: true`，`ignored` 匹配相对路径。
 2. **依赖图**：从 ESM `ModuleJob.linked` 递归收集依赖，跳过 `node:` 和 `node_modules`。
