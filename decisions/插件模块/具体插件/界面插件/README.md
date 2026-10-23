@@ -6,6 +6,29 @@
 
 TUI、LayoutTree、Web renderer。
 
+## 相关源码
+
+`packages/tui/src/`、`packages/tui-store/src/`、`packages/dsh-tui/src/`（参考，未启用）
+
+## 决策
+
+1. TUI 是插件（`@dshiunx/tui`），通过 `tui` group 挂载
+2. 状态管理用 Zustand（`tui-store`），不放在 TUI 插件内
+3. TUI 只读状态 + 渲染，不修改业务（边界）
+4. `dsh-tui`（20 万行）是参考源码，不启用
+
+## 边界
+
+| | 界面插件 | 智能体插件 |
+|---|---|---|
+| 管什么 | 渲染/输入 | 循环/提示词 |
+| 依赖 | 只读 `tui-store` | 不依赖界面 |
+
+## 硬约束
+
+- TUI 不直接调用业务插件（只通过 `tui-store` / 事件）
+- `dsh-tui` 不启用（参考源码）
+
 ## 包含
 
 | 包 | 行数 | 职责 |

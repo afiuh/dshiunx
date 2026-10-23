@@ -6,6 +6,10 @@
 
 智能体循环、提示词、preset、persona、agent-instructions。
 
+## 相关源码
+
+`packages/dsh-agent/src/`、`dsh-agent-loop/src/`、`dsh-system-prompt/src/`、`dsh-agent-preset/src/`、`dsh-agent-preset-registry/src/`、`dsh-persona/src/`、`dsh-agent-instructions/src/`
+
 ## 子文件
 
 - [agent / agent-loop](./agent.md)
@@ -49,6 +53,12 @@
 | creator | 33 | 34 | 缺 `tool-pwsh`；我们叫 `preset-creator`（DSH 叫 `preset-cordis`） |
 
 **结论**：preset 插件列表与 DSH 一致（除 Windows PowerShell 插件）。
+
+## 硬约束
+
+- 智能体插件不依赖界面（ui → agent 单向）
+- preset 的插件列表由 `dsh-agent-preset` 的 `plugins` 字段决定
+- `agent-preset-registry` 的 `default` 必须是已定义的 preset id
 
 ## 检查状态
 
