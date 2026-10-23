@@ -15,9 +15,55 @@
 5. **预设**：preset（Standard / PTC / Minimal / Creator）是“插件组合的预设”，通过 `agent-preset` 挂载。
 6. **启动链路**：见 [启动链路](../启动链路/README.md)。
 
-## 与 DSH 的差异
+## 与 DSH 的差异：装配方式（详细对比）
 
-| | DSH | 我们 |
+### DSH：bundle / patch 分层
+
+```
+base bundle (cordis.patch.yml)
+  → web-app bundle (patch)
+    → preset patch (standard / ptc / minimal / cordis)
+      → user patch (profile/cordis.patch.yml)
+```
+
+- 每层是 patch（`insert` / 覆盖 / `disabled`）
+- 最终配置 = 所有 patch 叠加
+- 可以 dump 出最终 entries
+
+### 我们：单一 entries.yml
+
+```
+entries.yml（所有插件 + preset 配置）
+```
+
+- 一个文件，直接挂载
+- 没有分层
+
+### 对比
+
+| 维度 | DSH（bundle/patch） | 我们（单一 entries.yml） |
 |---|---|---|
-| 装配 | bundle / patch 分层 | 单一 entries.yml（统一挂载） |
-| 代价 | 配置分散 | 根级服务需要特殊处理（`ctx.root` 补偿，已回滚） |
+| 配置集中度 | 分散（多文件） | **集中（一个文件）** |
+| 分层 / 复用 | ✅ 可以组合 bundle | ❌ 复制整个文件 |
+| 覆盖 / 裁剪 | ✅ patch 按 id 覆盖 | ⚠️ 手动改 |
+| 调试 | ⚠️ 需要 dump 最终配置 | ✅ 直接看文件 |
+| 多产品 | ✅ 同一 bundle 组合不同产品 | ❌ 每个产品复制 / 改 |
+| 插件市场 | ✅ bundle 可发布 | ❌ 无 |
+| 根级服务位置 | ✅ 天然正确（base 顶层） | ⚠️ preset registry 在 entry 层 |
+
+### 判断
+
+**短期（单产品）**：我们的简单，够用。
+**长期（多产品 / 插件市场 / 自进化）**：DSH 的分层更合适。
+
+**但两者可以结合**：用“生成”机制——
+
+- 源：base / preset / user 分层
+- 生成：`entries.yml`（单一文件）
+- 好处：保留简单性 + 分层能力
+
+### 建议
+
+1. **现在保持单一 entries.yml**（单产品，简单）
+2. 如果未来要做多产品 / 插件市场，引入“生成”机制（从分层源生成 entries.yml）
+3. **不要现在改成分层**（过度设计）
