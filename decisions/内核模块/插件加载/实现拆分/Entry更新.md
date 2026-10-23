@@ -15,7 +15,12 @@
 配置变更时增量更新 entry（不重启）：整体替换或增量合并。
 
 ```
-update(options) → diff → partial-dispose / volatile / init
+update(options) → 更新 options（create 整体替换 / 否则增量合并 + sortKeys）
+  → disabled? → dispose fiber
+  → 有 fiber:
+     计算 changes → volatileOnly? → _commitVolatile
+                  → 否则 partial-dispose + _patchContext
+  → 无 fiber: init()
 ```
 
 ## 决策
