@@ -18,15 +18,15 @@
 
 ## 决定
 
-1. **ctx 是 Proxy**：`get` / `set` / `has` 三个 trap 负责服务解析、写入、存在性判断。
+1. **ctx 是 Proxy**：`get` / `set` / `has` 三个 trap 负责服务解析、写入、存在性判断（`reflect.ts:135` handler）。
 2. **服务查找是全局 store（按 isolate 标签）**：`_getImpl` 用 `this.store[key]`，key 来自当前 ctx 的 isolate map——不是沿 fiber 链向上（D40 修正，2026-10-23）。
 3. **`get(name, strict=true)`**：strict 时只返回提供者 fiber 处于 `ACTIVE` 的服务；`strict=false` 返回 PENDING 服务的值（TUI 用过这个绕过）。
 4. **`provide(name, value, check)`**：注册服务，绑定到当前 fiber 的 effect；dispose 时删除并通知依赖者。
 5. **`set` 只能由提供者调用**：`impl.fiber !== ctx.fiber` 时抛错。
-6. **`accessor`**：定义计算属性（get/set hooks），随 fiber 注销。
-7. **`mixin`**：把服务成员挂到 ctx（`ctx.on` → `ctx.events.on`），随 fiber 注销。
-8. **`notify`**：服务变化时重新检查所有 inject 该服务的 fiber，触发 `_refresh`。
-9. **trace / bind**：调用时把 `this` 和参数包成 traceable，供诊断用。
+6. **`accessor`**：定义计算属性（get/set hooks），随 fiber 注销（`reflect.ts:56`）。
+7. **`mixin`**：把服务成员挂到 ctx（`ctx.on` → `ctx.events.on`），随 fiber 注销（`reflect.ts:219-222`）。
+8. **`notify`**：服务变化时重新检查所有 inject 该服务的 fiber，触发 `_refresh`（`reflect.ts:295-299`）。
+9. **trace / bind**：调用时把 `this` 和参数包成 traceable（`getTraceable`，`reflect.ts:234`），供诊断用。
 10. **notify 的 filter**：`notify(names, filter)` 只通知匹配 isolate scope 的 fiber；`internal/service` 事件带 filter 包装的 ctx。
 
 ## 验收
