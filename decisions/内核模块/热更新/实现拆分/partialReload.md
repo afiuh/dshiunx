@@ -10,11 +10,13 @@
 
 ### 宏观想法
 
-重载单个插件 = **清缓存 → 重新 import → 重建 fiber**：
+重载单个插件 = **清缓存 → 重新 import → 重建 fiber**。不清缓存会拿到旧模块；不重建 fiber 会留旧实例。
 
 ```
 清 loadCache/require.cache → loader.import(入口) → registry.delete(旧) → 新 plugin 重建 fiber
 ```
+
+**为什么清两层缓存**：ESM 和 CJS 是两套缓存，只清一个会漏。
 
 ### 细节实现
 
