@@ -5,7 +5,12 @@ import * as yaml from 'js-yaml'
 const entriesPath = 'packages/bundle-arch/entries.yml'
 const outPath = 'packages/bundle-arch/catalog.yml'
 
-const entries = yaml.load(readFileSync(entriesPath, 'utf8'))
+const JsType = new yaml.Type('tag:yaml.org,2002:js', {
+  kind: 'scalar',
+  construct: (data) => ({ __jsExpr: data }),
+})
+const schema = yaml.DEFAULT_SCHEMA.extend([JsType])
+const entries = yaml.load(readFileSync(entriesPath, 'utf8'), { schema })
 
 function category(name) {
   if (/dsh-agent|dsh-system-prompt|dsh-persona|dsh-agent-preset|dsh-agent-instructions/.test(name)) return 'agent'

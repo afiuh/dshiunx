@@ -1,6 +1,6 @@
 generated: '2026-10-23'
 source: packages/bundle-arch/entries.yml
-total: 106
+total: 109
 categories:
   assembly:
     - id: tool-plugin-manager
@@ -155,6 +155,14 @@ categories:
       parent: null
     - id: mcp-resources
       name: '@deepseek-ai/dsh-mcp-resources'
+      category: runtime
+      parent: null
+    - id: lsp
+      name: '@deepseek-ai/dsh-lsp'
+      category: runtime
+      parent: null
+    - id: lsp-stdio
+      name: '@deepseek-ai/dsh-lsp-stdio'
       category: runtime
       parent: null
     - id: tools
@@ -377,6 +385,10 @@ categories:
       parent: null
     - id: tool-web
       name: '@deepseek-ai/dsh-tool-web'
+      category: tool
+      parent: null
+    - id: tool-lsp
+      name: '@deepseek-ai/dsh-tool-lsp'
       category: tool
       parent: null
     - id: persistent-bash

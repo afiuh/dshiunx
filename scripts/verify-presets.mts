@@ -8,7 +8,7 @@ import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { Context } from '@deepseek-ai/cordis'
 import Loader from '@deepseek-ai/cordis-plugin-loader'
-import { mountRootInclude } from '@deepseek-ai/dsh-app-boot'
+import { boot } from '@deepseek-ai/dsh-app-boot'
 import { pathToFileURL } from 'node:url'
 import { brandString } from '@deepseek-ai/dsh-brand'
 import { installModelSelection } from '@deepseek-ai/dsh-agent'
@@ -16,18 +16,16 @@ import { createUserMessage } from '@deepseek-ai/dsh-llm'
 import { SessionSeq } from '@deepseek-ai/dsh-session'
 
 const entriesDir = fileURLToPath(new URL('../packages/bundle-arch/', import.meta.url))
-const ctx = new Context()
-ctx.baseUrl = pathToFileURL(entriesDir).href + '/'
-ctx.provide('profileContext', {
-  name: 'dshiunx', dir: `${process.cwd()}/profiles/default`,
-  patchPath: `${process.cwd()}/profiles/default/cordis.patch.yml`,
-  installAnchor: process.cwd(), cwd: process.cwd(), home: process.env.HOME ?? '',
-  startedBundles: [], overlays: [], telemetryDisabledEnv: undefined,
+const ctx = await boot('verify-presets', `${entriesDir}entries.yml`, [], async (hostCtx) => {
+  hostCtx.provide('profileContext', {
+    name: 'dshiunx', dir: `${process.cwd()}/profiles/default`,
+    patchPath: `${process.cwd()}/profiles/default/cordis.patch.yml`,
+    installAnchor: process.cwd(), cwd: process.cwd(), home: process.env.HOME ?? '',
+    startedBundles: [], overlays: [], telemetryDisabledEnv: undefined,
+  })
 })
-await ctx.plugin(Loader)
-await mountRootInclude(ctx, `${entriesDir}entries.yml`, [], undefined, 'dshiunx')
-await ctx.get('loader')?.await()
 
+console.log('shell:', !!ctx.get('shell'), 'sandbox:', !!ctx.get('sandbox'), 'sandboxPolicy:', !!ctx.get('sandboxPolicy'), 'subprocess:', !!ctx.get('subprocess'))
 const agents = ctx.get('agents') as any
 const sessions = ctx.get('sessions') as any
 const presets = ctx.get('agentPresets') as any
