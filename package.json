@@ -8,7 +8,8 @@
   "scripts": {
     "test": "tsx --test tests/*.test.ts",
     "hello": "tsx examples/hello.ts",
-    "catalog": "node scripts/gen-catalog.mjs"
+    "catalog": "node scripts/build-entries.mjs && node scripts/gen-catalog.mjs",
+    "build:entries": "node scripts/build-entries.mjs"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",
