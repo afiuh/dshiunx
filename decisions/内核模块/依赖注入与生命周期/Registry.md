@@ -16,6 +16,14 @@
 2. 关键判断：同一个插件 callback 可以被多次挂载，但共享一个 runtime 记录。
 3. 收敛：Registry 以 callback 为身份键，维护 `Runtime`（fibers 列表 + Config），每次 `plugin()` 创建一个新 fiber。
 
+## 宏观想法
+
+插件注册表：插件形状 → runtime → fiber（`ctx.plugin()`）。
+
+```
+plugin 形状 → resolve → Runtime → Fiber
+```
+
 ## 决定
 
 1. **插件形状**：`function` / `class`（构造函数）/ `{ apply }` 对象；`resolve()` 统一成 callback。
