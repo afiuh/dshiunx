@@ -2,22 +2,24 @@
 
 **父级**：[依赖注入与生命周期](./依赖注入与生命周期.md)
 
-## 负责什么
+## 为什么需要
 
 根上下文、`ctx.extend`、`ctx.root`、`baseUrl`：所有 ctx 的起点。
 
-## 相关源码
+## 参考什么
 
 `packages/cordis/src/context.ts`
 
-## 讨论链
+## 准备怎么实现
+
+### 宏观想法
 
 1. 起点：框架从上游 vendor，`Context` 是 cordis 的核心抽象——一个“依赖容器 + 服务代理”。
 2. 我们的第一个真实问题（D40）：preset 子树报 `waiting for shell/sandboxPolicy/web`，但这些服务宿主层都有。
 3. 根因：`createScope(owner)` 的 owner 用了 entry ctx，导致 preset scope 与宿主 entry 是**兄弟关系**，不继承宿主服务。
 4. 收敛：owner 改成 `ctx.root`，子树继承 root 的服务视图。这是“无限嵌套”能成立的前提。
 
-## 决定
+### 细节实现
 
 1. **root 唯一**：`ctx.root` 指向根上下文；所有子 ctx 共享同一个 root。
 2. **子 ctx 用原型继承**：`extend(meta)` 用 `Object.create(self)` + `Object.assign` 覆盖，**不修改父**；保留 `symbols.shadow`（决策 8）。

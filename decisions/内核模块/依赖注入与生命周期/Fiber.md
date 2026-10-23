@@ -2,21 +2,23 @@
 
 **父级**：[依赖注入与生命周期](./依赖注入与生命周期.md)
 
-## 负责什么
+## 为什么需要
 
 状态机、effect、dispose、runtime：一个插件实例的生命周期单元。
 
-## 相关源码
+## 参考什么
 
 `packages/cordis/src/fiber.ts`
 
-## 讨论链
+## 准备怎么实现
+
+### 宏观想法
 
 1. 起点：一个插件可以被 `ctx.plugin()` 多次挂载，每次挂载是一个独立实例。
 2. 关键判断：实例的生命周期不能靠手动管理——要由依赖状态自动驱动。
 3. 收敛：Fiber 用依赖 epoch 驱动状态机；effect 注册清理函数，unload 时按 LIFO 执行。
 
-## 决定
+### 细节实现
 
 1. **状态机**：`PENDING → LOADING → ACTIVE → UNLOADING → DISPOSED`；`FAILED` 表示启动/运行错误。注意：`FiberState` 的 enum 定义顺序是 `PENDING, LOADING, ACTIVE, FAILED, DISPOSED, UNLOADING`（定义顺序 ≠ 流转顺序）。
 2. **依赖 epoch**：`_refresh` 计算 inject 服务的 `fiber.uid` 序列；epoch 变化触发 reload / unload。

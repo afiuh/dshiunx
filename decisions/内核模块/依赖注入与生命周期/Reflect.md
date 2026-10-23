@@ -2,21 +2,23 @@
 
 **父级**：[依赖注入与生命周期](./依赖注入与生命周期.md)
 
-## 负责什么
+## 为什么需要
 
 服务访问的 Proxy、trace、reactive：`ctx.get()` 怎么拿到服务、调用怎么被追踪。
 
-## 相关源码
+## 参考什么
 
 `packages/cordis/src/reflect.ts`
 
-## 讨论链
+## 准备怎么实现
+
+### 宏观想法
 
 1. 起点：cordis 的 `ctx` 是一个 Proxy，普通属性读取要走服务解析。
 2. 关键判断：服务查找不能是全局表——必须沿 fiber 链向上找，并遵守 isolate 标签。
 3. 收敛：Proxy handler 拦截 get/set/has；服务实现存在 `reflect.store`，按 isolate label 分槽。
 
-## 决定
+### 细节实现
 
 1. **ctx 是 Proxy**：`get` / `set` / `has` 三个 trap 负责服务解析、写入、存在性判断（`reflect.ts:135` handler）。
 2. **服务查找是全局 store（按 isolate 标签）**：`_getImpl` 用 `this.store[key]`，key 来自当前 ctx 的 isolate map——不是沿 fiber 链向上（D40 修正，2026-10-23）。

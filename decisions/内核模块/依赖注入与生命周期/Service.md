@@ -2,21 +2,23 @@
 
 **父级**：[依赖注入与生命周期](./依赖注入与生命周期.md)
 
-## 负责什么
+## 为什么需要
 
 Service 基类、生命周期符号、callable：一个“服务”是什么样。
 
-## 相关源码
+## 参考什么
 
 `packages/cordis/src/service.ts`
 
-## 讨论链
+## 准备怎么实现
+
+### 宏观想法
 
 1. 起点：cordis 用 Service 基类表达“在 ctx 上暴露命名 API 的插件”。
 2. 关键判断：服务不是全局单例，而是**随 owning fiber 生命周期存在**的实例——fiber dispose，服务自动消失。
 3. 收敛：构造即注册（`super(ctx, name)`），用符号扩展可选能力（init/check/invoke/config/extend）。
 
-## 决定
+### 细节实现
 
 1. **构造即注册**：`super(ctx, name)` 调用 `ctx.reflect.provide(name, self, check)`；服务随 owning fiber 自动注销。
 2. **服务是命名 API**：`name` 是 ctx 上的查找键；同名服务在 isolate 作用域内解析。
