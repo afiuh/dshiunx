@@ -10,11 +10,14 @@
 
 ### 宏观想法
 
-文件-backed EntryTree：配置从 YAML/JSON/JS 文件来，可热更。
+配置要能**持久化 + 热更**——所以配置从文件来（YAML/JSON/JS），改文件 → refresh → 树更新。
 
 ```
-文件 → 解析 → root.update → 写回（原子写）
+文件 → 解析 → root.update → 写回（原子写：temp + rename）
 ```
+
+**为什么原子写**：写到一半断电会损坏配置；temp + rename 保证要么旧要么新。
+**为什么 refresh 容错**：解析失败只 warn、保留旧树——热更新不能把进程搞挂。
 
 ### 细节实现
 

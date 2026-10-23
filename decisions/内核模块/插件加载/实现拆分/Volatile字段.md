@@ -10,11 +10,14 @@
 
 ### 宏观想法
 
-配置变化时不重挂插件，只更新稳定引用（通过 .get() 读取）。
+有些配置（如 `maxParallelToolCalls`）变化**不需要重挂插件**——重挂会丢状态/重建 fiber。所以用 `.volatile()` 标记，变化时只更新引用。
 
 ```
-配置 diff → volatile-only → updateVolatile + emit
+配置 diff → 只有 volatile 变？ → updateVolatile + emit（不重挂）
+          → 普通值也变？       → 走普通更新（重挂）
 ```
+
+**为什么这样**：重挂的代价是状态丢失 + fiber 重建；volatile 只换引用，代价小。
 
 ### 细节实现
 

@@ -10,11 +10,14 @@ loader 条目未加载完时，依赖者保持 pending（await 拦截）。
 
 ### 宏观想法
 
-loader 条目未加载完时，依赖者保持 pending（await 拦截）。
+loader 条目未加载完时，依赖它的插件**不能启动**（否则服务缺失）。所以 `Service.check` 返回 false，依赖者保持 pending。
 
 ```
-getTasks() → Service.check → pending
+loader 加载中 → getTasks() 非空 → Service.check = false → 依赖者 pending
+加载完 → getTasks() 空 → check = true → 依赖者启动
 ```
+
+**为什么这样**：不等的话，依赖者会拿到 undefined 服务，启动即失败。
 
 ### 细节实现
 

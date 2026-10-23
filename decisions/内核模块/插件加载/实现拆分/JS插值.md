@@ -10,11 +10,13 @@
 
 ### 宏观想法
 
-配置里的 !!js 表达式在条目激活时求值（树载体 Group/Include 跳过）。
+`!!js` 表达式依赖 `ctx`（运行时上下文），**不能在解析时求值**——必须等条目激活、有 ctx 时再算。
 
 ```
-YAML 解析 → __jsExpr → evaluate(ctx)
+YAML 解析 → { __jsExpr }（存表达式）→ 条目激活 → evaluate(ctx)
 ```
+
+**为什么树载体跳过**：Group/Include 的 config 是**子条目的配置**，属于子条目自己的 fiber，不能在父层求值。
 
 ### 细节实现
 

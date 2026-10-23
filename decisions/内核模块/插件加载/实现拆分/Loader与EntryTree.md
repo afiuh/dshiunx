@@ -10,11 +10,15 @@ Loader 拥有 entry 树 + 持久化钩子。
 
 ### 宏观想法
 
-Loader 是 EntryTree 的子类，拥有 entry 树 + 持久化钩子（`write()` 由子类实现）。
+Loader 需要 entry 树 + 配置写回，但**持久化方式不同**（Loader 是内存，Include 是文件）。所以 EntryTree 是抽象类（树操作通用），`write()` 由子类实现。
 
 ```
-entry 树操作（create/update/remove）→ 写回配置
+EntryTree（抽象：树操作 create/update/remove）
+  ├── Loader（内存，write 是 no-op）
+  └── Include（文件，write 原子写回）
 ```
+
+**为什么这样**：树操作（`create`/`remove`/`update`/`resolve`）对所有载体都一样，只有"写回"不同——抽象类避免重复，子类只管持久化。
 
 ### 细节实现
 
