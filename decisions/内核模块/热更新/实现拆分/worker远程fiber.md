@@ -8,8 +8,23 @@
 
 ## 准备怎么实现
 
-- **单 cordis + 远程 fiber**（不选多 cordis 主从）：多 cordis 成本翻倍（registry/loader/HMR 两套）
-- **worker 只跑代码**：没有 cordis，ctx 是 RPC 代理
+### 宏观想法
+
+worker 插件也要能热更，且不重启 worker——**单 cordis + 远程 fiber**：主进程有 fiber，worker 只跑代码，ctx 是 RPC 代理。
+
+```
+主进程：唯一 cordis（fiber/服务/事件）
+  └── worker：只跑插件代码 + 持有 native 句柄
+```
+
+### 细节实现
+
+1. **远程 fiber**：插件在主进程有 fiber；`ctx` 是 RPC 代理（`get`/`provide`/`emit`/`effect`/`dispose`）
+2. **生命周期在主进程**：服务/事件全在主进程，worker 不维护 cordis
+3. **HMR 一套**：主进程检测变更 → 通知 worker 重新 `import` → 主进程重建 fiber
+4. **worker 内 HMR**：`--expose-internals` + `loadCache.delete` + 重新 import（已验证，2026-10-22）
+5. **为什么不选多 cordis 主从**：registry/loader/HMR 都要维护两套，成本翻倍
+
 
 ## 架构
 
