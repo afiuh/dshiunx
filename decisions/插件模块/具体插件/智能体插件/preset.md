@@ -44,6 +44,26 @@
 3. preset 的 `isolate`：只隔离 `planMode` / `compaction` / `toolResultPruner` / `workflowEngine`
 4. `agent-preset-registry` 的 `default: standard`
 
+## 模式分析结论（来自历史讨论）
+
+| preset | 适用场景 | 不适用 |
+|---|---|---|
+| Standard | **主力**（长会话、多阶段、用户主导设计、多工具链） | — |
+| PTC | 批量数据（`run_code` / `workflow-ptc` / `tool-workflow`） | 日常对话 |
+| Minimal | 极简测试（bash + readImage + compaction） | **日常长任务**（去掉工具指导/运行时上下文，理解能力不降但上下文支撑少） |
+| Creator | 改造 dshiunx（`tool-cordis` + `plugin-manager` + 开发技能） | 日常使用 |
+
+**关键区分**（来自历史讨论）：
+- 理解能力由模型权重决定，模式改不了
+- 理解表现由上下文/提示决定，模式能改
+- Minimal 去掉的是“干扰”（工具指导/运行时上下文），不是“理解”
+
+## 实验状态（未实施）
+
+- 四模式实验：由用户亲自设计（`理解能力与Minimal实验.md`）
+- 实验计划：A（纯 Minimal）/ B（Minimal + 协作契约）/ C（Standard）
+- 测试问题集 v1：`decisions/Agent模式/test-questions/`
+
 ## 检查
 
 - 包 diff 无差异
