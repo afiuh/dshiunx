@@ -22,6 +22,11 @@ preset-registry → 4 个 preset → 插件列表
 **为什么 4 个**：主力（Standard）/ 批量（PTC）/ 极简（Minimal）/ 改造（Creator）场景不同。
 
 ### 细节实现
+
+1. 4 个 preset 与 DSH 一致（除 Windows PowerShell）
+2. `tool-schedule` 在 standard/ptc/creator preset（不在宿主层）
+3. preset 的 `isolate`：只隔离 `planMode` / `compaction` / `toolResultPruner` / `workflowEngine`
+4. `agent-preset-registry` 的 `default: standard`
 ## 配置项
 
 ### `dsh-agent-preset`（`PresetDefinition`，`src/index.ts:9`）
@@ -50,12 +55,6 @@ preset-registry → 4 个 preset → 插件列表
 | Minimal | 3 | 极简 | bash + readImage + compaction |
 | Creator | 4 | 改造 dshiunx | 全工具 + `tool-cordis` |
 
-## 决策
-
-1. 4 个 preset 与 DSH 一致（除 Windows PowerShell）
-2. `tool-schedule` 在 standard/ptc/creator preset（不在宿主层）
-3. preset 的 `isolate`：只隔离 `planMode` / `compaction` / `toolResultPruner` / `workflowEngine`
-4. `agent-preset-registry` 的 `default: standard`
 
 ## 模式分析结论（来自历史讨论）
 

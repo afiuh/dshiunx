@@ -20,6 +20,10 @@ bin/dx.ts 的静态依赖树 = externals → 变更 → loader.exit() 全量重�
 
 ### 细节实现
 
+1. externals 变更 → `loader.exit()` 全量重启（`hmr/src/index.ts:58/61`）
+2. 当前 externals：`bin/dx.ts` 的静态依赖树
+3. 扩展方向：缩小 externals（引导代码最小化）
+
 1. **收集 externals**：启动时从入口 `mainJob.linked` 递归收集（`loadDependencies(mainJob)`，`hmr/src/index.ts:117`）
 2. **检查**：`change` 时 `externals.has(url)`（`:136`）→ `loader.exit()` 全量重启
 3. **为什么是入口**：`bin/dx.ts` 是引导代码，改它等于改框架，插件级重载不够
@@ -31,11 +35,6 @@ bin/dx.ts 的静态依赖树 = externals → 变更 → loader.exit() 全量重�
 - 源码：`packages/cordis-plugin-hmr/src/index.ts` 的 externals 判断
 - 入口：`bin/dx.ts` 的静态依赖树
 
-## 决策
-
-1. externals 变更 → `loader.exit()` 全量重启（`hmr/src/index.ts:58/61`）
-2. 当前 externals：`bin/dx.ts` 的静态依赖树
-3. 扩展方向：缩小 externals（引导代码最小化）
 
 ## 边界
 

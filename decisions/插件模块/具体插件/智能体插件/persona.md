@@ -19,6 +19,11 @@ prefix → system-prompt 分区
 **为什么配置层**：换角色 = 改配置或加 persona 插件，不用改内核。
 
 ### 细节实现
+
+1. 角色属于配置/插件层（历史决策）
+2. base 的 `personaPrefix: ''`（默认，无角色）
+3. minimal preset 的 persona：`prefix: 'You are a helpful software engineer assistant.'`、`complete: true`、`includeRuntimeContext: false`
+4. 换角色 = 改配置或加 persona 插件
 ## 配置项（`dsh-persona` 的 `Config`，`src/index.ts:49`）
 
 | 字段 | 默认 | 说明 |
@@ -27,12 +32,6 @@ prefix → system-prompt 分区
 | `complete` | `false` | 设为 true 时，prefix 成为完整系统提示（抑制 suffix 和其他分区） |
 | `includeRuntimeContext` | `true` | 是否包含 runtime context |
 
-## 决策
-
-1. 角色属于配置/插件层（历史决策）
-2. base 的 `personaPrefix: ''`（默认，无角色）
-3. minimal preset 的 persona：`prefix: 'You are a helpful software engineer assistant.'`、`complete: true`、`includeRuntimeContext: false`
-4. 换角色 = 改配置或加 persona 插件
 
 ## 边界
 

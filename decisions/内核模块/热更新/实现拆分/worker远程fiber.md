@@ -21,6 +21,12 @@ worker 插件也要能热更，且不重启 worker——**单 cordis + 远程 fi
 
 ### 细节实现
 
+1. 插件在主进程有 fiber；`ctx` 是 RPC 代理（`get` / `provide` / `emit` / `effect` / `dispose`）
+2. 生命周期、服务、事件全在主进程
+3. HMR 只有一套：主进程检测变更 → 通知 worker 重新 `import` → 主进程重建 fiber
+4. worker 只负责“执行代码 + 持有 native 句柄”
+5. worker 内 HMR 已验证可行（`--expose-internals` + `loadCache.delete` + 重新 import）
+
 1. **远程 fiber**：插件在主进程有 fiber；`ctx` 是 RPC 代理（`get`/`provide`/`emit`/`effect`/`dispose`）
 2. **生命周期在主进程**：服务/事件全在主进程，worker 不维护 cordis
 3. **HMR 一套**：主进程检测变更 → 通知 worker 重新 `import` → 主进程重建 fiber
@@ -43,13 +49,6 @@ worker 插件也要能热更，且不重启 worker——**单 cordis + 远程 fi
 - DSH：`plugin-manager` README（安装审批替代运行时隔离）
 - 原型：2026-10-22 worker HMR 验证（`--expose-internals`）
 
-## 决策
-
-1. 插件在主进程有 fiber；`ctx` 是 RPC 代理（`get` / `provide` / `emit` / `effect` / `dispose`）
-2. 生命周期、服务、事件全在主进程
-3. HMR 只有一套：主进程检测变更 → 通知 worker 重新 `import` → 主进程重建 fiber
-4. worker 只负责“执行代码 + 持有 native 句柄”
-5. worker 内 HMR 已验证可行（`--expose-internals` + `loadCache.delete` + 重新 import）
 
 ## 为什么 DSH 没有 worker 插件机制
 

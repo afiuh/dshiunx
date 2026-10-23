@@ -19,6 +19,11 @@ personaPrefix → harness:identity → runtime:context → 工具指导
 **为什么分区**：每部分可独立开关/覆盖（scoped section），不写死。
 
 ### 细节实现
+
+1. `personaPrefix: ''`（与 DSH 一致）
+2. `includeHarnessIdentity: true`（默认）
+3. `includeRuntimeContext: true`（默认）
+4. `personaPrefix` 是模板：`{{variable}}` 严格插值
 ## 配置项（`dsh-system-prompt` 的 `Config`，`src/index.ts:258`）
 
 | 字段 | 默认 | 我们的配置 |
@@ -38,12 +43,6 @@ personaPrefix → harness:identity → runtime:context → 工具指导
 | `runtime:context` | `includeRuntimeContext` |
 | `deployment:persona-suffix` | `personaSuffix` |
 
-## 决策
-
-1. `personaPrefix: ''`（与 DSH 一致）
-2. `includeHarnessIdentity: true`（默认）
-3. `includeRuntimeContext: true`（默认）
-4. `personaPrefix` 是模板：`{{variable}}` 严格插值
 
 ## 与 DSH 一致
 

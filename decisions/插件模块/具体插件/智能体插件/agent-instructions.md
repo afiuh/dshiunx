@@ -19,6 +19,9 @@ cwd → 向上找 AGENTS.md → 注入
 **为什么向上**：项目指令在根目录，但 cwd 可能在子目录。
 
 ### 细节实现
+
+1. `maxBytes: 65536`（与 DSH 一致）
+2. base + preset 重复挂载（与 DSH 一致）
 ## 配置项
 
 | 字段 | 我们的配置 |
@@ -32,10 +35,6 @@ cwd → 向上找 AGENTS.md → 注入
 3. 指令版本缓存（`InstructionVersionCache`）
 4. 用户消息的 context payload 去重（`sameContextPayload`）
 
-## 决策
-
-1. `maxBytes: 65536`（与 DSH 一致）
-2. base + preset 重复挂载（与 DSH 一致）
 
 ## 边界
 
