@@ -29,6 +29,7 @@ prefix → system-prompt 分区
 | 字段 | 默认 | 说明 |
 |---|---|---|
 | `prefix` | 必填 | persona 文本（模板，`{{variable}}` 严格插值） |
+| `suffix` | `''` | persona 后缀（`deployment:persona-suffix` 分区） |
 | `complete` | `false` | 设为 true 时，prefix 成为完整系统提示（抑制 suffix 和其他分区） |
 | `includeRuntimeContext` | `true` | 是否包含 runtime context |
 
