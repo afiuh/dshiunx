@@ -2,7 +2,13 @@
 
 **父级**：[智能体插件](./智能体插件.md)
 
-## 宏观想法
+## 为什么需要
+
+项目指令（AGENTS.md）加载：从 cwd 向上查找，注入系统提示。
+
+## 准备怎么实现
+
+### 宏观想法
 
 项目指令（AGENTS.md）加载：从 cwd 向上查找，注入系统提示。
 
@@ -10,14 +16,7 @@
 cwd → 向上找 AGENTS.md → 注入
 ```
 
-## 负责什么
-
-项目指令（AGENTS.md）加载：从 cwd 向上查找，注入系统提示。
-
-## 相关源码
-
-`packages/dsh-agent-instructions/src/index.ts`
-
+### 细节实现
 ## 配置项
 
 | 字段 | 我们的配置 |
@@ -47,3 +46,7 @@ cwd → 向上找 AGENTS.md → 注入
 
 - `maxBytes: 65536`（超长截断）
 - 向上查找直到根目录
+
+## 参考什么
+
+`packages/dsh-agent-instructions/src/index.ts`

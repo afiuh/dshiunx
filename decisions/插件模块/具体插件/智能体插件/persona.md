@@ -2,7 +2,13 @@
 
 **父级**：[智能体插件](./智能体插件.md)
 
-## 宏观想法
+## 为什么需要
+
+角色/人格：给系统提示加 prefix（`deployment:persona-prefix` 分区）。
+
+## 准备怎么实现
+
+### 宏观想法
 
 角色/人格：给系统提示加 prefix（`deployment:persona-prefix` 分区）。
 
@@ -10,14 +16,7 @@
 prefix → system-prompt 分区
 ```
 
-## 负责什么
-
-角色/人格：给系统提示加 prefix（`deployment:persona-prefix` 分区）。
-
-## 相关源码
-
-`packages/dsh-persona/src/index.ts`
-
+### 细节实现
 ## 配置项（`dsh-persona` 的 `Config`，`src/index.ts:49`）
 
 | 字段 | 默认 | 说明 |
@@ -44,3 +43,7 @@ prefix → system-prompt 分区
 
 - `prefix` 是模板：`{{variable}}` 严格插值（未定义变量报错）
 - `complete: true` 时，prefix 成为完整系统提示
+
+## 参考什么
+
+`packages/dsh-persona/src/index.ts`

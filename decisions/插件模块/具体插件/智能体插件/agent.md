@@ -1,8 +1,17 @@
-# agent / agent-loop
+# agent
 
 **父级**：[智能体插件](./智能体插件.md)
 
-## 宏观想法
+## 为什么需要
+
+| 包 | 职责 |
+|---|---|
+| `dsh-agent` | Agent 服务（`ctx.agent`）：创建/恢复/注册 agent |
+| `dsh-agent-loop` | Agent 循环：turn 驱动、工具调用、config 启动 |
+
+## 准备怎么实现
+
+### 宏观想法
 
 Agent 服务（`ctx.agents`）+ Agent 循环（turn 驱动、工具调用）。
 
@@ -10,13 +19,7 @@ Agent 服务（`ctx.agents`）+ Agent 循环（turn 驱动、工具调用）。
 用户消息 → agent-loop → 模型 → 工具 → 循环
 ```
 
-## 职责
-
-| 包 | 职责 |
-|---|---|
-| `dsh-agent` | Agent 服务（`ctx.agent`）：创建/恢复/注册 agent |
-| `dsh-agent-loop` | Agent 循环：turn 驱动、工具调用、config 启动 |
-
+### 细节实现
 ## 具体决策
 
 ### dsh-agent 服务接口
@@ -50,3 +53,7 @@ Agent 服务（`ctx.agents`）+ Agent 循环（turn 驱动、工具调用）。
 ## 与 DSH 一致
 
 - 包 diff 无差异
+
+## 参考什么
+
+

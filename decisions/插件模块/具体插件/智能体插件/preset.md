@@ -1,8 +1,17 @@
-# preset（四模式）
+# preset
 
 **父级**：[智能体插件](./智能体插件.md)
 
-## 宏观想法
+## 为什么需要
+
+| 包 | 职责 |
+|---|---|
+| `dsh-agent-preset` | preset 定义（插件组合） |
+| `dsh-agent-preset-registry` | preset 注册表（管理 4 个 preset，`ctx.agentPresets`） |
+
+## 准备怎么实现
+
+### 宏观想法
 
 4 个 preset 是「插件组合的预设」，通过 agent-preset 挂载。
 
@@ -10,13 +19,7 @@
 preset-registry → 4 个 preset → 插件列表
 ```
 
-## 职责
-
-| 包 | 职责 |
-|---|---|
-| `dsh-agent-preset` | preset 定义（插件组合） |
-| `dsh-agent-preset-registry` | preset 注册表（管理 4 个 preset，`ctx.agentPresets`） |
-
+### 细节实现
 ## 配置项
 
 ### `dsh-agent-preset`（`PresetDefinition`，`src/index.ts:9`）
@@ -76,3 +79,7 @@ preset-registry → 4 个 preset → 插件列表
 
 - 包 diff 无差异
 - preset 完整对比：standard 32/33、ptc 33/34、minimal 10/12、creator 33/34（差异都是 Windows PowerShell）
+
+## 参考什么
+
+
