@@ -17,7 +17,7 @@ worker 插件也要能热更，且不重启 worker——**单 cordis + 远程 fi
   └── worker：只跑插件代码 + 持有 native 句柄
 ```
 
-**为什么不选多 cordis 主从**：registry/loader/HMR 都要维护两套，成本翻倍。
+**为什么不选多 cordis 主从**：registry/loader/HMR 都要维护两套，成本翻倍。（**规划，无源码**：2026-10-22 原型验证 worker 内 HMR 可行）
 
 ### 细节实现
 
