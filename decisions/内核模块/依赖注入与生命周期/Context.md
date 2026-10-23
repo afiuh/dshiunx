@@ -20,8 +20,8 @@
 ## 决定
 
 1. **root 唯一**：`ctx.root` 指向根上下文；所有子 ctx 共享同一个 root。
-2. **子 ctx 用原型继承**：`extend(meta)` 用 `Object.create(this)` + 自有属性覆盖，**不修改父**。
-3. **isolate 是服务作用域**：`isolate(name, label)` 创建独立的服务查找 scope；同名 label 的两个 isolate 合并作用域。
+2. **子 ctx 用原型继承**：`extend(meta)` 用 `Object.create(self)` + `Object.assign` 覆盖，**不修改父**；保留 `symbols.shadow`（决策 8）。
+3. **isolate 是服务作用域**：`isolate(name, label?: symbol)` 创建独立的服务查找 scope；同名 label（**symbol**，不是字符串）的两个 isolate 合并作用域。
 4. **intercept 是服务配置拦截**：`intercept(name, config)` 把配置合并到下层插件的服务解析中，不影响父。
 5. **baseUrl 是模块解析基准**：每个 entry 可以有自己的 baseUrl，用于解析相对模块说明符。
 6. **子 scope 不强制继承 root**（D40 修正）：服务查找是全局 store（按 isolate 标签），`owner = ctx` 也能看到宿主服务；`ctx.root` 补偿已回滚（2026-10-23）。
