@@ -14,7 +14,7 @@
 
 | 字段 | 我们的配置 |
 |---|---|
-| `maxBytes` | `65536` |
+| `maxBytes`（`src/index.ts`） | `65536` |
 
 ## 行为（`src/index.ts:87`）
 

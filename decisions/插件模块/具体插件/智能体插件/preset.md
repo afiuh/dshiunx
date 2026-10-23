@@ -30,7 +30,7 @@
 
 ## 四模式
 
-| preset | order | 用途 | 工具集 |
+| preset | order（`bundles/presets/*/cordis.patch.yml:5`） | 用途 | 工具集 |
 |---|---:|---|---|
 | Standard | 1 | 主力 | 全工具 |
 | PTC | 2 | 批量任务 | 全工具 + `workflow-ptc` |
