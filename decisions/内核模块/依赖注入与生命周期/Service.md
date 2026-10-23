@@ -26,10 +26,10 @@ Service 基类、生命周期符号、callable：一个“服务”是什么样�
    - `Service.invoke`：让服务实例可调用（如 `ctx.logger()`）
    - `Service.config`：intercept 配置的幻影类型
    - `Service.extend`：派生一个扩展实例，不修改原实例
-4. **isolate 语义**：`[symbols.filter]` 比较 `ctx[isolate][name]` 是否一致；不同 scope 的同名服务互不可见。
-5. **intercept 配置合并**：`resolveConfig` 沿原型链收集祖先配置，**根先、base 前、head 后**；有 `Config.merge` 用之，否则浅合并。
+4. **isolate 语义**：`[symbols.filter]` 比较 `ctx[isolate][name] === this.ctx[isolate][name]`（`service.ts:63-64`）；不同 scope 的同名服务互不可见。
+5. **intercept 配置合并**：`resolveConfig` 沿 intercept 原型链收集祖先配置（`unshift` 根先），**根先、base 前、head 后**；有 `Config.merge` 用之，否则 `Object.assign` 浅合并（`service.ts:88-105`）。
 6. **不做版本检查**：Service 注册不看版本号（核心战略 P7）。
-7. **跨代理 instanceof**：`Service[Symbol.hasInstance]` 沿 constructor 原型链查找，代理对象也能正确判断。
+7. **跨代理 instanceof**：`Service[Symbol.hasInstance]` 沿 constructor 原型链查找（`service.ts:106`），代理对象也能正确判断。
 8. **symbol 索引签名**：`Service` 声明 `[key: symbol]: any`，支持 `init` / `check` / `config` / `invoke` 等生命周期符号。
 
 ## 验收
