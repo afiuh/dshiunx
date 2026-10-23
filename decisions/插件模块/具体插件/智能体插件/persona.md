@@ -10,11 +10,13 @@
 
 ### 宏观想法
 
-角色/人格：给系统提示加 prefix（`deployment:persona-prefix` 分区）。
+角色/人格 = 给系统提示加 prefix（`deployment:persona-prefix` 分区）——**配置层**，不是内核。
 
 ```
 prefix → system-prompt 分区
 ```
+
+**为什么配置层**：换角色 = 改配置或加 persona 插件，不用改内核。
 
 ### 细节实现
 ## 配置项（`dsh-persona` 的 `Config`，`src/index.ts:49`）

@@ -10,11 +10,13 @@
 
 ### 宏观想法
 
-系统提示拼装：persona / harness identity / runtime context / 项目指令。
+系统提示**拼装**：persona / harness identity / runtime context / 项目指令——分区，可单独开关。
 
 ```
 personaPrefix → harness:identity → runtime:context → 工具指导
 ```
+
+**为什么分区**：每部分可独立开关/覆盖（scoped section），不写死。
 
 ### 细节实现
 ## 配置项（`dsh-system-prompt` 的 `Config`，`src/index.ts:258`）

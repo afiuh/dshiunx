@@ -13,11 +13,13 @@
 
 ### 宏观想法
 
-4 个 preset 是「插件组合的预设」，通过 agent-preset 挂载。
+4 个 preset 是**插件组合的预设**（Standard/PTC/Minimal/Creator）——不同场景用不同组合。
 
 ```
 preset-registry → 4 个 preset → 插件列表
 ```
+
+**为什么 4 个**：主力（Standard）/ 批量（PTC）/ 极简（Minimal）/ 改造（Creator）场景不同。
 
 ### 细节实现
 ## 配置项
