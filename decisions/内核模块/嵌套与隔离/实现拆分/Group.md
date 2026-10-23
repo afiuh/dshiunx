@@ -10,11 +10,13 @@
 
 ### 宏观想法
 
-group 插件把 config 数组挂成子 entries（递归创建/删除）。
+插件套插件用 **group 插件**（`cordis:group`），不是内核特判——因为"一切皆插件"（P2）。
 
 ```
-Group.init → update(config) → 子 entries
+Group.init → update(config) → 子 entries（递归）
 ```
+
+**为什么用插件**：group 本身是插件，可替换/裁剪；内核不需要知道"嵌套"是什么。
 
 ### 细节实现
 

@@ -10,11 +10,13 @@
 
 ### 宏观想法
 
-ctx.isolate(name, label) 创建独立服务 scope；同名 label 合并。
+服务要**隔离**（不同 scope 的同名服务互不可见），但同 label 要**共享**。所以 `ctx.isolate(name, label)` 创建独立 scope。
 
 ```
-isolate(name, label) → 新 isolate map → scope
+isolate(name, label?: symbol) → 新 isolate map → scope
 ```
+
+**为什么 label 是 symbol**：symbol 全局唯一，避免字符串冲突；同 symbol 合并作用域。
 
 ### 细节实现
 

@@ -10,11 +10,13 @@ isolate map 变更时的七步流程。
 
 ### 宏观想法
 
-isolate map 变更时的七步流程（生成 → diff → swap → reload → 迁移 → notify → 清理）。
+isolate map 变更时，服务实现要**迁移**到新 scope——七步保证不丢服务。
 
 ```
-patch-context → 7 steps
+patch-context → 生成新 map → diff → swap → reload fiber → 迁移实现 → notify → 清理
 ```
+
+**为什么七步**：服务实现挂在旧 map 上，直接换 map 会丢；必须迁移 + 通知依赖者。
 
 ### 细节实现
 

@@ -10,11 +10,13 @@ realm 的创建/合并/垃圾回收。
 
 ### 宏观想法
 
-realm 的创建/合并/垃圾回收（按 label 管理服务实现）。
+isolate 的服务实现要**按 label 管理生命周期**——label 没有 entry 引用时回收。
 
 ```
-isolate → Realm → partial-dispose → GC
+isolate → Realm（Local/Global）→ partial-dispose → GC
 ```
+
+**为什么按 label**：同 label 的 entry 共享服务实现，一个 label 一个 realm。
 
 ### 细节实现
 
