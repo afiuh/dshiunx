@@ -20,7 +20,7 @@ isolate(name, label?: symbol) → 新 isolate map → scope
 
 ### 细节实现
 
-1. **isolate 插件**（`isolate.ts:71`）：`ctx.isolate(name, label?: symbol)` 创建独立的服务 scope；同名 label 合并作用域
+1. **isolate 插件**（`isolate.ts:71`）：处理 `entry.options.isolate`（`Dict<true | string>`）——`true` → `LocalRealm`；`string` → `GlobalRealm`（按 label 合并）。**不是** `ctx.isolate`（symbol，Context 层，见决策 4）
 2. **子 scope 不强制继承 root**（D40 修正）：服务查找是全局 store（按 isolate 标签），`owner = ctx` 也能看到宿主服务
 3. **Realm 两种**：
    - `LocalRealm`：`isolate: { name: true }`，suffix `#<entryId>`，本 entry 独有
