@@ -218,6 +218,22 @@
     searchTimeoutMs: 60000
 - id: mcp-resources
   name: '@deepseek-ai/dsh-mcp-resources'
+- id: lsp
+  name: '@deepseek-ai/dsh-lsp'
+- id: lsp-stdio
+  name: '@deepseek-ai/dsh-lsp-stdio'
+  config:
+    servers:
+      typescript:
+        command: /mnt/data/AI自由工作区/dshiunx/node_modules/.bin/typescript-language-server
+        args: ['--stdio']
+        extensionToLanguage:
+          '.ts': typescript
+          '.tsx': typescriptreact
+          '.js': javascript
+          '.jsx': javascriptreact
+- id: tool-lsp
+  name: '@deepseek-ai/dsh-tool-lsp'
 - id: tools
   name: '@deepseek-ai/dsh-tools'
 - id: system-prompt

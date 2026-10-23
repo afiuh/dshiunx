@@ -16,7 +16,8 @@
     "dependency-cruiser": "^18.7.0",
     "ts-morph": "^28.0.0",
     "tsx": "^4.20.0",
-    "typescript": "^5.9.0"
+    "typescript": "^5.9.0",
+    "typescript-language-server": "^6.0.2"
   },
   "dependencies": {
     "@alcalzone/ansi-tokenize": "^0.3.0",
