@@ -10,11 +10,13 @@
 
 ### 宏观想法
 
-插件注册表：插件形状 → runtime → fiber（`ctx.plugin()`）。
+插件注册表：插件形状 → runtime → fiber（`ctx.plugin()`）。**runtime 以 callback 为键**——同一插件多次挂载共享一个 runtime（fibers 列表 + Config）。
 
 ```
 plugin 形状 → resolve → Runtime → Fiber
 ```
+
+**为什么以 callback 为键**：同一插件可以挂载多次（多个 fiber），但 Config schema 共享。
 
 ### 细节实现
 ## 讨论链
