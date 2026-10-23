@@ -18,7 +18,7 @@
 
 ## 决策
 
-1. 清 ESM `loadCache` + CJS `require.cache`
+1. 清 ESM `loadCache` + CJS `require.cache`（`hmr/src/index.ts:254`）
 2. 重新 `loader.import` 插件入口
 3. `registry.delete(plugin)` + 用新 plugin 重建 fiber
 4. 原子重载单元 = 插件入口文件

@@ -18,7 +18,7 @@
 
 ## 决策
 
-1. externals 变更 → `loader.exit()` 全量重启
+1. externals 变更 → `loader.exit()` 全量重启（`hmr/src/index.ts:58/61`）
 2. 当前 externals：`bin/dx.ts` 的静态依赖树
 3. 扩展方向：缩小 externals（引导代码最小化）
 
