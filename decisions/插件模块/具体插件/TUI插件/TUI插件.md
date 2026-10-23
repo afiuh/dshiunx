@@ -18,6 +18,13 @@ TUI 是界面的一种（和 Web renderer 并列），先做是因为**界面最
 
 ## 准备怎么实现（核心决策 + 为什么）
 
+### 细节实现
+
+1. TUI 是插件（`@dshiunx/tui`），通过 `tui` group 挂载
+2. 状态管理用 Zustand（`tui-store`），不放在 TUI 插件内
+3. TUI 只读状态 + 渲染，不修改业务（边界）
+4. `dsh-tui`（20 万行）是参考源码，不启用
+
 | 决策 | 选了什么 | 不选什么 | 为什么 |
 |---|---|---|---|
 | 形态 | `tui` group（`cordis:group`） | 单个大插件 | 一切皆插件（P2），可裁剪 |
@@ -44,12 +51,6 @@ TUI 是界面的一种（和 Web renderer 并列），先做是因为**界面最
 | [插件化](./实现拆分/插件化.md) | 重写屏幕（ChatView + 组件分层） |
 | [待打磨](./实现拆分/待打磨.md) | 5 项（ChatStore 字段 / 14 空回调 / AnyMessageList） |
 
-## 决策（基础）
-
-1. TUI 是插件（`@dshiunx/tui`），通过 `tui` group 挂载
-2. 状态管理用 Zustand（`tui-store`），不放在 TUI 插件内
-3. TUI 只读状态 + 渲染，不修改业务（边界）
-4. `dsh-tui`（20 万行）是参考源码，不启用
 
 ## 边界
 
