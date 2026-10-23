@@ -10,6 +10,14 @@
 
 - 源码：`packages/cordis-plugin-loader/src/config/isolate.ts`
 
+## 宏观想法
+
+ctx.isolate(name, label) 创建独立服务 scope；同名 label 合并。
+
+```
+isolate(name, label) → 新 isolate map → scope
+```
+
 ## 决策
 
 1. **isolate 插件**（`isolate.ts:71`）：`ctx.isolate(name, label?: symbol)` 创建独立的服务 scope；同名 label 合并作用域

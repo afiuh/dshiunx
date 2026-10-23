@@ -11,6 +11,14 @@
 - 源码：`packages/cordis-plugin-group/src/`
 - 源码：`packages/cordis-plugin-loader/src/config/group.ts`
 
+## 宏观想法
+
+group 插件把 config 数组挂成子 entries（递归创建/删除）。
+
+```
+Group.init → update(config) → 子 entries
+```
+
 ## 决策
 
 1. **EntryGroup**（`group.ts:6`）：一个 group 的子 entry 列表；`update(config)` 递归创建/删除子 entries

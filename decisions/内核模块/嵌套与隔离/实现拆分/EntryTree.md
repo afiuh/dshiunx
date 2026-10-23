@@ -10,6 +10,14 @@ entry 的树形存储 + 路径解析。
 
 - 源码：`packages/cordis-plugin-loader/src/config/tree.ts`
 
+## 宏观想法
+
+entry 的树形存储 + 路径解析（`父:子` 逐层下降）。
+
+```
+entries[] → 树 → resolve("a:b:c")
+```
+
 ## 决策
 
 1. **EntryTree**（`tree.ts:7`）：entry 的树形存储 + 遍历（`entries` / `resolve` / `create` / `update` / `remove`）
