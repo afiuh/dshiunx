@@ -6,14 +6,19 @@
 
 插件按什么维度分类，每类的边界和契约。
 
+## 相关源码
+
+`packages/bundle-arch/catalog.yml`（自动生成）、`scripts/gen-catalog.mjs`（分类规则）
+
 ## 决策
 
-1. **分类维度**（按职责）：
-   - **运行时**：agent / agent-loop / llm / session / storage / tools（系统核心）
-   - **工具**：tool-fs / tool-bash / tool-web / subagent / subprocess（给 agent 用）
-   - **界面**：tui / tui-* / LayoutTree / Web renderer（呈现）
-   - **角色**：persona / preset（配置）
-   - **装配**：bundle / profile / entries（组合）
+1. **分类维度**（按职责，6 类）：
+   - **内核**（kernel）：cordis / loader / group / include / hmr / timer / cosmokit
+   - **运行时**（runtime）：agent / agent-loop / llm / session / storage / tools / fs / subprocess / shell
+   - **工具**（tool）：tool-fs / tool-bash / tool-web / subagent / subprocess / skill / command / goal
+   - **智能体**（agent）：agent-preset / persona / system-prompt / agent-instructions
+   - **界面**（ui）：tui / tui-protocol / tui-status / tui-core / tui-commands / tui-overlays / tui-keyboard
+   - **装配**（assembly）：plugin-manager / plugin-market / bundle / profile
 
 2. **分类不是隔离**：同一类插件可以互相依赖（工具依赖运行时服务），分类只是“职责归类”，不是“依赖边界”。
 
@@ -21,12 +26,21 @@
 
 4. **角色属于配置/插件层**（历史决策）：persona 是插件，不是内核。
 
+5. **分类自动生成**：`catalog.yml` 由 `gen-catalog.mjs` 按包名推断，不手写。
+
 ## 边界
 
-| 类别 | 边界 |
-|---|---|
-| 运行时 | 提供系统级服务（agent / llm / session） |
-| 工具 | 只给 agent 调用，不直接服务其他插件 |
-| 界面 | 只读状态 + 渲染，不修改业务 |
-| 角色 | 只影响提示词，不影响逻辑 |
-| 装配 | 只组合插件，不实现功能 |
+| 类别 | 边界 | 示例 |
+|---|---|---|
+| 内核 | 只提供机制，不含业务 | cordis / loader |
+| 运行时 | 提供系统级服务（agent / llm / session） | agent / llm / session |
+| 工具 | 只给 agent 调用，不直接服务其他插件 | tool-fs / tool-bash |
+| 智能体 | 只影响提示词/循环，不影响工具 | persona / preset |
+| 界面 | 只读状态 + 渲染，不修改业务 | tui |
+| 装配 | 只组合插件，不实现功能 | plugin-manager |
+
+## 硬约束
+
+- 分类数量：6 类（kernel / runtime / tool / agent / ui / assembly）
+- 分类规则在 `scripts/gen-catalog.mjs` 的 `category()`
+- 新增插件：改 entries → `npm run catalog` → 自动归类
