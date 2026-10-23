@@ -1,1 +1,1 @@
-export * from './chatStore.js'
+export { useChatStore, type ChatStore } from './chatStore.js'

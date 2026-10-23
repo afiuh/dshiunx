@@ -29,6 +29,22 @@ TUI、LayoutTree、Web renderer。
 
 **待修**：修 `Chat.tsx` 的 import 路径，或补 re-export 文件（`dsh-adapter/channel.ts` 导出 `channel-view.ts` 的类型）。
 
+## LSP 定义跳转行为（2026-10-23）
+
+**“停在 import”是 TypeScript 标准行为**，不是工具 bug：
+
+| 步骤 | 位置 |
+|---|---|
+| 在调用处查 definition | 返回最近的 import 语句 |
+| 在 import 行再查 | 到 re-export（`index.ts`） |
+| 再查 | 到源定义（`chatStore.ts`） |
+
+VSCode 同样行为（Cmd+Click 第一次跳到 import）。
+
+**测试方法**：在 import 行查 definition，才能跳到源定义。
+
+**结论**：LSP 工具没问题；`tui-store/src/index.ts` 已改显式 re-export（`export { useChatStore, type ChatStore }`）。
+
 ## 检查状态
 
 - 来源 dsh-TUI（代码水平不高，参考功能不参考结构）
