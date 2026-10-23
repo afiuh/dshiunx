@@ -274,8 +274,6 @@
   name: '@deepseek-ai/dsh-agent-preset-registry'
   config:
     default: standard
-- id: tool-schedule
-  name: '@deepseek-ai/dsh-tool-schedule'
 - id: tool-subagent-model-selection
   name: '@deepseek-ai/dsh-tool-subagent/model-selection-settings'
 - id: web
@@ -339,6 +337,8 @@
         sampleOverCapGlobResults: false
     - id: tool-jobs
       name: '@deepseek-ai/dsh-tool-jobs'
+    - id: tool-schedule
+      name: '@deepseek-ai/dsh-tool-schedule'
     - id: skill-filesystem
       name: '@deepseek-ai/dsh-skill-filesystem'
     - id: tool-skill
@@ -492,6 +492,8 @@
         sampleOverCapGlobResults: false
     - id: tool-jobs
       name: '@deepseek-ai/dsh-tool-jobs'
+    - id: tool-schedule
+      name: '@deepseek-ai/dsh-tool-schedule'
     - id: skill-filesystem
       name: '@deepseek-ai/dsh-skill-filesystem'
     - id: tool-skill
@@ -713,6 +715,8 @@
         sampleOverCapGlobResults: false
     - id: tool-jobs
       name: '@deepseek-ai/dsh-tool-jobs'
+    - id: tool-schedule
+      name: '@deepseek-ai/dsh-tool-schedule'
     - id: command-goal
       name: '@deepseek-ai/dsh-command-goal'
     - id: tool-goal
