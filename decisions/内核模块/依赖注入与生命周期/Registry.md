@@ -1,28 +1,28 @@
 # Registry
 
-**父级**：[依赖注入与生命周期](./依赖注入与生命周期.md)
+**父级**：[依赖注入与生命周期](../依赖注入与生命周期.md)
 
-## 负责什么
+## 为什么需要
 
 `inject` / `provide` / `get`、插件注册、服务查找：把插件、fiber、服务组织起来。
 
-## 相关源码
+## 准备怎么实现
 
-`packages/cordis/src/registry.ts`
-
-## 讨论链
-
-1. 起点：插件有三种形状（函数 / 类 / `{ apply }` 对象），需要统一注册。
-2. 关键判断：同一个插件 callback 可以被多次挂载，但共享一个 runtime 记录。
-3. 收敛：Registry 以 callback 为身份键，维护 `Runtime`（fibers 列表 + Config），每次 `plugin()` 创建一个新 fiber。
-
-## 宏观想法
+### 宏观想法
 
 插件注册表：插件形状 → runtime → fiber（`ctx.plugin()`）。
 
 ```
 plugin 形状 → resolve → Runtime → Fiber
 ```
+
+### 细节实现
+## 讨论链
+
+1. 起点：插件有三种形状（函数 / 类 / `{ apply }` 对象），需要统一注册。
+2. 关键判断：同一个插件 callback 可以被多次挂载，但共享一个 runtime 记录。
+3. 收敛：Registry 以 callback 为身份键，维护 `Runtime`（fibers 列表 + Config），每次 `plugin()` 创建一个新 fiber。
+
 
 ## 决定
 
@@ -51,3 +51,7 @@ plugin 形状 → resolve → Runtime → Fiber
 
 - P1：注册表是内核机制
 - P7：有 `apply` 就能接，没有版本门槛
+
+## 参考什么
+
+`packages/cordis/src/registry.ts`
