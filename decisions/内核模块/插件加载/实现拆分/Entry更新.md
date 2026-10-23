@@ -23,7 +23,9 @@ update(options) → 更新 options（create 整体替换 / 否则增量合并 + 
   → 无 fiber: init()
 ```
 
-## 决策
+## 准备怎么实现
+
+### 细节实现
 
 1. **`Entry.update` 路径**：`create` 时整体替换 options，否则增量合并 + `sortKeys`
 2. `disabled` → dispose fiber

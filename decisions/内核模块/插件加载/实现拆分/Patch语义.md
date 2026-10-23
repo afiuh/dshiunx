@@ -18,7 +18,9 @@
 patches → applyEntryPatches → 最终 entries
 ```
 
-## 决策
+## 准备怎么实现
+
+### 细节实现
 
 1. `applyEntryPatches`（`config/diff.ts`）支持 `insert`（插到 group 或根）
 2. 按 id 覆盖字段
