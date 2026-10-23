@@ -83,4 +83,16 @@ preset-registry → 4 个 preset → 插件列表
 
 ## 参考什么
 
+## 已知限制：creator 的 `tool-cordis` 在 headless 里 waiting（2026-10-24）
 
+**现象**：`verify-presets` 跑 `creator` 时 `tool-cordis: waiting for cordisInspect`。
+
+**原因**：
+- `tool-cordis` 的 `inject: ['tools', 'cordisInspect']`
+- `cordisInspect` 由 `cordis-host-runner` / `cordis-client-runner` 提供
+- 默认 headless bundle **不挂载** `cordis-host-runner`（DSH 也不挂载，`apps/` 里没有）
+- `cordis-host-runner` 的 README："Host halves run in a `node:vm` realm; browser halves use the Client runner and approval UI"
+
+**结论**：与 DSH 一致（DSH 的 creator 在 headless 里也会 waiting）。**暂时接受**。
+
+**如果要补**：挂载 `cordis-host-runner`（提供 `cordisInspect`），让 creator 在 headless 也能用。
