@@ -1,7 +1,7 @@
 # 具体插件
 
 > 用途：盘点现有插件，安排代码检查优化顺序。
-> 更新：2026-10-22
+> 更新：2026-10-23
 
 ---
 
@@ -13,7 +13,7 @@
 | `dsh-*` 插件 | 140 |
 | `tui*` 插件 | 12 |
 | `cordis*` 内核 | 7 |
-| **entries.yml 启用** | **86 个 dsh 包 + 3 个 dshiunx 包**（tui / tui-protocol / tui-status） |
+| **entries.yml 启用** | **98 个 entry**（含 3 个 LSP 包：lsp / lsp-stdio / tool-lsp） |
 | **未启用** | `dsh-tui`（20 万行，参考源码）、`tui-*` 空壳（10 个，0–13 行） |
 
 ---
