@@ -6,6 +6,14 @@
 
 智能体循环、提示词、preset、persona、agent-instructions。
 
+## 子文件
+
+- [agent / agent-loop](./agent.md)
+- [system-prompt](./system-prompt.md)
+- [preset（四模式）](./preset.md)
+- [persona](./persona.md)
+- [agent-instructions](./agent-instructions.md)
+
 ## 包含
 
 | 包 | 职责 |
