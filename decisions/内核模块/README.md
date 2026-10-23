@@ -16,7 +16,7 @@
 | [事件系统](./事件系统/README.md) | waterfall / parallel / serial / bail：插件之间怎么通信 |
 | [日志](./日志/README.md) | `ctx.logger`：级别、格式化、导出 |
 | [时间与调度](./时间与调度/README.md) | `ctx.setTimeout` / `setInterval` / 防抖：生命周期与 HMR 的时间基础 |
-| [插件加载](./插件加载/README.md) | loader / include / 配置校验：配置树怎么读、模块怎么 import、插件怎么实例化 |
+| [插件加载](./插件加载/插件加载.md) | loader / include / 配置校验：配置树怎么读、模块怎么 import、插件怎么实例化 |
 | [嵌套与隔离](./嵌套与隔离/README.md) | group / isolate / scope / EntryTree：插件怎么套插件、服务怎么隔离、子 scope 怎么继承 root |
 | [热更新](./热更新/热更新.md) | HMR：文件变更怎么检测、依赖图怎么分析、模块怎么替换、状态怎么保留 |
 | [工程保障](./工程保障/README.md) | **非运行时机制**：类型严格性、依赖边界、测试策略、API 文档、差异登记 |
