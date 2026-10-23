@@ -11,7 +11,7 @@
 
 ## 配置项
 
-### `dsh-agent-preset`（`PresetDefinition`）
+### `dsh-agent-preset`（`PresetDefinition`，`src/index.ts:9`）
 
 | 字段 | 必填 | 说明 |
 |---|---|---|
@@ -21,7 +21,7 @@
 | `order` | — | 排序 |
 | `plugins` | ✅ | 插件列表 |
 
-### `dsh-agent-preset-registry`
+### `dsh-agent-preset-registry`（`src/index.ts:54`）
 
 | 字段 | 默认 | 我们的配置 |
 |---|---|---|

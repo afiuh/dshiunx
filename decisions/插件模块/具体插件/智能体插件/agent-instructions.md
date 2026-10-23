@@ -16,7 +16,7 @@
 |---|---|
 | `maxBytes` | `65536` |
 
-## 行为
+## 行为（`src/index.ts:87`）
 
 1. 从 cwd 向上查找 `AGENTS.md`（到根目录）
 2. 文件触碰追踪：`read` / `write` / `edit` 的 `file_path` 记录

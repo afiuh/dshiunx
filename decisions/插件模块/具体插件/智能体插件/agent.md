@@ -15,14 +15,14 @@
 
 | 方法 | 作用 |
 |---|---|
-| `createAgent(ownerCtx, options)` | 创建 agent |
-| `resume(ownerCtx, options)` | 恢复 agent |
-| `currentInitiator()` / `requireInitiator()` | 当前发起者 |
-| `setFactory(factory)` | 设置 agent 工厂（返回取消函数） |
-| `register(agent)` | 注册 agent（返回 effect） |
-| `enter(agent, owner)` | 进入 agent 上下文 |
-| `get(id)` / `isOwnedBy(id, owner)` | 查询 |
-| `list()` / `roots()` | 列表 / 根 agent |
+| `createAgent(ownerCtx, options)`（`dsh-agent/src/index.ts:190`） | 创建 agent |
+| `resume(ownerCtx, options)`（`:202`） | 恢复 agent |
+| `currentInitiator()` / `requireInitiator()`（`:297/310`） | 当前发起者 |
+| `setFactory(factory)`（`:360`） | 设置 agent 工厂（返回取消函数） |
+| `register(agent)`（`:439`） | 注册 agent（返回 effect） |
+| `enter(agent, owner)`（`:461`） | 进入 agent 上下文 |
+| `get(id)` / `isOwnedBy(id, owner)`（`:568/580`） | 查询 |
+| `list()` / `roots()`（`:588/598`） | 列表 / 根 agent |
 
 ### dsh-agent-loop
 

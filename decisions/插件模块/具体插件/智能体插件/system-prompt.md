@@ -6,7 +6,7 @@
 
 系统提示拼装：persona / harness identity / runtime context / 项目指令。
 
-## 配置项（`dsh-system-prompt` 的 `Config`）
+## 配置项（`dsh-system-prompt` 的 `Config`，`src/index.ts:258`）
 
 | 字段 | 默认 | 我们的配置 |
 |---|---|---|

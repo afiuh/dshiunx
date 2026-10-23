@@ -10,7 +10,7 @@
 
 `packages/dsh-persona/src/index.ts`
 
-## 配置项（`dsh-persona` 的 `Config`）
+## 配置项（`dsh-persona` 的 `Config`，`src/index.ts:49`）
 
 | 字段 | 默认 | 说明 |
 |---|---|---|
