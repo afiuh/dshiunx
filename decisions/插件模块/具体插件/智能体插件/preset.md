@@ -7,22 +7,42 @@
 | 包 | 职责 |
 |---|---|
 | `dsh-agent-preset` | preset 定义（插件组合） |
-| `dsh-agent-preset-registry` | preset 注册表（管理 4 个 preset） |
+| `dsh-agent-preset-registry` | preset 注册表（管理 4 个 preset，`ctx.agentPresets`） |
+
+## 配置项
+
+### `dsh-agent-preset`（`PresetDefinition`）
+
+| 字段 | 必填 | 说明 |
+|---|---|---|
+| `id` | ✅ | preset id（standard/ptc/minimal/creator） |
+| `name` | — | 显示名 |
+| `description` | — | 描述 |
+| `order` | — | 排序 |
+| `plugins` | ✅ | 插件列表 |
+
+### `dsh-agent-preset-registry`
+
+| 字段 | 默认 | 我们的配置 |
+|---|---|---|
+| `default` | 必填 | `standard` |
+| `selectedDefault` | volatile | 未设置 |
 
 ## 四模式
 
-| preset | 用途 | 工具集 |
-|---|---|---|
-| Standard | 主力 | 全工具 |
-| PTC | 批量任务 | 全工具 + `workflow-ptc` |
-| Minimal | 极简 | bash + readImage + compaction |
-| Creator | 改造 dshiunx | 全工具 + `tool-cordis` |
+| preset | order | 用途 | 工具集 |
+|---|---:|---|---|
+| Standard | 1 | 主力 | 全工具 |
+| PTC | 2 | 批量任务 | 全工具 + `workflow-ptc` |
+| Minimal | 3 | 极简 | bash + readImage + compaction |
+| Creator | 4 | 改造 dshiunx | 全工具 + `tool-cordis` |
 
 ## 决策
 
 1. 4 个 preset 与 DSH 一致（除 Windows PowerShell）
 2. `tool-schedule` 在 standard/ptc/creator preset（不在宿主层）
 3. preset 的 `isolate`：只隔离 `planMode` / `compaction` / `toolResultPruner` / `workflowEngine`
+4. `agent-preset-registry` 的 `default: standard`
 
 ## 检查
 
