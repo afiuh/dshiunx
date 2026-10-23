@@ -62,8 +62,39 @@ entries.yml（所有插件 + preset 配置）
 - 生成：`entries.yml`（单一文件）
 - 好处：保留简单性 + 分层能力
 
-### 建议
+### 改进方案：分层 + 集中索引（用户提出）
 
-1. **现在保持单一 entries.yml**（单产品，简单）
-2. 如果未来要做多产品 / 插件市场，引入“生成”机制（从分层源生成 entries.yml）
-3. **不要现在改成分层**（过度设计）
+**思路**：采用 DSH 的分层（bundle/patch），但加一个“集中索引”文件——两者兼顾。
+
+```
+catalog.yml          ← 集中索引：所有插件（id / name / 类别 / 来源）
+bundles/
+├── base/            ← 基础层（运行时 + 工具）
+├── web-app/         ← Web 层（未来）
+└── presets/         ← preset 层（standard / ptc / minimal / creator）
+profiles/
+└── default/         ← 发行版：选择哪些 bundle
+```
+
+| 文件 | 职责 |
+|---|---|
+| `catalog.yml` | **索引**：有哪些插件、属于哪类、来源；不是最终配置 |
+| `bundles/*` | **分层 patch**：每层插入/覆盖插件（DSH 式） |
+| `profiles/*` | **发行版**：选择 bundle 组合（像 Arch 的不同发行版） |
+| 生成器（可选） | `catalog + bundles + profile → entries.yml` |
+
+**与 DSH 的差异**：DSH 只有 bundle/patch，没有集中索引；我们加 `catalog.yml`——可查、可组合、可生成。
+
+**发行版类比**：
+- Arch：内核 + 包管理，不同发行版（Manjaro / EndeavourOS）选择不同预装
+- 我们：内核 + 插件，不同 profile 选择不同 bundle 组合
+
+**可行性**：可行。`applyEntryPatches` 已支持 patch 叠加；`catalog.yml` 只是索引，不参与运行时；生成器可选（loader 也可以直接应用 patch）。
+
+### 建议（更新）
+
+1. **采用分层 + 集中索引**（用户定的方向）
+2. `catalog.yml` 先建（索引所有插件，便于查询/组合）
+3. `bundles/` 按层拆（base / presets / 未来 web-app）
+4. `profiles/` 作为发行版组合
+5. 生成器按需（先手工，后自动）
