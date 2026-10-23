@@ -31,6 +31,17 @@
 
 **结论**：智能体模块插件化完备。
 
+## preset 完整对比（2026-10-23）
+
+| preset | 我们 | DSH | 差异 |
+|---|---:|---:|---|
+| standard | 32 | 33 | 只缺 `tool-pwsh`（Arch 合理） |
+| ptc | 33 | 34 | 只缺 `tool-pwsh` |
+| minimal | 10 | 12 | 缺 `persistent-pwsh` / `terminal-pwsh`（Windows） |
+| creator | 33 | 34 | 缺 `tool-pwsh`；我们叫 `preset-creator`（DSH 叫 `preset-cordis`） |
+
+**结论**：preset 插件列表与 DSH 一致（除 Windows PowerShell 插件）。
+
 ## 检查状态
 
 - 包级别与 DSH 一致
