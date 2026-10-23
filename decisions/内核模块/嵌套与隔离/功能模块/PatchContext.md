@@ -12,7 +12,7 @@ isolate map 变更时的七步流程。
 
 ## 决策
 
-**`loader/patch-context` 七步**：
+**`loader/patch-context` 七步**（`isolate.ts:96`，step 7 在 `:147`）：
 1. 生成新 isolate map
 2. 计算服务 diff
 3. 设置原型 + swap

@@ -12,6 +12,6 @@ entry 的树形存储 + 路径解析。
 
 ## 决策
 
-1. **EntryTree**：entry 的树形存储 + 遍历（`entries` / `resolve` / `create` / `update` / `remove`）
-2. `resolve(id)` 按 `:` 分段逐层下降
+1. **EntryTree**（`tree.ts:7`）：entry 的树形存储 + 遍历（`entries` / `resolve` / `create` / `update` / `remove`）
+2. `resolve(id)`（`tree.ts:61`）按 `:` 分段逐层下降
 3. **Entry.id**：父 id 前缀拼接（`父:子`），保证树内唯一
