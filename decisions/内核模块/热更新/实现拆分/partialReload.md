@@ -20,7 +20,7 @@
 
 ### 细节实现
 
-1. **清两层缓存**：ESM `loadCache` + CJS `require.cache`（`hmr/src/index.ts:254`）——两种模块格式都要覆盖
+1. **清两层缓存**（`hmr/src/index.ts:314-336`）：ESM `loadCache` + CJS `require.cache`；用 `Map.prototype.delete` 确保 Node 22/23/24 都完全移除——两种模块格式都要覆盖
 2. **重新 import**：`loader.import` 插件入口——拿到新模块
 3. **重建 fiber**：`registry.delete(plugin)` + 用新 plugin 重建（fiber 是生命周期单元）
 4. **原子重载单元 = 插件入口**：深层依赖变更会回溯到入口
