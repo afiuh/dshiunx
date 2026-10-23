@@ -20,10 +20,6 @@
 
 ### 细节实现
 
-1. 插件不得直接 `import` native 模块，必须依赖服务接口
-2. native 实现隔离在服务里，可独立升级/替换
-3. 有状态插件支持 `serialize/restore`
-
 1. **三层边界**：插件 JS / 服务接口 / native 实现（`.node`）
 2. **热更方式**：插件 JS 热更；native 句柄用 `serialize/restore` 传引用；`.node` 升级才重启 worker
 3. **插件约束**：不得直接 `import` native 模块，必须依赖服务接口
