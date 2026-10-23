@@ -129,14 +129,14 @@ worker 只是**进程级隔离**的一种，不是唯一。现有机制分三层
 
 1. **entry 显式配置**：`entries.yml` 的 `isolation: worker`
 2. **插件 manifest**：`isolation: 'worker' | 'none'`
-3. **trust 默认**：AI 生成 / 第三方 → worker；官方 / 手写 → none
+3. **trust 默认**：AI 生成 / 第三方 → **in-process + 风险控制**（加载前测试 / 运行时监控 / 回滚）；worker 只在“纯执行器 / 故障隔离”时用
 4. **运行时策略**：`isolationPolicy` 服务（可配置）
 
 ### 动态调整
 
 | 方向 | 触发 | 行为 |
 |---|---|---|
-| **升级** | 崩溃 N 次 / CPU 超阈值 / 内存超阈值 | 自动从 none 升到 worker |
+| **升级** | 崩溃 N 次 / CPU 超阈值 / 内存超阈值 | 自动从 none 升到 worker（仅当插件是纯执行器/可远程） |
 | **降级** | 不自动（避免抖动） | 由配置显式降级 |
 | **特殊对待** | 白名单 / 黑名单 | 强制 none / 强制 worker |
 
