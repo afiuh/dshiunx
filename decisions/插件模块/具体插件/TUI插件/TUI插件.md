@@ -2,6 +2,10 @@
 
 **父级**：[具体插件](../具体插件.md)
 
+## 为什么需要
+
+TUI 是界面的一种（和 Web renderer 并列），先做是因为**界面最好做**（工程顺序）。
+
 ## 负责什么
 
 TUI 渲染与输入（界面的一种，和 Web renderer 并列，L3 插件）。
@@ -61,3 +65,8 @@ TUI 渲染与输入（界面的一种，和 Web renderer 并列，L3 插件）�
 
 - TUI 不直接调用业务插件（只通过 `tui-store` / 事件）
 - `dsh-tui` 不启用（参考源码）
+
+## 参考什么
+
+- 归档 05/06（TUI 解耦与插件化）
+- 源码：`packages/tui/src/`、`packages/tui-store/src/`
