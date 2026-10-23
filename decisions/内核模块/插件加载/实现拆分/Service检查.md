@@ -21,8 +21,8 @@ loader 加载中 → getTasks() 非空 → Service.check = false → 依赖者 p
 
 ### 细节实现
 
-1. `[Service.check]`：`config.await && this.getTasks().length` 返回 false（依赖者保持 pending）
-2. `getTasks()` / `await()`：收集所有 entry 的 `_initTask` 和 `fiber.inertia`
+1. `[Service.check]`（`index.ts:178-181`）：`config.await && this.getTasks().length` 返回 false（依赖者保持 pending）
+2. `getTasks()` / `await()`（`tree.ts:39/47`）：收集所有 entry 的 `_initTask` 和 `fiber.inertia`；`await()` 循环等所有任务完成
 
 ## 参考什么
 
