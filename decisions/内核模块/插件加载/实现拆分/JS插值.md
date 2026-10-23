@@ -29,3 +29,12 @@ YAML 解析 → { __jsExpr }（存表达式）→ 条目激活 → evaluate(ctx)
 ## 参考什么
 
 - 源码：`packages/cordis-plugin-loader/src/internal.ts`（`internal/config` 钩子）
+
+## 教训（2026-10-24）
+
+**转写配置时漏 `!!js` 标签 → 表达式变字符串 → `disabled` 恒 true。**
+
+- `e5c5d1c` 从 DSH 的 `base/cordis.patch.yml` 转写 `entries.yml` 时，`bash-sandbox` 的 `disabled: !!js process.platform === 'win32'` 漏了 `!!js`
+- 结果：`process.platform === 'win32'` 被当字符串，`Boolean(字符串)` = true → `disabled` 恒 true → `bash-sandbox` 不加载 → `shell` 不提供 → `tool-bash` waiting for shell
+- 修复：`01c071f`（加回 `!!js`）
+- **规则**：从 DSH 转写 YAML 配置时，`!!js` 标签必须原样保留（它是 YAML 的表达式标签，不是注释）
