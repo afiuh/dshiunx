@@ -38,3 +38,11 @@ YAML 解析 → { __jsExpr }（存表达式）→ 条目激活 → evaluate(ctx)
 - 结果：`process.platform === 'win32'` 被当字符串，`Boolean(字符串)` = true → `disabled` 恒 true → `bash-sandbox` 不加载 → `shell` 不提供 → `tool-bash` waiting for shell
 - 修复：`01c071f`（加回 `!!js`）
 - **规则**：从 DSH 转写 YAML 配置时，`!!js` 标签必须原样保留（它是 YAML 的表达式标签，不是注释）
+
+## 教训二：改 YAML 格式要同步所有解析脚本（2026-10-24）
+
+**`01c071f` 加 `!!js` 后，`gen-catalog.mjs` 解析失败**（`YAMLException: unknown tag !!js`）——因为 `gen-catalog` 用 `js-yaml.load()`，不认识 `!!js` 标签。
+
+- 修复：`67c4178`（给 `js-yaml` 注册 `yaml.Type('tag:yaml.org,2002:js')`）
+- **规则**：改 `entries.yml` 的格式（加 `!!js`/新标签）时，同步检查所有解析它的脚本（`gen-catalog.mjs` / `build-entries.mjs` / 其他）
+- **测试覆盖**：`tests/infrastructure.test.ts` 的 `gen-catalog` 测试能捕获这类问题（跑测试即可发现）
