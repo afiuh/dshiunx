@@ -91,10 +91,23 @@ profiles/
 
 **可行性**：可行。`applyEntryPatches` 已支持 patch 叠加；`catalog.yml` 只是索引，不参与运行时；生成器可选（loader 也可以直接应用 patch）。
 
-### 建议（更新）
+### 实施状态（2026-10-23）
 
-1. **采用分层 + 集中索引**（用户定的方向）
-2. `catalog.yml` 先建（索引所有插件，便于查询/组合）
-3. `bundles/` 按层拆（base / presets / 未来 web-app）
-4. `profiles/` 作为发行版组合
-5. 生成器按需（先手工，后自动）
+✅ **已完成**：
+
+```
+bundles/
+├── base/cordis.patch.yml          ← 运行时 + 工具
+├── presets/{standard,ptc,minimal,creator}/cordis.patch.yml
+└── tui/cordis.patch.yml           ← 界面
+profiles/default/profile.yml       ← bundle 组合
+scripts/build-entries.mjs          ← profile + bundles → entries.yml（diff 0）
+scripts/gen-catalog.mjs            ← entries.yml → catalog.yml
+```
+
+| 命令 | 作用 |
+|---|---|
+| `npm run build:entries` | 组合 bundles → entries.yml |
+| `npm run catalog` | build:entries + 生成 catalog.yml |
+
+**发行版** = 不同 `profile.yml` 选择不同 bundle 组合。
