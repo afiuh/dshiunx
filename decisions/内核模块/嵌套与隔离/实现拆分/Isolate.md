@@ -25,7 +25,10 @@ isolate(name, label?: symbol) → 新 isolate map → scope
 3. **Realm 两种**：
    - `LocalRealm`：`isolate: { name: true }`，suffix `#<entryId>`，本 entry 独有
    - `GlobalRealm`：`isolate: { name: 'label' }`，suffix `@<label>`，同 label 的 entry 共享
-4. **isolate 的 label 语义**：`true` = 局部隔离；**symbol** = 按 label 合并作用域（同名 label 的两个 isolate 看到同一个服务）
+4. **两层 label 语义**（容易混淆）：
+   - `entry.options.isolate?: Dict<true | string>`：`true` = `LocalRealm`；**string** = `GlobalRealm`（按 label 合并）
+   - `ctx.isolate(name, label?: symbol)`（Context 层）：label 是 **symbol**，同名 symbol 合并作用域
+   - 决策 3 的 `isolate: { name: 'label' }` 里的 label 是 **string**（Entry 配置），不是 symbol
 
 ## 参考什么
 
