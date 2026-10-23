@@ -2,9 +2,13 @@
 
 **父级**：[智能体插件](./README.md)
 
-## 职责
+## 负责什么
 
 项目指令（AGENTS.md）加载：从 cwd 向上查找，注入系统提示。
+
+## 相关源码
+
+`packages/dsh-agent-instructions/src/index.ts`
 
 ## 配置项
 
@@ -24,7 +28,14 @@
 1. `maxBytes: 65536`（与 DSH 一致）
 2. base + preset 重复挂载（与 DSH 一致）
 
-## 与 DSH 一致
+## 边界
 
-- DSH 的 base：`maxBytes: 65536`
-- DSH 的 preset 也有（重复，正常）
+| | agent-instructions | system-prompt |
+|---|---|---|
+| 管什么 | 项目指令（AGENTS.md） | 提示拼装 |
+| 来源 | 文件系统 | 配置 |
+
+## 硬约束
+
+- `maxBytes: 65536`（超长截断）
+- 向上查找直到根目录
