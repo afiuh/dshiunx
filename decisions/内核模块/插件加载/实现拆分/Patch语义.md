@@ -26,7 +26,7 @@ patches → applyEntryPatches → 最终 entries
 
 ### 细节实现
 
-1. `applyEntryPatches`（`config/diff.ts`）支持 `insert`（插到 group 或根）
+1. `applyEntryPatches`（`include/src/index.ts:57`）支持 `insert`（插到 group 或根）
 2. 按 id 覆盖字段
 3. `name` 校验
 4. 未匹配的 patch 只 warn，不中断
