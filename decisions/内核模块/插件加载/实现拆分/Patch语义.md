@@ -8,7 +8,7 @@
 
 ## 参考什么
 
-- 源码：`packages/cordis-plugin-loader/src/config/diff.ts`（`applyEntryPatches`）
+- 源码：`packages/cordis-plugin-include/src/index.ts:57`（`applyEntryPatches`）
 
 ## 宏观想法
 
