@@ -22,7 +22,7 @@ entries[] → 树（store + subtree）→ resolve("a:b:c")
 
 1. **EntryTree**（`tree.ts:7`）：entry 的树形存储 + 遍历（`entries` / `resolve` / `create` / `update` / `remove`）
 2. `resolve(id)`（`tree.ts:61`）按 `:` 分段逐层下降
-3. **Entry.id**：父 id 前缀拼接（`父:子`），保证树内唯一
+3. **Entry.id**：随机 id（`ensureId`，`tree.ts:57-63`，`Math.random().toString(16).slice(2,10)`），保证树内唯一；`resolve` 的 `:` 是**树路径**（`store[part].subtree`），不是 id 前缀
 
 ## 参考什么
 
