@@ -2,15 +2,13 @@
 
 **父级**：[嵌套与隔离](../嵌套与隔离.md)
 
-## 要做什么
+## 为什么需要
 
 isolate map 变更时的七步流程。
 
-## 参考什么
+## 准备怎么实现
 
-- 源码：`packages/cordis-plugin-loader/src/config/isolate.ts`（`loader/patch-context`）
-
-## 宏观想法
+### 宏观想法
 
 isolate map 变更时的七步流程（生成 → diff → swap → reload → 迁移 → notify → 清理）。
 
@@ -18,7 +16,7 @@ isolate map 变更时的七步流程（生成 → diff → swap → reload → �
 patch-context → 7 steps
 ```
 
-## 决策
+### 细节实现
 
 **`loader/patch-context` 七步**（`isolate.ts:96`，step 7 在 `:147`）：
 1. 生成新 isolate map
@@ -28,3 +26,7 @@ patch-context → 7 steps
 5. 迁移服务实现（同 delimiter）
 6. reflect notify
 7. 清理 delimiter
+
+## 参考什么
+
+- 源码：`packages/cordis-plugin-loader/src/config/isolate.ts`（`loader/patch-context`）
