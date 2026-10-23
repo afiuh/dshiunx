@@ -102,6 +102,15 @@ tui（group）
 - 用户决定：不拆 Chat，统计信息/功能，参考 pi-tui 实现
 - 信息统计：73 个字段（消息/转录、输入、状态栏、侧栏）
 
+### TUI 插件化（06 归档）
+
+| 决策 | 内容 |
+|---|---|
+| **`tui-chat` 已解耦** | 用 `tuiChatProps` 构建 `Chat`（`channel` 从 `ctx.get('tuiChatProps').channel` 拿） |
+| **插件化的本质** | **重写屏幕**（`ChatView` + 组件分层），不是“拆 `Chat`” |
+| **`Chat` 是单体屏幕** | 从设计上就是单体——插件化需要**换架构**（屏幕 → 组件组合） |
+| **已解耦插件** | `tui-protocol` / `tui-chat` / `tui-status` + 6 个模块边界 |
+
 ### 解耦结论
 
 - TUI 从 `dsh-tui`（20 万行）拆出，**保留功能不保留结构**
