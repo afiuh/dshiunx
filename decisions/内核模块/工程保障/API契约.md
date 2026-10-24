@@ -66,6 +66,27 @@
 
 **bail 语义**：任何非 `null` / `false` / `undefined` 的返回值都会中断；监听器必须显式返回 `undefined` 才继续。
 
+### Tools（工具服务）
+
+| API | 语义 |
+|---|---|
+| `ctx.tools.register(def, options?)` | 注册工具定义（schema + execute），返回 disposer |
+| `ctx.tools.setExecutor(executor)` | 注册执行器，返回 disposer；**每个 scope 只能一个** |
+| `ctx.tools.execute(batch)` | 执行一批调用，委托给当前 scope 的执行器 |
+| `ctx.tools.definitions(scope?)` | 当前 scope 可见的工具定义 |
+| `ctx.tools.schemas(scope?)` | 工具 schema（模型可见形态） |
+| `ctx.tools.resolve(context)` | 解析 step 的工具集合（admission） |
+| `ctx.tools.restrict(filter)` | 限制可见工具，返回 disposer |
+| `ctx.tools.guard(guard)` | 注册执行前守卫，返回 disposer |
+
+**契约**：
+
+1. **定义与执行分离**：`ctx.tools` 只管定义、可见性、分发；执行由 `ToolExecutor` 插件承担
+2. **无执行器 = 明确失败**：没有执行器时列定义仍可用，但 `execute` 抛 `ToolExecutorUnavailableError`（不静默降级）
+3. **执行器按 scope 唯一**：同一 scope 注册第二个执行器直接抛错（避免策略歧义）
+4. **执行器卸载**：保留"不可用选择"，防止调用落到另一个执行器上（不会意外切换策略）
+5. **批级接口**：`ToolBatchInput` / `ToolBatchResult`——执行器拿整批调用，而不是单个
+
 ### Loader
 
 | API | 语义 |
