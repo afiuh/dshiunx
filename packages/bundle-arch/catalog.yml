@@ -20,6 +20,10 @@ categories:
       name: '@deepseek-ai/cordis-plugin-timer'
       category: kernel
       parent: null
+    - id: hmr
+      name: '@deepseek-ai/cordis-plugin-hmr'
+      category: kernel
+      parent: null
     - id: planning
       name: cordis:group
       category: kernel
@@ -38,10 +42,6 @@ categories:
       parent: preset-minimal
     - id: tui
       name: cordis:group
-      category: kernel
-      parent: null
-    - id: hmr
-      name: '@deepseek-ai/cordis-plugin-hmr'
       category: kernel
       parent: null
   runtime:
@@ -189,10 +189,6 @@ categories:
       name: '@deepseek-ai/dsh-session-persistence-jsonl'
       category: runtime
       parent: null
-    - id: session-query-sqlite
-      name: '@deepseek-ai/dsh-session-query-sqlite'
-      category: runtime
-      parent: null
     - id: storage
       name: '@deepseek-ai/dsh-storage'
       category: runtime
@@ -225,10 +221,6 @@ categories:
       name: '@deepseek-ai/dsh-config-editor'
       category: runtime
       parent: null
-    - id: time-context
-      name: '@deepseek-ai/dsh-time-context'
-      category: runtime
-      parent: preset-standard
     - id: headless-startup
       name: '@deepseek-ai/dsh-headless/startup'
       category: runtime
@@ -237,6 +229,14 @@ categories:
       name: '@deepseek-ai/dsh-headless'
       category: runtime
       parent: null
+    - id: session-query-sqlite
+      name: '@deepseek-ai/dsh-session-query-sqlite'
+      category: runtime
+      parent: null
+    - id: time-context
+      name: '@deepseek-ai/dsh-time-context'
+      category: runtime
+      parent: preset-standard
   agent:
     - id: agent
       name: '@deepseek-ai/dsh-agent'

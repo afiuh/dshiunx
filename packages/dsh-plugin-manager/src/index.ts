@@ -14,7 +14,6 @@ import { pluginEntryId, readPluginInventory } from '@deepseek-ai/dsh-host-plugin
 import {
   readPluginMeta, readProfileManifest, resolveBundleDir, loadOverlayPatches, composeEntries,
   readProfilePatches, bundlePatchPaths,
-  evaluatePluginCompatibility, readProfileCompatibility, readProfileVersionExemptions,
   setProfileVersionExemption, PROFILE_COMPATIBILITY_FILENAME,
   getDshRuntimeVersion, ResolutionRestartRequired,
 } from '@deepseek-ai/dsh-app-boot'
@@ -27,7 +26,7 @@ import { officialBundleInstallTarget } from './official-install-target.ts'
 import { dependencySpec, InvalidInstallSpecError, parseInstallSpec, type ParsedInstallSpec } from './install-spec.ts'
 import { attributeFailure, normalizeRegistry, NPMMIRROR_REGISTRY, registryPlan } from './registry.ts'
 import { flatten, writePluginEnabled } from './patch.ts'
-import { incompatiblePlugin, ManagementFailure } from './failure.ts'
+import { ManagementFailure } from './failure.ts'
 import { approveBuilds, recordPendingBuilds } from './build-approval.ts'
 import { checkGithubConnection } from './github-connection.ts'
 import type {
@@ -261,16 +260,6 @@ export class PluginManager extends TypertRemoteService {
     }, 'plugin-manager: package cancellation')
   }
 
-  /** Read exact plugin-version exemptions saved in this profile.
-   * @returns Accepted package-name@version keys with the runtime versions they may run on, and any
-   * record or file problem the reader rejected, which the caller reports instead of failing.
-   */
-  @Remote
-  listVersionExemptions(): { exemptions: Record<string, string[]>; warnings: string[] } {
-    const { exemptions, warnings } = readProfileCompatibility(this.profile.dir)
-    return { exemptions, warnings }
-  }
-
   /** Grant or revoke one exact plugin/runtime exemption and reevaluate live plugins.
    * @param packageVersion Exact manifest package name followed by @ and its version; never an installation spec or alias.
    * @param runtimeVersion Exact current DSH version for grants; revocation may name a previous runtime.
@@ -316,7 +305,6 @@ export class PluginManager extends TypertRemoteService {
   @Remote
   listBundles(): Promise<BundleInfo[]> {
     const manifest = readProfileManifest('dsh', this.profile.dir)
-    const exemptions = readProfileVersionExemptions(this.profile.dir)
     const selected = bundleSelection(manifest)
     const recorded = manifest.dependencies ?? {}
     const dependencies = Object.keys(recorded)
@@ -363,8 +351,6 @@ export class PluginManager extends TypertRemoteService {
           continue
         }
         version = info.version
-        const compatibility = evaluatePluginCompatibility(info, exemptions)
-        if (compatibility !== undefined && !compatibility.exempted) throw new ManagementFailure('incompatible-version', [incompatiblePlugin(compatibility)])
         const dir = resolveBundleDir('dsh', name, this.profile.installAnchor, this.profile.dir)
         const meta = offered?.meta ?? readPluginMeta(info.name ?? name, pathToFileURL(join(dir, 'package.json')).href)
         bundles.push({ name, official, availability, ...target, ...(version === undefined ? {} : { version }),
@@ -622,8 +608,6 @@ export class PluginManager extends TypertRemoteService {
         const dir = resolveBundleDir('dsh', name, this.profile.installAnchor, this.profile.dir)
         const manifest = bundleManifest(name, this.profile.dir, this.profile.installAnchor)
         if (manifest?.dsh?.bundle === undefined) throw new ManagementFailure('not-bundle')
-        const compatibility = evaluatePluginCompatibility(manifest, readProfileVersionExemptions(this.profile.dir))
-        if (compatibility !== undefined && !compatibility.exempted) throw new ManagementFailure('incompatible-version', [incompatiblePlugin(compatibility)])
         for (const file of bundlePatchPaths(dir, manifest.dsh.bundle)) loadOverlayPatches('dsh', file)
         version = manifest.version
         this.installedFrom.set(name, used)
@@ -813,8 +797,6 @@ export class PluginManager extends TypertRemoteService {
       const metadata = bundleManifest(name, this.profile.dir, this.profile.installAnchor)
       if (metadata === undefined) throw new ManagementFailure('not-bundle')
       if (enabled) {
-        const compatibility = evaluatePluginCompatibility(metadata, readProfileVersionExemptions(this.profile.dir))
-        if (compatibility !== undefined && !compatibility.exempted) throw new ManagementFailure('incompatible-version', [incompatiblePlugin(compatibility)])
         this.bundleRows(name)
       }
     }

@@ -14,7 +14,6 @@ import {
 import { scrubbedParentEnv } from '@deepseek-ai/dsh-subprocess'
 import { parseInstallSpec } from './install-spec.ts'
 import { awaitTreeGone, leadsOwnGroup, treeAlive, type RunTree } from './run-tree.ts'
-import { incompatiblePlugin } from './failure.ts'
 import type { IncompatiblePlugin, PackageResult, Registry } from './types.ts'
 export { setProfileVersionExemption, readProfileVersionExemptions } from '@deepseek-ai/dsh-app-boot'
 
@@ -333,7 +332,6 @@ export async function runProfilePnpm(
   // An install command names the packages it adds, so their manifests are read and checked before
   // pnpm runs: an incompatible version is never installed, and the one already in use keeps working.
   const preflight: string[] = []
-  const exemptions = readProfileVersionExemptions(dir)
   // The run's own registry flags, so the lookup asks the registry the installation will use.
   const registryFlags = args.filter(argument => argument.startsWith('--registry='))
   for (const raw of namedSpecs(args)) {
@@ -342,11 +340,6 @@ export async function runProfilePnpm(
     try {
       const manifest = await namedSpecManifest(dir, anchorPathSpec(raw, context.cwd), options, environment, registryFlags)
       if (manifest === undefined) continue
-      const issue = evaluatePluginCompatibility(manifest, exemptions)
-      if (issue !== undefined && !issue.exempted) {
-        preflight.push(pluginCompatibilityWarning(issue))
-        incompatible.push(incompatiblePlugin(issue))
-      }
     } catch (error) { void error; continue }
   }
   if (preflight.length > 0) return await rejected(preflight, 'nothing was installed')
@@ -477,11 +470,6 @@ export async function runProfilePnpm(
         try {
           const manifest = readProfileManifest('dsh', packageDir)
           for (const candidate of [manifest, ...bundleComponentManifests(manifest, packageDir, context.installAnchor)]) {
-            const issue = evaluatePluginCompatibility(candidate, readProfileVersionExemptions(dir))
-            if (issue !== undefined && !issue.exempted) {
-              found.push(pluginCompatibilityWarning(issue))
-              issues.push(incompatiblePlugin(issue))
-            }
           }
         } catch (error) {
           found.push(`Cannot validate installed package ${name}: ${String(error)}`)
