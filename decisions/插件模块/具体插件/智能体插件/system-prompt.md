@@ -24,7 +24,16 @@ personaPrefix → harness:identity → runtime:context → 工具指导
 2. `includeHarnessIdentity: true`（默认）
 3. `includeRuntimeContext: true`（默认）
 4. `personaPrefix` 是模板：`{{variable}}` 严格插值
-## 提示装配的边界（rc.3 收紧）
+## 边界
+
+| 本节点管 | 不管 |
+|---|---|
+| 提示的**装配**：section / context / variable 的收集与排序 | 工具声明（执行器的 `describe()`，见 rc.3 收紧） |
+| presentation waterfall 的执行 | 模型协议（运行时基础/模型） |
+| 分区顺序（`SECTION_ORDERS` / `CONTEXT_ORDERS`） | 提示内容怎么写（persona / 项目指令） |
+| 完整提示的强制（`complete` section） | 工具怎么执行（执行器） |
+
+### rc.3 收紧：工具声明不进 waterfall
 
 **变更**：`system-prompt/assemble` waterfall 从拿 `PromptAssembly` 改为拿 `PromptPresentation`。
 
@@ -74,7 +83,7 @@ personaPrefix → harness:identity → runtime:context → 工具指导
 - DSH 的 base：`personaPrefix: ''`
 - 我们的显式 `true` 与 DSH 默认行为一致（`z.boolean().default(true)`）
 
-## 验收
+## 验证
 
 - 提示 waterfall 监听者改不到 `tools`（尝试改无效）
 - 执行器的 `sections` 能被 waterfall 修改，`describe()` 的声明不能
