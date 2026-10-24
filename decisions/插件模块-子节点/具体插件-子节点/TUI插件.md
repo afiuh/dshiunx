@@ -86,7 +86,19 @@ TUI 是**一个 renderer 插件**（和 Web renderer 并列），不是系统界
 | 管什么 | 渲染/输入 | 循环/提示词 |
 | 依赖 | 只读 `tui-store` | 不依赖界面 |
 
-## 封存状态（2026-10-24）
+## 归档状态（2026-10-24）
+
+**TUI 代码已全部移出源码结构**：`_archive/tui/`（`dsh-tui` + 12 个 `tui*` 包 + `bundles-tui`）。
+
+- 默认 profile 不再包含 `tui` bundle（5 bundles）
+- `tsconfig.json` 的 11 个 TUI paths 已删除
+- `node_modules/@dshiunx/tui*` 链接已删除
+- 登录后的默认界面是 [Shell](./Shell插件.md)；TUI 作为可选的 renderer 插件，未来按需重写（不是重构）
+- 测试断言已同步（5 类 / 不含 tui / 5 个 bundle）
+
+**为什么移走而不是继续修**：TUI 的定位变了——它不是系统界面，是可选程序。留在源码里会被 build/类型检查/测试持续引用，反而拖累主线。
+
+## 封存状态（2026-10-24，已被归档取代）
 
 **用户要求**：TUI 重构前，先把项目源码里 TUI 相关的代码封存。
 
