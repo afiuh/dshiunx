@@ -13,9 +13,6 @@
 
 import type {} from '@deepseek-ai/dsh-working-directory'
 import { FiberState } from '@deepseek-ai/cordis'
-
-/** 每个插件 ctx 上一次 apply 留下的 job-backed bash 注册（reload 重入时先清理）。 */
-const pendingJobRegistration = new WeakMap<object, () => void>()
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import { isAbsolute, sep } from 'node:path'
@@ -543,34 +540,17 @@ export function apply(ctx: Context, config: Config = {}): void {
   // foreground-only one returns when the registry unloads while this plugin
   // stays. Both registrations belong to this plugin's own fiber.
   if (!backgroundEnabled) {
-    ctx.tools.register(bashTool(undefined))
+    ctx.tools.register(bashTool(undefined), { replace: true })
     return
   }
-  // apply 可能在 fiber reload 时重入：先清理上一次留下的 job-backed 注册，
-  // 否则第二次 ctx.inject 会撞同名（tool "bash" is already registered）。
-  const previous = pendingJobRegistration.get(ctx)
-  if (previous !== undefined) {
-    previous()
-    pendingJobRegistration.delete(ctx)
-  }
-  let foregroundOnly = ctx.get('jobs') === undefined ? ctx.tools.register(bashTool(undefined)) : undefined
+  let foregroundOnly = ctx.get('jobs') === undefined ? ctx.tools.register(bashTool(undefined), { replace: true }) : undefined
   ctx.inject(['jobs'], (jobCtx) => {
     foregroundOnly?.()
     foregroundOnly = undefined
-    let unregister: (() => void) | undefined
-    try {
-      unregister = ctx.tools.register(bashTool(jobCtx.jobs))
-    } catch (error) {
-      // fiber reload 重入时，上一次 apply 的 job-backed 注册可能仍挂在同一 scope；
-      // 保留旧注册（它指向同一个 ctx.jobs 服务），本次不重复注册。
-      if (String(error).includes('already registered')) return
-      throw error
-    }
-    pendingJobRegistration.set(ctx, unregister)
+    const unregister = ctx.tools.register(bashTool(jobCtx.jobs), { replace: true })
     jobCtx.effect(() => () => {
       unregister()
-      if (pendingJobRegistration.get(ctx) === unregister) pendingJobRegistration.delete(ctx)
-      if (ctx.fiber.state === FiberState.ACTIVE) foregroundOnly = ctx.tools.register(bashTool(undefined))
+      if (ctx.fiber.state === FiberState.ACTIVE) foregroundOnly = ctx.tools.register(bashTool(undefined), { replace: true })
     })
   })
 }

@@ -147,7 +147,7 @@ export class ToolsService extends Service {
     }
     return this.layers.effect(
       this.ctx,
-      layer => layer.tools.insert(name, { definition, when: options.when }),
+      layer => layer.tools.insert(name, { definition, when: options.when }, options.replace === true),
       { label: 'tools.register()' },
     )
   }

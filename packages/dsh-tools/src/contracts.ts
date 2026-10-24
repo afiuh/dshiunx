@@ -121,6 +121,11 @@ export interface ToolRegistrationOptions {
    * @returns whether the tool participates in this step.
    */
   readonly when?: (context: ToolActivationContext) => boolean | Promise<boolean>
+  /**
+   * Replace a same-name registration instead of failing. Used by plugins that
+   * may re-register on fiber reload (e.g. tool-bash's job-backed variant).
+   */
+  readonly replace?: boolean
 }
 
 /** One step's admitted registrations, also used by nested PTC calls. */

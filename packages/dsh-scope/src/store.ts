@@ -40,15 +40,16 @@ export class NamedEntries<V> implements EntryValues<V> {
    * @param value - borrowed value to retain.
    * @returns an idempotent undo that removes only this insertion.
    */
-  insert(name: string, value: V): () => void {
+  insert(name: string, value: V, replace = false): () => void {
     const data = this.data
-    if (data.has(name)) throw this.duplicateError(name)
+    if (data.has(name) && !replace) throw this.duplicateError(name)
     data.set(name, value)
     let active = true
     return () => {
       if (!active) return
       active = false
-      data.delete(name)
+      // 替换语义：只移除自己，不误删后来替换它的注册。
+      if (data.get(name) === value) data.delete(name)
       if (data.size === 0 && this.data === data) this.data = new Map()
     }
   }
