@@ -22,6 +22,8 @@
 
 1. **状态机**：`PENDING → LOADING → ACTIVE → UNLOADING → DISPOSED`；`FAILED` 表示启动/运行错误。注意：`FiberState` 的 enum 定义顺序是 `PENDING, LOADING, ACTIVE, FAILED, DISPOSED, UNLOADING`（定义顺序 ≠ 流转顺序）。
 2. **依赖 epoch**：`_refresh` 计算 inject 服务的 `fiber.uid` 序列；epoch 变化触发 reload / unload。
+   - **reload 时序（2026-10-24 补）**：`_reload()` **先 `_execute()`（新 apply）再 `_unload()`（旧 disposables）**（`fiber.ts:673-700`）。所以 reload 期间，旧 apply 的副作用（含 `ctx.inject` 子 fiber 的注册）**仍在新 apply 执行时存活**。
+   - **契约推论**：插件 `apply` 必须能容忍重入——注册/副作用必须幂等（见 [插件规范](../../插件模块-子节点/插件基础设施-子节点/插件规范.md)「apply 可重入」）。
 3. **effect**：注册清理函数，支持同步/异步/generator；dispose 时**逆序（LIFO）**执行；异步初始化用 setup barrier 处理竞态。
 4. **dispose**：清空 `_disposables`，await 所有清理；期间禁止新 effect（`INACTIVE_EFFECT`）。
 5. **config 校验**：`resolveConfig` 用 standard schema 校验；失败抛 `ValidationError`。
