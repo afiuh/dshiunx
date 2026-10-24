@@ -54,12 +54,32 @@ if (flag('--help') || flag('-h')) {
 }
 
 const task = option('-p') ?? positional()
-// headless 的参数由 startup（commander）解析：它不认 pi 风格的 `-p`，任务作为 positional 传入
-const cmdlineArgs = (() => {
-  if (task === undefined) return args
-  const i = args.indexOf('-p')
-  return i >= 0 ? [...args.slice(0, i), ...args.slice(i + 1)] : args
-})()
+
+/**
+ * headless 参数白名单：只保留 startup（commander）认识的标志。
+ * - `-p` 是 pi 风格，startup 不认；任务本身作为 positional 传入
+ * - dx 风格的 `--session` 映射为 headless 的 `--session-id`
+ * - TUI 参数（--model / --preset / --resume / --fork 等）丢弃，不进入 headless 解析
+ */
+function headlessArgs(input: readonly string[], taskText: string | undefined): string[] {
+  if (taskText === undefined) return []
+  const out = [taskText]
+  for (let i = 0; i < input.length; i += 1) {
+    const arg = input[i]
+    if (arg === '-p') { i += 1; continue }
+    if (arg === '--json' || arg === '-h' || arg === '--help') { out.push(arg); continue }
+    if (arg === '--session') { out.push('--session-id', input[i + 1] ?? ''); i += 1; continue }
+    if (arg === '--session-id' || arg === '--permission-mode' || arg === '--approval-policy' || arg === '--add-dir') {
+      out.push(arg, input[i + 1] ?? '')
+      i += 1
+      continue
+    }
+    if (arg.startsWith('-')) i += 1
+  }
+  return out
+}
+
+const cmdlineArgs = headlessArgs(args, task)
 
 const entriesDir = fileURLToPath(new URL('../packages/bundle-arch/', import.meta.url))
 const configPath = `${entriesDir}entries.yml`
@@ -100,15 +120,9 @@ const stopHeartbeat = () => {
 }
 process.on('exit', stopHeartbeat)
 
-// 参数传给 TUI 插件（通过环境变量，避免改 TUI 的 apply 签名）
-if (option('--model')) process.env.DSHIUNX_MODEL = option('--model')
-if (option('--preset')) process.env.DSHIUNX_PRESET = option('--preset')
-if (option('--session')) process.env.DSHIUNX_SESSION = option('--session')
-if (flag('-c') || flag('--continue')) process.env.DSHIUNX_CONTINUE = '1'
-if (flag('-r') || flag('--resume')) process.env.DSHIUNX_RESUME = '1'
-if (option('--fork')) process.env.DSHIUNX_FORK = option('--fork')
-
-if (task) process.env.DSHIUNX_TASK = task
+// TUI 参数（--model / --preset / --session / --resume / --fork）当前没有消费者：
+// 全项目 grep 无 `DSHIUNX_*` 读取方，env 写入是死代码。待 TUI 重构时接线。
+// headless 参数走 cmdlineArgs 白名单（startup 解析）；见 启动链路.md「参数契约」。
 
 if (task) {
   // headless 条目已在 entries.yml 内与 agent-loop 同层挂载（include 树）；
