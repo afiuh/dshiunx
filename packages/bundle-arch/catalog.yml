@@ -1,6 +1,6 @@
 generated: '2026-10-24'
 source: packages/bundle-arch/entries.yml
-total: 109
+total: 110
 categories:
   assembly:
     - id: tool-plugin-manager
@@ -262,10 +262,6 @@ categories:
       name: '@deepseek-ai/dsh-agent-preset'
       category: agent
       parent: null
-    - id: tool-presentation
-      name: '@deepseek-ai/dsh-agent-tool-presentation'
-      category: agent
-      parent: preset-ptc
     - id: preset-minimal
       name: '@deepseek-ai/dsh-agent-preset'
       category: agent
@@ -391,6 +387,10 @@ categories:
       name: '@deepseek-ai/dsh-tool-lsp'
       category: tool
       parent: null
+    - id: tool-executor-native
+      name: '@deepseek-ai/dsh-tool-executor-native'
+      category: tool
+      parent: null
     - id: persistent-bash
       name: '@deepseek-ai/dsh-tool-bash-persistent'
       category: tool
@@ -415,6 +415,10 @@ categories:
       name: '@deepseek-ai/dsh-tool-present'
       category: tool
       parent: preset-standard
+    - id: tool-executor-ptc
+      name: '@deepseek-ai/dsh-tool-executor-ptc'
+      category: tool
+      parent: delegation
     - id: tool-cordis
       name: '@deepseek-ai/dsh-tool-cordis'
       category: tool
