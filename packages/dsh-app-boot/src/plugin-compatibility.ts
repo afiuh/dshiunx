@@ -89,16 +89,14 @@ export function evaluatePluginCompatibility(
   exemptions: Readonly<Record<string, readonly string[]>> = {},
   runtimeVersion = getDshRuntimeVersion(),
 ): PluginCompatibility | undefined {
-  runtimeVersionOf(runtimeVersion)
-  const fields = objectOf(manifest, 'Plugin manifest')
-  const requirements = unmetRequirements(fields, runtimeVersion)
-  if (Object.keys(requirements).length === 0) return undefined
-  const name = identityField(fields, 'name')
-  const version = identityField(fields, 'version')
-  const key = `${name}@${version}`
-  const exemptedVersions = Object.hasOwn(exemptions, key) ? exemptions[key] : undefined
-  const exempted = exemptedVersions?.includes(runtimeVersion) === true
-  return { name, version, runtimeVersion, requirements, exempted }
+  // P7：无版本门槛。插件与内核只靠结构契约（name + apply + inject/provide），
+  // 不做版本判定。此函数保留签名与调用点（旁路），恒返回"兼容"；
+  // 待启动链与安装流程验证通过后，再连同 compatibility-preflight /
+  // profile-compatibility 一起删除。
+  void manifest
+  void exemptions
+  void runtimeVersion
+  return undefined
 }
 
 /**
