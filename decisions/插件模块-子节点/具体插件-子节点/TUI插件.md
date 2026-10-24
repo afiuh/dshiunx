@@ -59,6 +59,21 @@ TUI 是界面的一种（和 Web renderer 并列），先做是因为**界面最
 | 管什么 | 渲染/输入 | 循环/提示词 |
 | 依赖 | 只读 `tui-store` | 不依赖界面 |
 
+## 封存状态（2026-10-24）
+
+**用户要求**：TUI 重构前，先把项目源码里 TUI 相关的代码封存。
+
+| 项 | 内容 |
+|---|---|
+| 范围 | `packages/dsh-tui/`（vendor 的 DSH TUI，151k 行 / 666 文件）+ `packages/tui/`、`tui-actions`、`tui-controller`、`tui-core`、`tui-input`、`tui-panels`、`tui-protocol`、`tui-render`、`tui-sessions`、`tui-settings`、`tui-status`、`tui-store`（适配层） |
+| 规则 | 不改、不修、不重构；新问题只记录到本文件「已知问题」段，不动代码 |
+| 例外 | 阻断主线的启动/装配问题可以改，但只改装配层（`entries.yml` 的 tui group），不改 TUI 源码 |
+| 解封 | rc3 第 3 步 TUI 重构启动时（前置：待办清单 A + B 完成） |
+| 基线 | git tag `tui-frozen-2026-10-24` |
+| 标记 | `packages/dsh-tui/FROZEN.md` |
+
+**为什么封**：TUI 不是 DSH 写的，代码水平明显差，重构要专门研究参考策略；在此之前改它 = 在要拆的房子上刷墙。
+
 ## 硬约束
 
 - TUI 不直接调用业务插件（只通过 `tui-store` / 事件）
