@@ -4,58 +4,46 @@
 
 ## 为什么需要
 
-| 包 | 职责 |
-|---|---|
-| `dsh-agent` | Agent 服务（`ctx.agent`）：创建/恢复/注册 agent |
-| `dsh-agent-loop` | Agent 循环：turn 驱动、工具调用、config 启动 |
+Agent 的**实例管理**：创建、恢复、注册、查询、归属。它不推进对话——推进是 [agent-loop](./agent-loop/agent-loop.md) 的事。
 
 ## 准备怎么实现
 
 ### 宏观想法
 
-Agent 服务（`ctx.agents`）+ Agent 循环（turn 驱动）**分离**——服务管实例，循环管流程。
-
 ```
-用户消息 → agent-loop → 模型 → 工具 → 循环
+ctx.agents（服务）
+├── create / resume      ← 工厂（由 agent-loop 实现）
+├── register / enter     ← 实例注册与上下文进入
+└── get / list / roots   ← 查询
 ```
 
-**为什么分离**：服务（创建/恢复/注册）和循环（turn/工具）职责不同，分离才能替换循环。
+**为什么服务与循环分离**：服务管"有哪些 agent、谁拥有它"；循环管"一个 agent 怎么想"。分离后循环可替换（P6），服务契约不变。
 
 ### 细节实现
-## 具体决策
 
-### dsh-agent 服务接口
+1. **工厂注入**：`setFactory(factory)` 注册工厂，返回取消函数；`dsh-agent-loop` 就是默认工厂
+2. **创建**：`createAgent(ownerCtx, options)` → 工厂创建 → 注册 → 返回 handle
+3. **恢复**：`resume(ownerCtx, options)` → 从持久化加载 Session → 工厂重建 Agent
+4. **注册**：`register(agent)` 返回 effect，随 fiber 卸载自动注销
+5. **进入**：`enter(agent, owner)` 设置当前发起者上下文
+6. **查询**：`get(id)` / `isOwnedBy(id, owner)` / `list()` / `roots()`
+7. **发起者**：`currentInitiator()` / `requireInitiator()` —— 谁发起了当前操作（用于权限与归属）
 
-| 方法 | 作用 |
+### 边界
+
+| 本节点负责 | 不负责 |
 |---|---|
-| `createAgent(ownerCtx, options)`（`dsh-agent/src/index.ts:190`） | 创建 agent |
-| `resume(ownerCtx, options)`（`:202`） | 恢复 agent |
-| `currentInitiator()` / `requireInitiator()`（`:297/310`） | 当前发起者 |
-| `setFactory(factory)`（`:360`） | 设置 agent 工厂（返回取消函数） |
-| `register(agent)`（`:439`） | 注册 agent（返回 effect） |
-| `enter(agent, owner)`（`:461`） | 进入 agent 上下文 |
-| `get(id)` / `isOwnedBy(id, owner)`（`:568/580`） | 查询 |
-| `list()` / `roots()`（`:588/598`） | 列表 / 根 agent |
+| 实例的创建/恢复/注册/查询 | turn 怎么推进（agent-loop） |
+| 归属与发起者 | 模型选择策略（agent-loop 的 step） |
+| 工厂契约 | 工厂实现（agent-loop） |
 
-### dsh-agent-loop
+### 验证
 
-- 配置 `ConfiguredAgentIdentities`：launcher 在 Loader 挂载前 `ctx.provide('configuredAgentIdentities', ...)`，固定 configured agents 的 session 身份
-- 事件 `agent-loop/config-start-failed`（`{ sessionId, error }`）：config 启动失败
-- 每个 turn：接收用户消息 → 调用模型 → 执行工具 → 循环
-
-### 配置（agent-loop）
-
-| 字段 | 说明 |
-|---|---|
-| `maxParallelToolCalls` | 最大并行工具调用数 |
-| `agents` | 启动时创建的 agent 列表（`id` / `sessionId?` / `cwd?` / `resumeSessionId?`） |
-
-我们的配置：`bundles/base` 的 `agent-loop` 条目（无额外 config，用默认）。
-
-## 与 DSH 一致
-
-- 包 diff 无差异
+- 同一 Session 不会被注册成两个活 Agent
+- 卸载 agent 时其子插件一起卸载（fiber 树）
+- 换工厂（自定义循环）不改服务调用方
 
 ## 参考什么
 
-
+- `packages/dsh-agent/src/index.ts`（`AgentService`）
+- 相邻节点：[agent-loop](./agent-loop/agent-loop.md)（默认工厂）、[preset](./preset.md)（agent 的组合）
