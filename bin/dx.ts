@@ -53,6 +53,14 @@ if (flag('--help') || flag('-h')) {
   process.exit(0)
 }
 
+const task = option('-p') ?? positional()
+// headless 的参数由 startup（commander）解析：它不认 pi 风格的 `-p`，任务作为 positional 传入
+const cmdlineArgs = (() => {
+  if (task === undefined) return args
+  const i = args.indexOf('-p')
+  return i >= 0 ? [...args.slice(0, i), ...args.slice(i + 1)] : args
+})()
+
 const entriesDir = fileURLToPath(new URL('../packages/bundle-arch/', import.meta.url))
 const configPath = `${entriesDir}entries.yml`
 
@@ -67,9 +75,11 @@ const ctx = await boot('dx', configPath, [], async (hostCtx) => {
     startedBundles: [],
     overlays: [],
     telemetryDisabledEnv: undefined,
+    headless: !!task,
+    task: task ?? '',
   })
   provideCmdline(hostCtx, {
-    args: process.argv.slice(2),
+    args: cmdlineArgs,
     exit: (code: number) => process.exit(code),
   })
   // 在 entries 挂载前挂载日志出口，否则 boot 期间的 logger 日志会丢失
@@ -98,12 +108,17 @@ if (flag('-c') || flag('--continue')) process.env.DSHIUNX_CONTINUE = '1'
 if (flag('-r') || flag('--resume')) process.env.DSHIUNX_RESUME = '1'
 if (option('--fork')) process.env.DSHIUNX_FORK = option('--fork')
 
-const task = option('-p') ?? positional()
 if (task) process.env.DSHIUNX_TASK = task
 
-// 保持进程运行；TUI 的 onExit 会 process.exit(0)。
-await new Promise<void>((resolve) => {
-  process.on('SIGINT', resolve)
-  process.on('SIGTERM', resolve)
-})
+if (task) {
+  // headless 条目已在 entries.yml 内与 agent-loop 同层挂载（include 树）；
+  // provideCmdline 已提供 appExit，headless 完成时直接结束进程。
+  await new Promise<void>(() => {})
+} else {
+  // 保持进程运行；TUI 的 onExit 会 process.exit(0)。
+  await new Promise<void>((resolve) => {
+    process.on('SIGINT', resolve)
+    process.on('SIGTERM', resolve)
+  })
+}
 await ctx.fiber.dispose()
