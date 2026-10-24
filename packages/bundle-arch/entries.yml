@@ -241,7 +241,7 @@
 - id: system-prompt
   name: '@deepseek-ai/dsh-system-prompt'
   config:
-    personaPrefix: ''
+    personaPrefix: !!js "ctx.get('profileContext').headless ? 'You are a coding agent powered by the {{model}} model.' : ''"
 - id: agent-loop
   name: '@deepseek-ai/dsh-agent-loop'
   config:
@@ -313,6 +313,7 @@
   name: '@deepseek-ai/dsh-settings'
 - id: credentials
   name: '@deepseek-ai/dsh-credentials-local'
+  disabled: !!js "ctx.get('profileContext').headless"
 - id: session-title
   name: '@deepseek-ai/dsh-session-title'
   config:
