@@ -84,8 +84,10 @@
 1. **定义与执行分离**：`ctx.tools` 只管定义、可见性、分发；执行由 `ToolExecutor` 插件承担
 2. **无执行器 = 明确失败**：没有执行器时列定义仍可用，但 `execute` 抛 `ToolExecutorUnavailableError`（不静默降级）
 3. **执行器按 scope 唯一**：同一 scope 注册第二个执行器直接抛错（避免策略歧义）
-4. **执行器卸载**：保留"不可用选择"，防止调用落到另一个执行器上（不会意外切换策略）
-5. **批级接口**：`ToolBatchInput` / `ToolBatchResult`——执行器拿整批调用，而不是单个
+4. **执行器卸载**：保留"不可用选择"（记录在、`executor = undefined`），后续调用抛 `ToolExecutorUnavailableError`，不会落到另一个执行器
+5. **dispatch 时选择**：`execute` 按 `agent` 的 scope 链选最近执行器；已接受的批次即使执行器随后卸载也执行完
+6. **sections 随执行器挂载**：`setExecutor` 注册时把 `executor.sections` 挂到系统提示，只在该执行器被选中时渲染
+7. **批级接口**：`ToolBatchInput` / `ToolBatchResult`——执行器拿整批调用，而不是单个
 
 ### Loader
 

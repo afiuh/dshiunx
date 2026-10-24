@@ -25,12 +25,16 @@
 
 ### 细节实现
 
-1. **工具描述形态**：执行器不返回工具 schema，而是返回 `run_code` 一个工具 + 由可见工具生成的 SDK 文档（TS / Python 两种语言形态）
-2. **SDK 生成**：从 `ToolDefinition` 的 schema 生成函数签名，类型映射（`py-types` / `ts-types`）
-3. **嵌套执行**：程序内的每次调用是"子调用"，有独立并发上限，与根调用上限分开
-4. **日志重建**：每个子调用记录为 dispatch 日志，供会话回放与调试；只有外层结果进入模型上下文
-5. **运行时**：Node 运行时支持"每次调用一个进程"或"保留内存 REPL 状态"两种模式
-6. **语言形态**：SDK 可按语言生成（TS / Python），运行时决定实际执行
+1. **工具描述形态**：`describe` 只返回 `run_code` 的 schema，并把 `knownNames` 设为 `[run_code]`（用于校验调用顺序）
+2. **两段系统提示**（`sections`）：
+   - `tools:ptc`：`run_code` 是唯一可直接调用的工具，其他工具必须在程序内调用
+   - `tools:sdk`：由当前可见工具生成的 SDK 文档（`interpolate: false`，TS / Python 两种语言形态）
+3. **嵌套执行**：程序内每次调用是"子调用"，并发上限 `maxParallelSubCalls` 默认 10，与根调用上限独立
+4. **同一套调度**：PTC 的批执行复用 `executeToolBatch`（与原生执行同一份调度/取消/结算逻辑），不是另写一套
+5. **查找覆盖**：执行器通过 `ToolExecutionSource` 的 `get`/`reject` 改写 lookup——`run_code` 走 PTC 传输，其他工具只能通过 `tools.executable` 在嵌套时可见；非嵌套直接调其他工具被拒绝并提示"从程序内调用"
+6. **日志重建**：每个子调用记录为 dispatch 日志，供会话回放与调试；只有外层结果进入模型上下文
+7. **运行时模式**：`executionMode: 'per-call' | 'persistent-in-memory'`，默认 `per-call`；持久模式为每个 owner 保留一个 REPL，且 `programFormat` 从 `function-body` 变为 `repl`（影响 SDK 形态）
+8. **资源限制**：超时（默认 elapsed deadline）、输出字节、V8 堆上限、消息字节、待处理调用数、终止宽限，均由运行时配置
 
 ### 边界
 
