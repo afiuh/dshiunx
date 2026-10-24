@@ -96,9 +96,46 @@ export class Shell extends Service {
   }
 }
 
+const STATE_NAMES = ['pending', 'loading', 'active', 'failed', 'disposed', 'unloading'] as const
+
 /** Mount the shell and start its loop; EOF/exit requests process exit 0. */
 export function apply(ctx: Context): void {
   const shell = new Shell(ctx)
+
+  // 内置：插件即文件，用文件命令看它（Arch 风格）
+  shell.register('ls', {
+    description: 'list plugins (id / state / name)',
+    run: () => {
+      for (const entry of ctx.loader.entries()) {
+        const state = entry.disabled ? 'disabled' : STATE_NAMES[entry.fiber?.state ?? 0]
+        const id = String(entry.id ?? '?').replace(/^include:/, '')
+        stdout.write(`${id.padEnd(28)} ${String(state).padEnd(10)} ${String(entry.options.name ?? '')}\n`)
+      }
+    },
+  })
+  shell.register('cat', {
+    description: 'show one plugin (name / inject / config)',
+    run: (args) => {
+      const id = args.trim()
+      const entry = [...ctx.loader.entries()].find(candidate => candidate.id === id || candidate.id === `include:${id}`)
+      if (entry === undefined) {
+        stdout.write(`cat: ${id}: no such plugin\n`)
+        return
+      }
+      stdout.write(`id: ${String(entry.id).replace(/^include:/, '')}\nname: ${String(entry.options.name ?? '')}\ndisabled: ${entry.disabled}\n`)
+      if (entry.options.inject !== undefined) stdout.write(`inject: ${JSON.stringify(entry.options.inject)}\n`)
+      if (entry.options.config !== undefined) stdout.write(`config: ${JSON.stringify(entry.options.config, null, 2)}\n`)
+    },
+  })
+  shell.register('status', {
+    description: 'runtime status (plugins / active / disabled)',
+    run: () => {
+      const entries = [...ctx.loader.entries()]
+      const disabled = entries.filter(entry => entry.disabled).length
+      const active = entries.filter(entry => !entry.disabled && entry.fiber?.state === 2).length
+      stdout.write(`plugins:  ${entries.length}\nactive:   ${active}\ndisabled: ${disabled}\n`)
+    },
+  })
   if (stdout.isTTY) {
     stdout.write(`${DIM}${BANNER}${RESET}\n\n`)
     stdout.write(`  ${CYAN}welcome to dshiunx, you can do anything${RESET}\n`)

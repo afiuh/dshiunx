@@ -1,6 +1,6 @@
 generated: '2026-10-24'
 source: packages/bundle-arch/entries.yml
-total: 113
+total: 107
 categories:
   assembly:
     - id: tool-plugin-manager
@@ -40,10 +40,6 @@ categories:
       name: cordis:group
       category: kernel
       parent: preset-minimal
-    - id: tui
-      name: cordis:group
-      category: kernel
-      parent: null
   runtime:
     - id: llm
       name: '@deepseek-ai/dsh-llm'
@@ -231,6 +227,10 @@ categories:
       parent: null
     - id: session-query-sqlite
       name: '@deepseek-ai/dsh-session-query-sqlite'
+      category: runtime
+      parent: null
+    - id: shell
+      name: '@dshiunx/shell'
       category: runtime
       parent: null
     - id: time-context
@@ -435,28 +435,3 @@ categories:
       name: '@deepseek-ai/dsh-tool-cordis'
       category: tool
       parent: preset-creator
-  ui:
-    - id: tui-protocol
-      name: '@dshiunx/tui-protocol'
-      category: ui
-      parent: tui
-    - id: tui-status
-      name: '@dshiunx/tui-status'
-      category: ui
-      parent: tui
-    - id: tui-core
-      name: '@dshiunx/tui/plugins/core'
-      category: ui
-      parent: tui
-    - id: tui-commands
-      name: '@dshiunx/tui/plugins/commands'
-      category: ui
-      parent: tui
-    - id: tui-overlays
-      name: '@dshiunx/tui/plugins/overlays'
-      category: ui
-      parent: tui
-    - id: tui-keyboard
-      name: '@dshiunx/tui/plugins/keyboard'
-      category: ui
-      parent: tui

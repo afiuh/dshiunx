@@ -29,6 +29,24 @@
 6. **默认 profile**：`default: shell`；想直接进 TUI 就配 `default: tui`（启动链路读 profile 决定先打开哪个 renderer）。
 7. **与对话命令的区别**：agent 的 slash 命令（`/compact`）走 `dsh-commands` 的 `ctx.commands`，在对话内；shell 命令是系统命令，两者不混。
 
+### 命令集（Arch 风格，2026-10-24 用户定）
+
+**插件即文件**——shell 用文件命令，不发明"插件管理"词汇。
+
+| Arch | 我们的 | 实现 |
+|---|---|---|
+| `ls` | `ls` 列插件（id / 状态 / 名称） | `ctx.loader.entries()` |
+| `cat <file>` | `cat <id>` 看插件（name / inject / config） | `entry.options` |
+| `systemctl status` | `status` 运行状态（插件数 / disabled / pending） | `entries` + `fiber.state` |
+| `pacman -S / -R` | `install` / `remove` | plugin-manager（插件注册） |
+| `systemctl enable/disable` | `enable` / `disable` | profile patch（插件注册） |
+| `journalctl` | `log` | 未来 |
+| `man` | `help [cmd]` | 内置 |
+| 打开程序 | `tui` / `web` / `run "task"` | renderer / headless（插件注册） |
+
+**内置（shell 自己）**：`ls` / `cat` / `status` / `help` / `exit`。
+**插件注册**：`install` / `remove` / `enable` / `disable` / `run` / `tui` / `web`。
+
 ### 启动界面（主题展示，2026-10-24 用户定）
 
 方案 B：小字 ASCII + 主题句 + 提示行。
