@@ -29,7 +29,9 @@
 
 ## 为什么需要
 
-TUI 是界面的一种（和 Web renderer 并列），先做是因为**界面最好做**（工程顺序）。
+TUI 是**一个 renderer 插件**（和 Web renderer 并列），不是系统界面。登录后的默认界面是 [Shell](./Shell插件.md)；TUI 通过 `tui` 命令打开，像在 Arch 里打开 `htop`——退出 TUI 回到 shell。
+
+> 定位（2026-10-24 修正）：TUI 不承载系统，只承载对话。它注册 `tui` 命令，打开时接管终端，退出时交还 shell。
 
 
 ## 要做什么（问题）
