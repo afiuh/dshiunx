@@ -209,6 +209,18 @@
       "@deepseek-ai/dsh-tools": [
         "packages/dsh-tools/src/index.ts"
       ],
+      "@deepseek-ai/dsh-tools/pipeline": [
+        "packages/dsh-tools/src/pipeline.ts"
+      ],
+      "@deepseek-ai/dsh-tools/presentation": [
+        "packages/dsh-tools/src/presentation.ts"
+      ],
+      "@deepseek-ai/dsh-tool-executor-native": [
+        "packages/dsh-tool-executor-native/src/index.ts"
+      ],
+      "@deepseek-ai/dsh-tool-executor-ptc": [
+        "packages/dsh-tool-executor-ptc/src/index.ts"
+      ],
       "@deepseek-ai/dsh-spill-policy": [
         "packages/dsh-spill-policy/src/index.ts"
       ],

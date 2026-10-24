@@ -14,8 +14,6 @@
         maxBytes: 65536
     - id: time-context
       name: '@deepseek-ai/dsh-time-context'
-    - id: tool-bash
-      name: '@deepseek-ai/dsh-tool-bash'
     - id: tool-fs
       name: '@deepseek-ai/dsh-tool-fs'
     - id: tool-fs-search

@@ -14,8 +14,6 @@
         maxBytes: 65536
     - id: time-context
       name: '@deepseek-ai/dsh-time-context'
-    - id: tool-bash
-      name: '@deepseek-ai/dsh-tool-bash'
     - id: tool-fs
       name: '@deepseek-ai/dsh-tool-fs'
     - id: tool-fs-search
@@ -128,6 +126,11 @@
         config:
           provider: fork
           toolName: subagent_fork
+      - id: tool-executor-native
+        name: '@deepseek-ai/dsh-tool-executor-native'
+        disabled: true
+      - id: tool-executor-ptc
+        name: '@deepseek-ai/dsh-tool-executor-ptc'
       - id: workflow-ptc
         name: '@deepseek-ai/dsh-workflow-ptc'
         disabled: true
@@ -147,10 +150,6 @@
       config:
         fetch: true
         searchTimeoutMs: 60000
-    - id: tool-presentation
-      name: '@deepseek-ai/dsh-agent-tool-presentation'
-      config:
-        mode: ptc
     - id: present
       name: '@deepseek-ai/dsh-tool-present'
     - id: tool-plugin-manager
