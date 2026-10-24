@@ -24,6 +24,31 @@ personaPrefix → harness:identity → runtime:context → 工具指导
 2. `includeHarnessIdentity: true`（默认）
 3. `includeRuntimeContext: true`（默认）
 4. `personaPrefix` 是模板：`{{variable}}` 严格插值
+## 提示装配的边界（rc.3 收紧）
+
+**变更**：`system-prompt/assemble` waterfall 从拿 `PromptAssembly` 改为拿 `PromptPresentation`。
+
+| 类型 | 字段 | 谁能改 |
+|---|---|---|
+| `PromptPresentation` | `sections` / `contexts` / `variables` | **waterfall 监听者可以改**（提示文本的扩展点） |
+| `PromptAssembly` | `PromptPresentation` + `tools` | `tools` **只由 provider 产出**，waterfall 改不了 |
+
+**为什么**：工具声明归 provider（执行器的 `describe()`）所有。如果提示插件能在 waterfall 里改 `tools`，一个提示扩展就能悄悄篡改工具 schema——破坏"定义与执行分离"，也让工具可见性失去唯一来源。
+
+**装配顺序**（rc.3 `assemble()`）：
+```
+收集 sections/contexts/variables → 跑 presentation waterfall
+→ 单独计算 tools（orderTools，按 toolOrder + knownNames）
+→ 合并成 PromptAssembly
+```
+
+**与执行器的分工**：
+
+| 执行器产出 | 去向 |
+|---|---|
+| `sections` | 进提示装配（作为 section，可被 waterfall 改） |
+| `describe()` 的 schemas / knownNames | 进 `PromptAssembly.tools`（**不进 waterfall**） |
+
 ## 配置项（`dsh-system-prompt` 的 `Config`，`src/index.ts:258`）
 
 | 字段 | 默认 | 我们的配置 |
@@ -49,6 +74,13 @@ personaPrefix → harness:identity → runtime:context → 工具指导
 - DSH 的 base：`personaPrefix: ''`
 - 我们的显式 `true` 与 DSH 默认行为一致（`z.boolean().default(true)`）
 
+## 验收
+
+- 提示 waterfall 监听者改不到 `tools`（尝试改无效）
+- 执行器的 `sections` 能被 waterfall 修改，`describe()` 的声明不能
+- `orderTools` 按 `toolOrder` 排序，未列出的归 `<unlisted-tools>`
+
 ## 参考什么
 
-
+- rc.3 变更：`packages/core/system-prompt/src/index.ts`（`PromptPresentation` / `PromptAssembly` 分离）
+- 相邻节点：[agent-loop](./agent-loop/agent-loop.md)（每 step 装配一次）、[工具插件/执行器](../工具插件/执行器/执行器.md)（`sections` 与 `describe` 的分工）
