@@ -27,6 +27,8 @@ preset-registry → 4 个 preset → 插件列表
 2. `tool-schedule` 在 standard/ptc/creator preset（不在宿主层）
 3. preset 的 `isolate`：只隔离 `planMode` / `compaction` / `toolResultPruner` / `workflowEngine`
 4. `agent-preset-registry` 的 `default: standard`
+5. **preset 本身是一个 EntryGroup**（`agent-preset/src/index.ts:16` 的 `static readonly [EntryGroup.key] = true`）：`plugins` 数组里的每一项都是**独立 entry**，可单独启停、单独 isolate；preset 不是"一次性打包的配置块"
+6. **注册时机**：`Service.init` 里 `yield await this.ctx.agentPresets.register(config)`（`:25-27`）——构造即注册，随 fiber 卸载注销；注册的是**子插件配置**，不拥有"用旧版本启动的 Agent"（源码注释原话）
 ## 配置项
 
 ### `dsh-agent-preset`（`PresetDefinition`，`src/index.ts:9`）
@@ -80,6 +82,25 @@ preset-registry → 4 个 preset → 插件列表
 
 - 包 diff 无差异
 - preset 完整对比：standard 32/33、ptc 33/34、minimal 10/12、creator 33/34（差异都是 Windows PowerShell）
+
+## 边界
+
+| preset 管 | 不管 |
+|---|---|
+| 一组插件的**组合**（哪些、什么顺序、什么配置） | 插件本身怎么实现（各具体插件） |
+| preset 的注册与发现（`ctx.agentPresets`） | 装配层怎么选 bundle（[插件装配](../../插件基础设施/插件装配/插件装配.md)） |
+| 四模式的用途区分 | 模型能力（理解能力由权重决定，模式改不了） |
+| 子插件的 isolate 声明 | 子插件的运行行为 |
+
+**一句话**：preset 回答"这一场景装哪些插件"，不回答"插件怎么工作"。
+
+## 验证
+
+- `plugins` 里每一项都是独立 entry，可单独启停（`EntryGroup.key` 机制，`agent-preset/src/index.ts:16`）
+- `id` 或 `plugins` 缺失时 schema 拒绝（`z.object` 的 `required()`，`:19-24`）
+- `entryListProblem` 拒绝结构错误的 entry 列表（`preset-registry/src/definition.ts:18`）
+- preset 注册后可通过 `ctx.agentPresets` 查到（`Service.init` 的 `register`）
+- 四个 preset 的 `order` 与 `bundles/presets/*/cordis.patch.yml` 一致
 
 ## 参考什么
 
