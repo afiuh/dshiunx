@@ -206,6 +206,9 @@
       "@deepseek-ai/dsh-subagent": [
         "packages/dsh-subagent/src/index.ts"
       ],
+      "@deepseek-ai/dsh-official-bundles": [
+        "packages/dsh-official-bundles/src/index.ts"
+      ],
       "@deepseek-ai/dsh-tools": [
         "packages/dsh-tools/src/index.ts"
       ],
