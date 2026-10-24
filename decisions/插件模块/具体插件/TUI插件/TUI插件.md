@@ -68,3 +68,19 @@ TUI 是界面的一种（和 Web renderer 并列），先做是因为**界面最
 
 - 归档 05/06（TUI 解耦与插件化）
 - 源码：`packages/tui/src/`、`packages/tui-store/src/`
+
+## 背景与参考策略（来自 2026-10-23 盘点）
+
+TUI 的来源是 `dsh-TUI` 项目（参考源码，20 万行，不参与运行），代码水平不高：
+
+| 问题 | 数据 |
+|---|---|
+| 单文件膨胀 | `Chat.tsx` 7556 行、`PromptInput.tsx` 4000+ 行 |
+| 状态堆叠 | 64 个 `useState`、35 个 `useEffect`、44 个 `useCallback` |
+| 组件堆积 | 197 个组件合并进一个包 |
+| 解耦后残留 | 14 个空回调、ChatStore 字段缺失、`AnyMessageList as any` 绕行 |
+
+**策略（第 3 步用）**：
+1. **参考功能，不参考结构**——功能保留，结构重新设计
+2. **解耦后重新审视**——`packages/tui` 是从 Chat.tsx 抽出来的，不是干净插件
+3. **不要照抄**——7556 行的 Chat.tsx 是反面教材
