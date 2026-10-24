@@ -1,6 +1,6 @@
 # agent-loop
 
-**父级**：[智能体插件](../智能体插件.md)
+**父级**：[智能体插件](./智能体插件.md)
 
 ## 为什么需要
 
@@ -58,4 +58,4 @@
 - 上游 rc.3：`packages/core/agent-loop/src/index.ts`（`initializeAgent`）、`agent.ts`（step 准入/适配器绑定）
 - 上游 rc.3 删除：`tool-calls.ts`（290 行）→ 职责移到 `packages/core/tools/src/batch.ts`
 - 我们的代码：`packages/dsh-agent-loop/src/`（rc.2 仍有 `tool-calls.ts`，待第 2 步移除）
-- 相邻节点：[agent](../agent.md)（实例管理）、[system-prompt](../system-prompt.md)（提示装配）
+- 相邻节点：[agent](./agent.md)（实例管理）、[system-prompt](./system-prompt.md)（提示装配）

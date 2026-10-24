@@ -55,4 +55,4 @@
 
 - 上游 rc.3：`packages/core/agent/src/model-selection.ts`（`ModelSelectionProjectionState` / `modelSelectionProjectionDefinition` / `sameRoute` / `sameModelSelection`）
 - 我们的代码：`packages/dsh-agent/src/model-selection.ts`（rc.2 是内存 `ModelSelectionRef`，无投影）
-- 相邻节点：[agent](./agent.md)（选择属于 Agent）、[agent-loop](./agent-loop/agent-loop.md)（每 step 解析选择并绑定适配器）
+- 相邻节点：[agent](./agent.md)（选择属于 Agent）、[agent-loop](./agent-loop.md)（每 step 解析选择并绑定适配器）

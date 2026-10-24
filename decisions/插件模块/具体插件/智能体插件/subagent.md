@@ -56,4 +56,4 @@
 
 - 上游 rc.3：`packages/subagent/subagent/src/`（结算通知）、`packages/subagent/tool-subagent/src/`（`list-models.ts` / `model-selection*.ts`）
 - 我们的代码：`packages/dsh-subagent/src/`（22 个 ts：catalog / activation / child-agent / manager / projection / out-of-process）、`packages/dsh-tool-subagent/src/`、`packages/dsh-subagent-fork-in-process/`、`packages/dsh-subagent-spawn-in-process/`
-- 相邻节点：[agent-loop](./agent-loop/agent-loop.md)（子代理共用循环）、[model-selection](./model-selection.md)（父路由）、[preset](./preset.md)（子代理的组合）
+- 相邻节点：[agent-loop](./agent-loop.md)（子代理共用循环）、[model-selection](./model-selection.md)（父路由）、[preset](./preset.md)（子代理的组合）

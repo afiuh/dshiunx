@@ -4,7 +4,7 @@
 
 ## 为什么需要
 
-Agent 的**实例管理**：创建、恢复、注册、查询、归属。它不推进对话——推进是 [agent-loop](./agent-loop/agent-loop.md) 的事。
+Agent 的**实例管理**：创建、恢复、注册、查询、归属。它不推进对话——推进是 [agent-loop](./agent-loop.md) 的事。
 
 ## 准备怎么实现
 
@@ -46,4 +46,4 @@ ctx.agents（服务）
 ## 参考什么
 
 - `packages/dsh-agent/src/index.ts`（`AgentService`）
-- 相邻节点：[agent-loop](./agent-loop/agent-loop.md)（默认工厂）、[preset](./preset.md)（agent 的组合）
+- 相邻节点：[agent-loop](./agent-loop.md)（默认工厂）、[preset](./preset.md)（agent 的组合）

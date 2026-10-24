@@ -92,4 +92,4 @@ personaPrefix → harness:identity → runtime:context → 工具指导
 ## 参考什么
 
 - rc.3 变更：`packages/core/system-prompt/src/index.ts`（`PromptPresentation` / `PromptAssembly` 分离）
-- 相邻节点：[agent-loop](./agent-loop/agent-loop.md)（每 step 装配一次）、[工具插件/执行器](../工具插件/执行器/执行器.md)（`sections` 与 `describe` 的分工）
+- 相邻节点：[agent-loop](./agent-loop.md)（每 step 装配一次）、[工具插件/执行器](../工具插件/执行器/执行器.md)（`sections` 与 `describe` 的分工）
