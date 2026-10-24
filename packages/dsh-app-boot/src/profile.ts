@@ -28,8 +28,6 @@ import type { EntryOptions } from '@deepseek-ai/cordis-plugin-loader'
 import { applyEntryPatches, type PatchOptions } from '@deepseek-ai/cordis-plugin-include'
 import { resolveDshHome } from '@deepseek-ai/dsh-home-paths'
 import type { DshBundleManifest, DshPackageManifest } from '@deepseek-ai/dsh-package-manifest'
-import { evaluatePluginCompatibility, pluginCompatibilityWarning } from './plugin-compatibility.ts'
-import { readProfileVersionExemptions } from './profile-compatibility.ts'
 import { loadOverlayPatches } from './index.ts'
 import { realModuleDirectory } from './profile-resolution/legacy-links.ts'
 
@@ -747,7 +745,6 @@ export function loadProfileDirectory(
   const bundles = manifest.dsh?.profile?.bundles ?? []
   const layers: ProfileLayer[] = []
   const skippedBundles: SkippedBundle[] = []
-  const exemptions = bundles.length === 0 ? {} : readProfileVersionExemptions(dir)
   for (const packageName of bundles) {
     try {
       const packageDir = resolveBundleDir(binName, packageName, installAnchor, dir)
@@ -756,9 +753,6 @@ export function loadProfileDirectory(
       if (bundle === undefined) {
         throw new Error(`${binName}: profile bundle ${JSON.stringify(packageName)} declares no dsh.bundle in its package.json`)
       }
-      // A bundle is not a plugin row, so row admission never reads its own dsh requirements.
-      const issue = evaluatePluginCompatibility(bundleManifest, exemptions)
-      if (issue !== undefined && !issue.exempted) throw new Error(pluginCompatibilityWarning(issue))
       const patchPaths = bundlePatchPaths(packageDir, bundle)
       const patches = patchPaths.flatMap(patchPath => loadOverlayPatches(binName, patchPath))
       layers.push({ packageName, packageDir, patchPaths, patches })
