@@ -37,6 +37,20 @@
 7. **configuredAgentIdentities**：launcher 在 Loader 挂载前 `provide`，固定 configured agents 的 session 身份
 8. **失败事件**：`agent-loop/config-start-failed`（`{ sessionId, error }`）
 
+### 读取注入（2026-10-24 补）
+
+**rc.3 的结构**：`ReactLoopAgent` 不直接读 projection 内部，构造时注入三个读取器：
+
+| 注入 | 类型 | 用途 | 上游位置 |
+|---|---|---|---|
+| `readModel` | `() => ModelSelectionProjectionState` | 构造 `this.model = new AgentModel(readModel, session, options)`；step 准入用 `this.model.current()` 取 selection | `agent.ts:142` |
+| `readInbox` | `() => InboxState` | 构造 `this.inbox = new ReactLoopInbox(readInbox, session, this.dispatch)` | `agent.ts:143` |
+| `lastTurn` | `number` | 初始 phase：`this.phase = { kind: 'idle', lastTurn }`；由调用方算 `loopCtx.agents.turnBoundaryOf(session).lastTurn` | `index.ts:571-577` |
+
+**为什么**：`model` 是 step 准入的输入（`runStep` 先 `this.model.current()`，再 `tools.resolve` / `systemPrompt.assemble`），不是 headless 的附加需求。读取器注入让 Agent 不依赖 projection 的存储细节，也避免构造时自己去查全局投影。
+
+**我们的现状（rc.2）**：构造只有 `(loopCtx, id, options, session)`；没有 `this.model`；`inbox` 直接传 `this.ctx.sessionProjections`；`lastTurn` 在构造内自己读 projection。headless 的 `--session-id` 因此报 `agent.model.current()` undefined。
+
 ### 边界
 
 | 本节点负责 | 不负责 |
@@ -53,7 +67,7 @@
 - 替换执行器（原生 ↔ PTC）不改循环代码
 - 循环不 import 具体工具
 
-**代码状态**：rc.2 的 `agent-loop` 仍有 `tool-calls.ts`（调度），决策要求调度归执行器（`dsh-tools/batch.ts`）。待第 2 步移除。
+**代码状态**：rc.2 的 `agent-loop` 仍有 `tool-calls.ts`（调度），决策要求调度归执行器（`dsh-tools/batch.ts`）。待第 2 步移除。另缺 rc.3 的读取注入（`AgentModel` / `readInbox` / `lastTurn`），见缺口 #14。
 
 ## 参考什么
 
