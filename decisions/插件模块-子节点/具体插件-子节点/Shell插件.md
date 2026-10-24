@@ -29,6 +29,25 @@
 6. **默认 profile**：`default: shell`；想直接进 TUI 就配 `default: tui`（启动链路读 profile 决定先打开哪个 renderer）。
 7. **与对话命令的区别**：agent 的 slash 命令（`/compact`）走 `dsh-commands` 的 `ctx.commands`，在对话内；shell 命令是系统命令，两者不混。
 
+### 启动界面（主题展示，2026-10-24 用户定）
+
+方案 B：小字 ASCII + 主题句 + 提示行。
+
+```text
+     _    _    _
+  __| |__| |_ (_)_  _ _ _ __ __
+ / _` (_-< ' \| | || | ' \\ \ /
+ \__,_/__/_||_|_|\_,_|_||_/_\_\
+
+  welcome to dshiunx, you can do anything
+  type `help` for commands, `exit` to leave.
+```
+
+- **字体**：figlet `Small`（约 32 列，80 列终端不换行）
+- **颜色**：logo 用 dim 灰；主题句用 cyan；提示行用更暗的灰（两级，不彩虹）
+- **时机**：启动显示一次；`help` 可再看；空会话保留
+- **不做**：逐字动画、框线、彩色渐变（不打扰原则）
+
 ### 边界
 
 | shell 负责 | 不负责 |
