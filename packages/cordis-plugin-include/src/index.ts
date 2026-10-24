@@ -336,7 +336,10 @@ export class Include extends EntryTree {
   /** Schedule a write of the current root entry data. */
   write() {
     this.context.emit('loader/config-update')
-    return this.writeFile(this.root.data)
+    // entries.yml 是手写配置源，不是运行时持久化目标：禁止写回。
+    // 写回会用求值后的 config 覆盖 !!js 表达式并删掉新条目（2026-10-24 实测）。
+    // 需要持久化的插件配置由专门的配置管理插件负责（不经过 Include）。
+    return Promise.resolve()
   }
 }
 

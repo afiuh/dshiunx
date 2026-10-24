@@ -13,7 +13,7 @@
  *   dx --preset <id>       指定 preset（standard/ptc/minimal/creator）
  *   dx --help              帮助
  */
-import { boot } from '@deepseek-ai/dsh-app-boot'
+import { boot, readProfilePatches } from '@deepseek-ai/dsh-app-boot'
 import ConsoleExporter from '@deepseek-ai/cordis-plugin-logger-console'
 import { fileURLToPath } from 'node:url'
 import { writeFileSync, unlinkSync } from 'node:fs'
@@ -97,20 +97,23 @@ function shutdown(code: number): void {
     .finally(() => { clearTimeout(timer); process.exit(code) })
 }
 
-const ctx = await boot('dx', configPath, [], async (hostCtx) => {
-  hostCtx.provide('profileContext', {
-    name: 'dshiunx',
-    dir: `${process.cwd()}/profiles/default`,
-    patchPath: `${process.cwd()}/profiles/default/cordis.patch.yml`,
-    installAnchor: process.cwd(),
-    cwd: process.cwd(),
-    home: process.env.HOME ?? '',
-    startedBundles: [],
-    overlays: [],
-    telemetryDisabledEnv: undefined,
-    headless: !!task,
-    task: task ?? '',
-  })
+const profileContext = {
+  name: 'dshiunx',
+  dir: `${process.cwd()}/profiles/default`,
+  patchPath: `${process.cwd()}/profiles/default/cordis.patch.yml`,
+  installAnchor: process.cwd(),
+  cwd: process.cwd(),
+  home: process.env.HOME ?? '',
+  startedBundles: [],
+  overlays: [],
+  telemetryDisabledEnv: undefined,
+  headless: !!task,
+  task: task ?? '',
+}
+const patches = readProfilePatches('dx', profileContext as never)
+
+const ctx = await boot('dx', configPath, patches, async (hostCtx) => {
+  hostCtx.provide('profileContext', profileContext)
   provideCmdline(hostCtx, {
     args: cmdlineArgs,
     exit: (code: number) => shutdown(code),

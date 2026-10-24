@@ -40,10 +40,10 @@ categories:
       name: cordis:group
       category: kernel
       parent: null
-    - id: cordis-plugin-hmr
+    - id: hmr
       name: '@deepseek-ai/cordis-plugin-hmr'
       category: kernel
-      parent: tui
+      parent: null
   runtime:
     - id: llm
       name: '@deepseek-ai/dsh-llm'

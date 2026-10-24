@@ -1,0 +1,15 @@
+# 执行形态条件（patch 层只读，不会被 Include 的 tree.write() 写回）
+# 决策：插件装配.md「分层 + 集中索引」/ 启动链路.md「参数契约」/ 热更新.md「挂载位置」
+
+- id: credentials
+  disabled: !!js "ctx.get('profileContext').headless"
+
+- id: system-prompt
+  config:
+    personaPrefix: !!js "ctx.get('profileContext').headless ? 'You are a coding agent powered by the {{model}} model.' : ''"
+
+- id: tui
+  disabled: !!js "ctx.get('profileContext').headless"
+
+- id: hmr
+  disabled: !!js "!ctx.get('profileContext') || !!ctx.get('profileContext').headless"

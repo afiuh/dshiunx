@@ -48,8 +48,11 @@ export function prepareProfileEntries(
 export function prepareProfilePatches(
   ctx: Context, patches: PatchOptions[], parentURL: string, binName = 'dsh',
 ): PatchOptions[] {
+  // 我们的 root include 是一棵完整的 entries.yml（不是上游的空 root），
+  // 所以 patch 必须原样交给 Include，由 applyEntryPatches 按 id 覆盖；
+  // 不能先应用到空 root 再 insert（那会变成重复插入）。
+  void parentURL
+  void binName
   if (ctx.get('profileContext') === undefined) return patches
-  const entries = applyEntryPatches([], patches, patchWarning(ctx))
-  const rows = prepareProfileEntries(ctx, entries, parentURL, binName)
-  return rows.length === 0 ? [] : [{ insert: rows }]
+  return patches
 }
