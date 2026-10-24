@@ -25,14 +25,6 @@ const DIM = '\x1b[2m'
 const CYAN = '\x1b[36m'
 const RESET = '\x1b[0m'
 
-/** figlet Small "dshiunx"（约 32 列，80 列终端不换行）。 */
-const BANNER = [
-  '     _    _    _               ',
-  "  __| |__| |_ (_)_  _ _ _ __ __",
-  " / _` (_-< ' \\| | || | ' \\\\ \\ /",
-  ' \\__,_/__/_||_|_|\\_,_|_||_/_\\_\\',
-].join('\n')
-
 /** Command registry + interactive loop. */
 export class Shell extends Service {
   private readonly commands = new Map<string, ShellCommand>()
@@ -137,9 +129,7 @@ export function apply(ctx: Context): void {
     },
   })
   if (stdout.isTTY) {
-    stdout.write(`${DIM}${BANNER}${RESET}\n\n`)
-    stdout.write(`  ${CYAN}welcome to dshiunx, you can do anything${RESET}\n`)
-    stdout.write(`  ${DIM}type \`help\` for commands, \`exit\` to leave.${RESET}\n\n`)
+    stdout.write(`\nwelcome to dshiunx, you can do anything\n\n`)
   }
   void shell.run().then(
     () => { ctx.get('appExit')?.(0) },
