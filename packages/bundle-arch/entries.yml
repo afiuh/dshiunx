@@ -329,6 +329,36 @@
     timeoutMs: 60000
 - id: config-editor
   name: '@deepseek-ai/dsh-config-editor'
+
+# ── headless 执行形态（与 agent-loop 同层）──
+- id: headless-startup
+  name: '@deepseek-ai/dsh-headless/startup'
+
+- id: headless-runner
+  name: '@deepseek-ai/dsh-headless'
+  inject: [headlessStartup]
+  config:
+    task: !!js "ctx.headlessStartup.task"
+    sessionId: !!js "ctx.headlessStartup.sessionId"
+    json: !!js "ctx.headlessStartup.json"
+    permissionMode: !!js "ctx.headlessStartup.permissionMode"
+    approvalPolicy: !!js "ctx.headlessStartup.approvalPolicy"
+
+# 查询服务 backend：openAt: never 保持 ctx.sessionQuery 挂载
+- id: session-query-sqlite
+  name: '@deepseek-ai/dsh-session-query-sqlite'
+  config:
+    path: ':memory:'
+    openAt: never
+
+# HMR：内核能力，顶层（决策：内核模块-子节点/热更新.md「挂载位置」）
+- id: hmr
+  name: '@deepseek-ai/cordis-plugin-hmr'
+  config:
+    base: ../..
+    root:
+    - packages
+    debounce: 200
 - id: preset-standard
   name: '@deepseek-ai/dsh-agent-preset'
   config:
@@ -879,26 +909,3 @@
     name: '@dshiunx/tui/plugins/overlays'
   - id: tui-keyboard
     name: '@dshiunx/tui/plugins/keyboard'
-  - id: cordis-plugin-hmr
-    name: '@deepseek-ai/cordis-plugin-hmr'
-    config:
-      base: ../..
-      root:
-      - packages
-      debounce: 200
-
-# headless：必须与 agent-loop 同层挂载（entries include 树内）。
-- id: headless-startup
-  name: '@deepseek-ai/dsh-headless/startup'
-  disabled: !!js "!ctx.get('profileContext').headless"
-
-- id: headless-runner
-  name: '@deepseek-ai/dsh-headless'
-  inject: [headlessStartup]
-  disabled: !!js "!ctx.get('profileContext').headless"
-  config:
-    task: !!js "ctx.headlessStartup.task"
-    sessionId: !!js "ctx.headlessStartup.sessionId"
-    json: !!js "ctx.headlessStartup.json"
-    permissionMode: !!js "ctx.headlessStartup.permissionMode"
-    approvalPolicy: !!js "ctx.headlessStartup.approvalPolicy"

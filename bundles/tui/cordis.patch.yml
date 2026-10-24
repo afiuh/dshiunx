@@ -14,10 +14,3 @@
     name: '@dshiunx/tui/plugins/overlays'
   - id: tui-keyboard
     name: '@dshiunx/tui/plugins/keyboard'
-  - id: cordis-plugin-hmr
-    name: '@deepseek-ai/cordis-plugin-hmr'
-    config:
-      base: ../..
-      root:
-      - packages
-      debounce: 200
