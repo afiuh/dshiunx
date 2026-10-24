@@ -84,6 +84,19 @@ const cmdlineArgs = headlessArgs(args, task)
 const entriesDir = fileURLToPath(new URL('../packages/bundle-arch/', import.meta.url))
 const configPath = `${entriesDir}entries.yml`
 
+// 统一退出：先 dispose 树，再退出；5s 超时强制退出（照上游 createProcessShutdown）
+let appCtx: { fiber: { dispose(): Promise<void> } } | undefined
+let shutdownStarted = false
+function shutdown(code: number): void {
+  if (shutdownStarted) return
+  shutdownStarted = true
+  const timer = setTimeout(() => process.exit(code), 5_000)
+  void Promise.resolve()
+    .then(() => appCtx?.fiber.dispose())
+    .catch(() => {})
+    .finally(() => { clearTimeout(timer); process.exit(code) })
+}
+
 const ctx = await boot('dx', configPath, [], async (hostCtx) => {
   hostCtx.provide('profileContext', {
     name: 'dshiunx',
@@ -100,11 +113,13 @@ const ctx = await boot('dx', configPath, [], async (hostCtx) => {
   })
   provideCmdline(hostCtx, {
     args: cmdlineArgs,
-    exit: (code: number) => process.exit(code),
+    exit: (code: number) => shutdown(code),
   })
   // 在 entries 挂载前挂载日志出口，否则 boot 期间的 logger 日志会丢失
   await hostCtx.plugin(ConsoleExporter)
 })
+
+appCtx = ctx
 
 const loaded = [...ctx.loader.entries()]
 console.log(`dx: loaded ${loaded.length} entries`)
@@ -124,15 +139,10 @@ process.on('exit', stopHeartbeat)
 // 全项目 grep 无 `DSHIUNX_*` 读取方，env 写入是死代码。待 TUI 重构时接线。
 // headless 参数走 cmdlineArgs 白名单（startup 解析）；见 启动链路.md「参数契约」。
 
-if (task) {
-  // headless 条目已在 entries.yml 内与 agent-loop 同层挂载（include 树）；
-  // provideCmdline 已提供 appExit，headless 完成时直接结束进程。
-  await new Promise<void>(() => {})
-} else {
-  // 保持进程运行；TUI 的 onExit 会 process.exit(0)。
-  await new Promise<void>((resolve) => {
-    process.on('SIGINT', resolve)
-    process.on('SIGTERM', resolve)
-  })
-}
-await ctx.fiber.dispose()
+// SIGTERM 是管理者的普通停止（退出 0）；SIGINT 是用户中断（130）
+process.on('SIGTERM', () => shutdown(0))
+process.on('SIGINT', () => shutdown(130))
+
+// headless 完成时通过 appExit → shutdown 结束进程；TUI 的 onExit 同理。
+// 两者都走统一的 dispose → exit 路径，不再直接 process.exit。
+await new Promise<void>(() => {})
