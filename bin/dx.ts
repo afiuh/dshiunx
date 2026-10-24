@@ -124,8 +124,8 @@ const ctx = await boot('dx', configPath, patches, async (hostCtx) => {
 
 appCtx = ctx
 
-const loaded = [...ctx.loader.entries()]
-console.log(`dx: loaded ${loaded.length} entries`)
+// 没有报错就没有输出：启动成功时不打印条目数（需要时 DX_VERBOSE=1）
+if (process.env.DX_VERBOSE) console.log(`dx: loaded ${[...ctx.loader.entries()].length} entries`)
 
 // 健康心跳：供外部 watchdog 监控（100ms 更新；退出时清理）
 const heartbeatFile = process.env.DSHIUNX_HEARTBEAT ?? '/tmp/dshiunx-heartbeat'

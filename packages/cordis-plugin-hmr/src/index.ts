@@ -101,9 +101,9 @@ class Hmr extends Service {
     const root = this.config.root ?? ['.']
     const ignored = this.config.ignored ?? []
     if (!this.config.base) {
-      this.ctx.logger.info('watching %o', root)
+      this.ctx.logger.debug('watching %o', root)
     } else {
-      this.ctx.logger.info('watching %o in %s', root, this.baseDir)
+      this.ctx.logger.debug('watching %o in %s', root, this.baseDir)
     }
 
     const match = picomatch(ignored)
