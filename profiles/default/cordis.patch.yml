@@ -8,8 +8,5 @@
   config:
     personaPrefix: !!js "ctx.get('profileContext').headless ? 'You are a coding agent powered by the {{model}} model.' : ''"
 
-- id: tui
-  disabled: !!js "ctx.get('profileContext').headless"
-
 - id: hmr
   disabled: !!js "!ctx.get('profileContext') || !!ctx.get('profileContext').headless"

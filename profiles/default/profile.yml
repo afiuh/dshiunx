@@ -5,4 +5,3 @@ bundles:
   - presets/ptc
   - presets/minimal
   - presets/creator
-  - tui

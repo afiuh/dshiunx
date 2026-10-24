@@ -1,4 +1,0 @@
-/** failed 覆盖层（通用版，待具体 UI）。 */
-import { GenericOverlay } from './generic.js'
-
-export const FailedOverlay = GenericOverlay

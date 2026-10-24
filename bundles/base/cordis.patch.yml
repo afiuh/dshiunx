@@ -333,10 +333,12 @@
 # ── headless 执行形态（与 agent-loop 同层）──
 - id: headless-startup
   name: '@deepseek-ai/dsh-headless/startup'
+  disabled: !!js "!ctx.get('profileContext').headless"
 
 - id: headless-runner
   name: '@deepseek-ai/dsh-headless'
   inject: [headlessStartup]
+  disabled: !!js "!ctx.get('profileContext').headless"
   config:
     task: !!js "ctx.headlessStartup.task"
     sessionId: !!js "ctx.headlessStartup.sessionId"
@@ -359,3 +361,9 @@
     root:
     - packages
     debounce: 200
+
+
+# ── shell：登录后的默认界面（命令层）──
+- id: shell
+  name: '@dshiunx/shell'
+  disabled: !!js "ctx.get('profileContext').headless"

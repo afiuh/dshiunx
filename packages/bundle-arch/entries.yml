@@ -341,10 +341,12 @@
 # ── headless 执行形态（与 agent-loop 同层）──
 - id: headless-startup
   name: '@deepseek-ai/dsh-headless/startup'
+  disabled: !!js "!ctx.get('profileContext').headless"
 
 - id: headless-runner
   name: '@deepseek-ai/dsh-headless'
   inject: [headlessStartup]
+  disabled: !!js "!ctx.get('profileContext').headless"
   config:
     task: !!js "ctx.headlessStartup.task"
     sessionId: !!js "ctx.headlessStartup.sessionId"
@@ -367,6 +369,12 @@
     root:
     - packages
     debounce: 200
+
+
+# ── shell：登录后的默认界面（命令层）──
+- id: shell
+  name: '@dshiunx/shell'
+  disabled: !!js "ctx.get('profileContext').headless"
 - id: preset-standard
   name: '@deepseek-ai/dsh-agent-preset'
   config:
@@ -901,19 +909,3 @@
     - id: tool-plugin-market
       name: '@deepseek-ai/dsh-plugin-market/tools'
       disabled: '!ctx.get(''profileContext'')'
-- id: tui
-  name: cordis:group
-  group: true
-  config:
-  - id: tui-protocol
-    name: '@dshiunx/tui-protocol'
-  - id: tui-status
-    name: '@dshiunx/tui-status'
-  - id: tui-core
-    name: '@dshiunx/tui/plugins/core'
-  - id: tui-commands
-    name: '@dshiunx/tui/plugins/commands'
-  - id: tui-overlays
-    name: '@dshiunx/tui/plugins/overlays'
-  - id: tui-keyboard
-    name: '@dshiunx/tui/plugins/keyboard'
