@@ -64,6 +64,19 @@ TUI 是界面的一种（和 Web renderer 并列），先做是因为**界面最
 - TUI 不直接调用业务插件（只通过 `tui-store` / 事件）
 - `dsh-tui` 不启用（参考源码）
 
+## 已知问题：headless（`-p`）模式不执行任务
+
+| 项 | 内容 |
+|---|---|
+| 现象 | 非 TTY 下 `dx -p "..."` 启动后挂起：任务不执行，进程不退出 |
+| 根因 | `bin/dx.ts` 的 `-p` 只把任务写进 `DSHIUNX_TASK`；执行完全依赖 TUI 插件读它。非 TTY 时 TUI 打印 `non-interactive host detected` 后跳过，任务没人执行，`bin/dx.ts` 停在 `await new Promise(...)` 等 SIGINT/SIGTERM |
+| 影响 | 无法用 `-p` 做 headless 验证（对话、工具执行链） |
+| 归属 | **TUI 模块**（第 3 步大重构时处理：headless 路径应独立于 TUI） |
+| 临时方案 | 用 tmux 提供 TTY：`tmux new -d 'node --import tsx bin/dx.ts -p "..."'`，再 `capture-pane` 看输出 |
+| 发现 | 2026-10-24（执行器插件化验证时） |
+
+**注意**：这不是 TUI 的 bug，是 `-p` 模式缺独立执行路径——`bin/dx.ts` 把"执行任务"和"呈现界面"绑在了 TUI 上。重构时应拆开。
+
 ## 参考什么
 
 - 归档 05/06（TUI 解耦与插件化）
