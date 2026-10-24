@@ -209,6 +209,9 @@
       "@deepseek-ai/dsh-headless": [
         "packages/dsh-headless/src/index.ts"
       ],
+      "@deepseek-ai/dsh-session-query-sqlite": [
+        "packages/dsh-session-query-sqlite/src/index.ts"
+      ],
       "@deepseek-ai/dsh-official-bundles": [
         "packages/dsh-official-bundles/src/index.ts"
       ],

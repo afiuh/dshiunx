@@ -11,11 +11,14 @@ import type {
   AgentOptions,
   AgentStatus,
   CancelOptions,
+  InboxState,
   InboxTarget,
+  ModelSelection,
+  ModelSelectionProjectionState,
   PreStepDecision,
   RequestErrorAction,
 } from '@deepseek-ai/dsh-agent'
-import { agentEvents, assembleContextFor } from '@deepseek-ai/dsh-agent'
+import { AgentModel, agentEvents, assembleContextFor } from '@deepseek-ai/dsh-agent'
 import type { GenerateOptions, LlmCallConfig, Message, PreparedLlmCall } from '@deepseek-ai/dsh-llm'
 import {
   LlmError,
@@ -38,6 +41,7 @@ import { RuntimeContextProjection } from './runtime-context.ts'
 import { AssistantStreamAttempt } from './assistant-stream.ts'
 import { SystemPromptProjection } from './runtime-context.ts'
 import { ToolBatchExecutionError } from '@deepseek-ai/dsh-tools'
+import type { ResolvedToolSet } from '@deepseek-ai/dsh-tools'
 
 type Phase =
   | { kind: 'idle'; lastTurn: number }
@@ -58,6 +62,8 @@ type PreparedStep =
     messages: UserMessage[]
     startsRequestSeries?: true
     assembly: PromptAssembly
+    selection: Readonly<ModelSelection>
+    toolSet: ResolvedToolSet
   }
 
 /** Remove adapter-derived values before plugins propose the next request config. */
@@ -96,6 +102,7 @@ function abortedCancelCause(signal: AbortSignal): AgentCancelCause | undefined {
 
 /** Drives one session through turn and step boundaries. */
 export class ReactLoopAgent implements Agent {
+  readonly model: AgentModel
   readonly inbox: ReactLoopInbox
   private phase: Phase
   private activityDone: Promise<void> = Promise.resolve()
@@ -124,14 +131,16 @@ export class ReactLoopAgent implements Agent {
     public readonly id: SessionId,
     public readonly options: AgentOptions,
     public readonly session: Session,
+    readModel: () => ModelSelectionProjectionState,
+    readInbox: () => InboxState,
+    lastTurn: number,
   ) {
     this.requestSurfaceGeneration = session.surface.contentGeneration
     this.dispatch = agentEvents(loopCtx, this)
     this.scope = createScope(loopCtx, this)
     this.ctx = this.scope.ctx
-    this.inbox = new ReactLoopInbox(this.ctx.sessionProjections, session, this.dispatch)
-    /* v8 ignore next -- the loop registers its own turnBoundary unit, so the key is always present */
-    const lastTurn = this.loopCtx.sessionProjections.stateOf(session, 'turnBoundary')?.lastTurn ?? 0
+    this.model = new AgentModel(readModel, session, options)
+    this.inbox = new ReactLoopInbox(readInbox, session, this.dispatch)
     this.phase = { kind: 'idle', lastTurn }
     this.runtimeContext = new RuntimeContextProjection(this.ctx, session)
     this.systemPrompt = new SystemPromptProjection(session)
@@ -269,22 +278,35 @@ export class ReactLoopAgent implements Agent {
     if (this.phase.kind !== 'running') throw new Error(`agent "${this.id}": pre-step outside running phase`)
     const signal = this.phase.abort.signal
     const claimed = this.inbox.claim(target, position.turn)
-    const assembly = await this.loopCtx.systemPrompt.assemble(assembleContextFor(this, signal))
-    signal.throwIfAborted()
-    const decision = await this.dispatch.waterfall(
-      'agent/pre-step', { messages: claimed, ...position, signal },
-      (): Promise<PreStepDecision> => {
-        const sections = renderContextSections(assembly)
-        const context = this.runtimeContext.project(joinContextSections(sections), sections)
-        return Promise.resolve<PreStepDecision>({
-          kind: 'enter',
-          messages: context === undefined ? claimed : [...claimed, context],
-        })
-      },
-    )
-    signal.throwIfAborted()
-    if (decision.kind === 'reject') return decision
-    return { ...decision, assembly }
+    const selection = this.model.current()
+    if (selection === undefined) {
+      throw new Error(`agent "${this.id}" has no provider/model: set AgentOptions.provider and AgentOptions.model or record a model selection`)
+    }
+    const toolSet = await this.loopCtx.tools.resolve({ agent: this, modelSelection: selection, signal })
+    try {
+      const assembly = await this.loopCtx.systemPrompt.assemble({ ...assembleContextFor(this, signal), modelSelection: selection, toolSet })
+      signal.throwIfAborted()
+      const decision = await this.dispatch.waterfall(
+        'agent/pre-step', { messages: claimed, ...position, signal, modelSelection: selection },
+        (): Promise<PreStepDecision> => {
+          const sections = renderContextSections(assembly)
+          const context = this.runtimeContext.project(joinContextSections(sections), sections)
+          return Promise.resolve<PreStepDecision>({
+            kind: 'enter',
+            messages: context === undefined ? claimed : [...claimed, context],
+          })
+        },
+      )
+      signal.throwIfAborted()
+      if (decision.kind === 'reject') {
+        toolSet.dispose()
+        return decision
+      }
+      return { ...decision, assembly, selection, toolSet }
+    } catch (error: unknown) {
+      toolSet.dispose()
+      throw error
+    }
   }
 
   /** Whether the assembled tool schemas differ from the logged request header's. */

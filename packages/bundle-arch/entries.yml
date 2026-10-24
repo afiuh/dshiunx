@@ -241,7 +241,7 @@
 - id: system-prompt
   name: '@deepseek-ai/dsh-system-prompt'
   config:
-    personaPrefix: !!js "ctx.get('profileContext').headless ? 'You are a coding agent powered by the {{model}} model.' : ''"
+    personaPrefix: ''
 - id: agent-loop
   name: '@deepseek-ai/dsh-agent-loop'
   config:
@@ -313,7 +313,6 @@
   name: '@deepseek-ai/dsh-settings'
 - id: credentials
   name: '@deepseek-ai/dsh-credentials-local'
-  disabled: !!js "ctx.get('profileContext').headless"
 - id: session-title
   name: '@deepseek-ai/dsh-session-title'
   config:
@@ -867,7 +866,6 @@
 - id: tui
   name: cordis:group
   group: true
-  disabled: !!js "ctx.get('profileContext').headless"
   config:
   - id: tui-protocol
     name: '@dshiunx/tui-protocol'
@@ -888,20 +886,3 @@
       root:
       - packages
       debounce: 200
-
-# headless：必须与 agent-loop 同层挂载（entries include 树内）。
-# 在 root 用 ctx.loader.create 会拿到另一个 agents 实例（服务按 isolate 分实例）——决策：启动链路.md
-- id: headless-startup
-  name: '@deepseek-ai/dsh-headless/startup'
-  disabled: !!js "!ctx.get('profileContext').headless"
-
-- id: headless-runner
-  name: '@deepseek-ai/dsh-headless'
-  inject: [headlessStartup]
-  disabled: !!js "!ctx.get('profileContext').headless"
-  config:
-    task: !!js "ctx.headlessStartup.task"
-    sessionId: !!js "ctx.headlessStartup.sessionId"
-    json: !!js "ctx.headlessStartup.json"
-    permissionMode: !!js "ctx.headlessStartup.permissionMode"
-    approvalPolicy: !!js "ctx.headlessStartup.approvalPolicy"
