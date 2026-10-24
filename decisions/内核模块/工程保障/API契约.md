@@ -50,6 +50,9 @@
 | `fiber.dispose()` | 卸载（await 清理） |
 | `fiber.await()` | 等待结算，重抛启动错误 |
 | `fiber.update(config)` | 更新配置（可能重建） |
+| `fiber.rawConfig` | 原始输入：getter 读、setter 只保留（不触发更新） |
+| `fiber.effectiveConfig` | 已发布配置（不克隆）；首次解析前 undefined，卸载后仍可读 |
+| `fiber.resolveConfig(candidate)` | 评估候选配置（hooks + schema），不发布、不替换、不提交 volatile |
 | `fiber.effect(...)` | 同 `ctx.effect` |
 
 ### Events
