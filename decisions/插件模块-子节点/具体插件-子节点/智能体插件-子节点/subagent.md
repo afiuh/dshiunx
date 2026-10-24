@@ -52,6 +52,8 @@
 - 子代理结束时若最后一条是发给父的消息，不重复输出 closing text
 - 删除形态实现，运行时仍能启动（只是少一种形态）
 
+**代码状态**：rc.2 已有 22 个 ts（catalog/activation/child-agent/manager/projection），但模型授权与 `list_subagent_models` 的 rc.3 语义未逐条核对。待第 2 步确认。
+
 ## 参考什么
 
 - 上游 rc.3：`packages/subagent/subagent/src/`（结算通知）、`packages/subagent/tool-subagent/src/`（`list-models.ts` / `model-selection*.ts`）

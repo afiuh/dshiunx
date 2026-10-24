@@ -53,6 +53,8 @@
 - 替换执行器（原生 ↔ PTC）不改循环代码
 - 循环不 import 具体工具
 
+**代码状态**：rc.2 的 `agent-loop` 仍有 `tool-calls.ts`（调度），决策要求调度归执行器（`dsh-tools/batch.ts`）。待第 2 步移除。
+
 ## 参考什么
 
 - 上游 rc.3：`packages/core/agent-loop/src/index.ts`（`initializeAgent`）、`agent.ts`（step 准入/适配器绑定）

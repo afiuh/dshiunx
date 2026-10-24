@@ -89,6 +89,8 @@ personaPrefix → harness:identity → runtime:context → 工具指导
 - 执行器的 `sections` 能被 waterfall 修改，`describe()` 的声明不能
 - `orderTools` 按 `toolOrder` 排序，未列出的归 `<unlisted-tools>`
 
+**代码状态**：rc.2 的 `system-prompt/assemble` waterfall 拿 `PromptAssembly`（含 `tools`），决策要求只拿 `PromptPresentation`。待第 2 步收紧。
+
 ## 参考什么
 
 - rc.3 变更：`packages/core/system-prompt/src/index.ts`（`PromptPresentation` / `PromptAssembly` 分离）

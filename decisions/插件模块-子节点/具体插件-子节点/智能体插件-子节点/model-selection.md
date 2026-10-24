@@ -51,6 +51,8 @@
 - 切到同 provider+model 但不同 effort → `sameRoute` 为真、`sameModelSelection` 为假
 - 请求用上 pending 后，`next` 等于 `lastUsed`
 
+**代码状态**：rc.2 是内存 `ModelSelectionRef`（current/assembled），无持久化投影。待第 2 步改为 `ModelSelectionProjectionState`。
+
 ## 参考什么
 
 - 上游 rc.3：`packages/core/agent/src/model-selection.ts`（`ModelSelectionProjectionState` / `modelSelectionProjectionDefinition` / `sameRoute` / `sameModelSelection`）
