@@ -1,3 +1,11 @@
+# ============================================================================
+# ⚠️ 自动生成文件，不要手写！
+#
+# 生成器：scripts/build-entries.mjs（npm run build:entries）
+# 源文件：profiles/default/profile.yml + bundles/*/cordis.patch.yml
+# 手改后果：下次生成会被静默覆盖；要改配置请改 bundles/ 或 profile patch。
+# ============================================================================
+
 - id: tool-plugin-manager
   name: '@deepseek-ai/dsh-plugin-manager/tools'
   disabled: true
