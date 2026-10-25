@@ -4,7 +4,7 @@
 
 ## 重构讨论（2026-10-24，进行中）
 
-> **主题**：[核心战略 §2.0](../../../核心战略.md)——welcome to dshiunx, you can do anything
+> **主题**：[核心战略 §2.0](../../核心战略.md)——welcome to dshiunx, you can do anything
 
 ### 用户原话（逐字）
 
