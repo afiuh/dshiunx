@@ -19,6 +19,7 @@ VOICE = "zh-CN-XiaoxiaoNeural"
 LOG_DIR = HOME / ".local/share/jarvis/logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG = LOG_DIR / "stage0.jsonl"
+SYSTEM_PROMPT = Path(__file__).resolve().parent.parent / "config/jarvis_system.md"
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "asr"))
 from wetype_asr import transcribe  # noqa: E402
@@ -105,7 +106,8 @@ def route(text: str) -> tuple[str, str]:
 
 def ask_pi(text: str) -> str:
     proc = subprocess.run(
-        [PI, "-p", text],
+        [PI, "--no-context-files", "--no-skills",
+         "--system-prompt", str(SYSTEM_PROMPT), "-p", text],
         capture_output=True, text=True, timeout=180,
     )
     out = (proc.stdout or "").strip()

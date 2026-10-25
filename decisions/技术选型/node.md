@@ -6,6 +6,16 @@
 
 根要求：声音、笔记库读写、事务录入、任务分配（拉起 pi 对话）、系统控制、长期记忆、本地优先。需要确定一个可落地的技术底座和扩展路径。
 
+## 专用初始上下文（2026-10-25）
+
+助手不是编程助手，不能沿用 pi 默认编程上下文。
+
+- 系统提示：`config/jarvis_system.md`（角色/说话方式/行为边界）；
+- 调用：`pi --no-context-files --no-skills --system-prompt config/jarvis_system.md -p ...`；
+- 不加载全局 AGENTS.md、不加载编程技能；
+- 长任务分配（`pi_task.py`）仍用默认/项目上下文，保留编程能力；
+- 测试：“你是谁” → “个人电脑助手贾维斯”；普通问答口语化、简短。
+
 ## 已定 TTS
 
 **Edge-TTS `zh-CN-XiaoxiaoNeural`（晓晓，女）**：清晰、通用、免费、不占显存。Fairy 音色暂缓，后续需要再换 GPT-SoVITS/RVC。
