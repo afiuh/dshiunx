@@ -49,7 +49,7 @@
 
 ✅ agent 已接（2026-10-25）：
 - 服务名是 `agents`（不是 `agent`）；`ctx.get('agents').create()` 懒创建 Web 会话
-- `/api/input` → `agent.followup()` → `whenIdle` → SSE `assistant`
+- `/api/input` → `agent.followup()` → `assistant-delta`（流式）→ `assistant-done`
 - `session/event` 的 `tool/call` / `tool/result` → SSE `tool`
 - 验证：`say hi` → SSE `assistant: "Hi! 👋 How can I help you today?"`；截屏确认对话渲染
 
@@ -61,6 +61,8 @@
 ✅ 会话固定 + 列表（2026-10-25）：
 - Web 会话固定一个（`~/.local/share/jarvis/web-session.json`，重启 `resume`，不新开）
 - 只有用户显式 `POST /api/new` 才开新对话（前端无按钮）
+- 对话登记：`conversations.register({ group: 'jarvis-web' })`；列表 `conversations.list('jarvis-web')`
+- Esc → `POST /api/interrupt` → `agent.cancel('user')`（已实现，未实测）
 - 会话列表：`sessionPersistence.list()` 按 cwd 过滤、新在前
 - Esc → `POST /api/interrupt` → `agent.cancel('user')`
 - 验证：重启两次 → 同一 session id

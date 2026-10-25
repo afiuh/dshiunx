@@ -27,7 +27,7 @@
 | 识别态（蓝色旋转） | ✅ |
 | 键盘输入（textarea、Enter 发送、Shift+Enter 换行） | ✅ |
 | 可选编辑（识别错时改输入框重发） | ✅ |
-| Esc 中断当前 turn | ❌ 待做 |
+| Esc 中断当前 turn（`/api/interrupt` → `agent.cancel('user')`） | ✅（未实测） |
 
 ## 验证
 
