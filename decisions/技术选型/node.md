@@ -18,6 +18,14 @@
 - 长任务分配（`pi_task.py`）仍用默认/项目上下文；
 - 测试：截图描述成功；身份“个人电脑助手维叶莎”；普通问答口语化。
 
+## 连接配置（唯一值）
+
+- 地址：`http://192.168.1.2:8387`
+- Token：`wys-local-7f3a9c`
+- 配置：`config/weiyesha.env`；detector 启动脚本 `scripts/start-detector.sh`
+- APP 默认值同步；以后尽量不改，避免手机/电脑不一致。
+- token 是本地服务凭据，不对外传。
+
 ## 已定 TTS
 
 **Edge-TTS `zh-CN-XiaoxiaoNeural`（晓晓，女）**：清晰、通用、免费、不占显存。Fairy 音色暂缓，后续需要再换 GPT-SoVITS/RVC。
