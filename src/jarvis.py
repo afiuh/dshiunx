@@ -57,6 +57,11 @@ def record_pcm(seconds: float | None) -> bytes:
 
 def route(text: str) -> tuple[str, str]:
     """阶段 0/1：问答 + 笔记库基础读写。"""
+    if "记忆" in text:
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
+        import memory
+        q = text.split("：", 1)[-1] if "：" in text else text.replace("记忆", "", 1)
+        return "memory", memory.search(q.strip())
     if "笔记" in text:
         sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
         import notes
@@ -75,9 +80,26 @@ def route(text: str) -> tuple[str, str]:
                 return "notes_read", notes.read(rel)[:3000]
             except Exception as exc:
                 return "notes_read", f"读取失败：{exc}"
-    for key, name in (("事务", "事务录入"), ("任务", "任务分配"), ("系统", "系统控制")):
-        if key in text:
-            return "placeholder", f"阶段 0 还没接{name}；目前只做问答和笔记。"
+    if "事务" in text:
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
+        import tasks
+        content = text.split("：", 1)[-1] if "：" in text else text
+        rel = tasks.add(content)
+        return "task_add", f"已记录到 {rel}"
+    if "任务" in text:
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
+        import pi_task
+        prompt = text.split("：", 1)[-1] if "：" in text else text.replace("任务", "", 1)
+        return "pi_task", pi_task.run(prompt.strip())
+    if "系统" in text:
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
+        import system
+        if "打开" in text:
+            target = text.split("打开", 1)[-1].strip()
+            return "system_open", system.open_target(target)
+        if "执行" in text:
+            cmd = text.split("执行", 1)[-1].strip()
+            return "system_run", system.run_command(cmd)
     return "pi", ask_pi(text)
 
 
@@ -127,6 +149,12 @@ def main() -> int:
     }
     with LOG.open("a") as f:
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
+        import memory
+        memory.add("interaction", record)
+    except Exception:
+        pass
 
     print(reply)
     if not args.no_speak:

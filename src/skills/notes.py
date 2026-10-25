@@ -4,6 +4,8 @@
 import subprocess
 from pathlib import Path
 
+import audit
+
 VAULT = Path.home() / "obsidian-笔记"
 INBOX = VAULT / "草稿集/AI草稿/jarvis-inbox.md"
 
@@ -51,9 +53,11 @@ def read(path: str) -> str:
 def write(path: str, content: str, mode: str = "append") -> str:
     p = _safe(path)
     p.parent.mkdir(parents=True, exist_ok=True)
+    audit.backup(p)
     if mode == "overwrite":
         p.write_text(content)
     else:
         with p.open("a") as f:
             f.write(content + "\n")
+    audit.record("notes_write", {"path": str(p), "mode": mode})
     return str(p.relative_to(VAULT))
