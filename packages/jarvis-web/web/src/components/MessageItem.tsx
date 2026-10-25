@@ -31,7 +31,9 @@ export function MessageItem({ message }: { message: ChatMessage }) {
   return (
     <div className={`msg ${message.role}`}>
       <div className="who">{message.role === 'user' ? 'you' : 'dshiunx'}</div>
-      <div className="body">{message.role === 'assistant' ? <Markdown text={message.text} /> : message.text}</div>
+      <div className="body">
+        {message.role === 'assistant' && message.streaming !== true ? <Markdown text={message.text} /> : message.text}
+      </div>
     </div>
   )
 }

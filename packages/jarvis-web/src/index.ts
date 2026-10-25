@@ -132,7 +132,10 @@ export class JarvisWeb extends Service {
     this.ctx.on('agent/assistant-stream', ({ agent: source, frame }) => {
       if (source !== agent) return
       if (frame.type !== 'chunk') return
-      if (frame.chunk.type === 'text-delta') this.buffer += frame.chunk.text
+      if (frame.chunk.type === 'text-delta') {
+        this.buffer += frame.chunk.text
+        this.broadcast('assistant-delta', { text: frame.chunk.text })
+      }
       if (frame.chunk.type === 'reasoning-delta') this.reasoning += frame.chunk.text
     })
     this.ctx.on('session/event', (session, event) => {
@@ -223,7 +226,7 @@ export class JarvisWeb extends Service {
         agent.followup(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } }))
         void agent.whenIdle().then(() => {
           if (this.reasoning !== '') this.broadcast('reasoning', { text: this.reasoning })
-          this.broadcast('assistant', { text: this.buffer })
+          this.broadcast('assistant-done', { text: this.buffer })
         })
         res.writeHead(202, { 'content-type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))

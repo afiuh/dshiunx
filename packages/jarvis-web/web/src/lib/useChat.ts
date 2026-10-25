@@ -5,6 +5,7 @@ export type ToolState = 'running' | 'done' | 'error'
 export interface ChatMessage {
   id: string
   role: 'user' | 'assistant' | 'tool' | 'reasoning'
+  streaming?: boolean
   text: string
   tool?: { name: string; state: ToolState; detail?: string }
 }
@@ -22,9 +23,24 @@ export function useChat() {
     source.current = es
     es.onopen = () => setStatus('connected')
     es.onerror = () => setStatus('reconnecting')
-    es.addEventListener('assistant', (event) => {
+    es.addEventListener('assistant-delta', (event) => {
       const data = JSON.parse((event as MessageEvent).data) as { text: string }
-      setMessages(prev => [...prev, { id: nextId(), role: 'assistant', text: data.text }])
+      setMessages(prev => {
+        const last = prev[prev.length - 1]
+        if (last?.role === 'assistant' && last.streaming === true) {
+          return [...prev.slice(0, -1), { ...last, text: last.text + data.text }]
+        }
+        return [...prev, { id: nextId(), role: 'assistant', text: data.text, streaming: true }]
+      })
+    })
+    es.addEventListener('assistant-done', () => {
+      setMessages(prev => {
+        const last = prev[prev.length - 1]
+        if (last?.role === 'assistant' && last.streaming === true) {
+          return [...prev.slice(0, -1), { ...last, streaming: false }]
+        }
+        return prev
+      })
     })
     es.addEventListener('reasoning', (event) => {
       const data = JSON.parse((event as MessageEvent).data) as { text: string }

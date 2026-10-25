@@ -22,7 +22,7 @@
 | 信息 | 展示 | 状态 |
 |---|---|---|
 | 用户消息 | 气泡（语音/键盘来源） | ✅ |
-| 助手回复 | 流式 + Markdown（marked） | ✅ |
+| 助手回复 | **流式**（`assistant-delta` 逐块）+ Markdown（marked，结束后渲染） | ✅ |
 | 思考过程 | 折叠块（`<details>`） | ✅ |
 | 工具调用 | 折叠卡片（名称/状态 running·done·error） | ✅ |
 | 执行结果（notes/tasks/system/dispatch 摘要） | 结构化摘要 | ❌ 待做 |
