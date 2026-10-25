@@ -184,7 +184,7 @@ export class JarvisWeb extends Service {
       for await (const chunk of req) chunks.push(chunk as Buffer)
       try {
         const pcm = await webmToPcm(Buffer.concat(chunks))
-        const voice = ctx.get('jarvisVoice') as { transcribe(pcm: Buffer): Promise<string> } | undefined
+        const voice = this.ctx.get('jarvisVoice') as { transcribe(pcm: Buffer): Promise<string> } | undefined
         if (voice === undefined) {
           res.writeHead(503, { 'content-type': 'application/json' })
           res.end(JSON.stringify({ error: 'jarvis-voice plugin is not loaded' }))
