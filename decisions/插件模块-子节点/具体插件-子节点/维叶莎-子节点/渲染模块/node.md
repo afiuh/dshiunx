@@ -21,6 +21,17 @@
 - **启动**：Shell 命令 `web` → 起本地 HTTP 服务 → 打开浏览器
 - **共享数据**：dshiunx 的 session/projection（不重复业务）
 
+## 实现策略（2026-10-25 用户定）
+
+**从零做（~1500 行 React），参考 DSH 的组件结构/交互，不复制代码。**
+
+| 项 | 决策 |
+|---|---|
+| 做法 | 从零写 React 组件（对话流 / 工具卡片 / 状态面板 / 输入区 / SSE） |
+| 参考 | DSH `ui-chat` 的组件拆分（`MessageItem` / `UserContent`）、`tool-call-tree` 的数据结构、`use-chat-viewport` 的滚动策略、`connection` 的传输分层 |
+| 不参考 | `window.__DSH_BOOT__`、10+ ui 包拆分、产品功能（账户/市场/审批/telemetry） |
+| 为什么 | DSH 前端为它的产品设计，数据模型不同；改造成本 ≈ 读懂一个前端框架再拆一半（TUI 的教训） |
+
 ## 边界
 
 - 不承载业务（只读状态 + 转发输入）；
