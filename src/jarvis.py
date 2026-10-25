@@ -56,11 +56,28 @@ def record_pcm(seconds: float | None) -> bytes:
 
 
 def route(text: str) -> tuple[str, str]:
-    """阶段 0：只接问答；其他能力明确返回未接入。"""
-    for key, name in (("笔记", "笔记库读写"), ("事务", "事务录入"),
-                      ("任务", "任务分配"), ("系统", "系统控制")):
+    """阶段 0/1：问答 + 笔记库基础读写。"""
+    if "笔记" in text:
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
+        import notes
+        if any(k in text for k in ("查", "搜索", "找")):
+            q = text
+            for k in ("查笔记", "搜索笔记", "找笔记", "查一下", "搜索", "查找"):
+                q = q.replace(k, "")
+            return "notes_search", notes.format_search(notes.search(q.strip()))
+        if any(k in text for k in ("记笔记", "写笔记", "追加")):
+            content = text.split("：", 1)[-1] if "：" in text else text
+            rel = notes.write(str(notes.INBOX.relative_to(notes.VAULT)), content)
+            return "notes_write", f"已写入 {rel}"
+        if any(k in text for k in ("读笔记", "打开笔记")):
+            rel = text.replace("读笔记", "").replace("打开笔记", "").strip()
+            try:
+                return "notes_read", notes.read(rel)[:3000]
+            except Exception as exc:
+                return "notes_read", f"读取失败：{exc}"
+    for key, name in (("事务", "事务录入"), ("任务", "任务分配"), ("系统", "系统控制")):
         if key in text:
-            return "placeholder", f"阶段 0 还没接{name}；目前只做问答。"
+            return "placeholder", f"阶段 0 还没接{name}；目前只做问答和笔记。"
     return "pi", ask_pi(text)
 
 
