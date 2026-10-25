@@ -11,7 +11,7 @@ import type { Agent } from '@deepseek-ai/dsh-agent'
 import type { SessionId } from '@deepseek-ai/dsh-session'
 import { randomUUID } from 'node:crypto'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
-import { readFile } from 'node:fs/promises'
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { dirname, extname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { spawn } from 'node:child_process'
@@ -19,6 +19,7 @@ import { spawn } from 'node:child_process'
 export const name = 'jarvis-web'
 
 const WEB_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'web', 'dist')
+const SESSION_FILE = join(process.env.HOME ?? '.', '.local', 'share', 'jarvis', 'web-session.json')
 const MIME: Record<string, string> = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'text/javascript; charset=utf-8',
@@ -79,31 +80,57 @@ export class JarvisWeb extends Service {
     if (server !== undefined) await new Promise<void>(resolve => server.close(() => resolve()))
   }
 
-  /** 懒创建 Web 会话的 agent，并把流事件推到浏览器。 */
+  /** 懒恢复 Web 会话的 agent（固定一个会话；只有显式 /api/new 才开新对话）。 */
   private async ensureAgent(): Promise<Agent> {
     if (this.agent !== undefined) return this.agent
-    const registry = this.ctx.get('agents') as { create(options: unknown): Promise<{ agent: Agent }> } | undefined
+    const registry = this.ctx.get('agents') as {
+      create(options: unknown): Promise<{ agent: Agent }>
+      resume(options: unknown): Promise<{ agent: Agent }>
+    } | undefined
     if (registry === undefined) throw new Error('agent service is not available')
     const defaultModel = this.ctx.get('agentDefaultModel') as { currentSelection(): object } | undefined
+    const agentOptions = { ...(defaultModel?.currentSelection() ?? {}) } as never
+
+    // 先尝试恢复上次的 Web 会话（测试/日常都集中在一个对话里）
+    const saved = await readFile(SESSION_FILE, 'utf8').catch(() => undefined)
+    if (saved !== undefined) {
+      try {
+        const { agent } = await registry.resume({ resumeSessionId: brandString<SessionId>(saved.trim()), agentOptions })
+        this.agent = agent
+        this.watch(this.agent)
+        return agent
+      } catch {
+        // 会话失效（被删/格式不符）→ 创建新的
+      }
+    }
+
     const created = await registry.create({
       sessionId: brandString<SessionId>(`session-${randomUUID()}`),
       meta: { cwd: process.cwd() },
-      agentOptions: { ...(defaultModel?.currentSelection() ?? {}) } as never,
+      agentOptions,
     })
+    await mkdir(dirname(SESSION_FILE), { recursive: true })
+    await writeFile(SESSION_FILE, created.agent.session.id)
     this.agent = created.agent
-    this.ctx.on('agent/assistant-stream', ({ agent, frame }) => {
-      if (agent !== this.agent) return
+    this.watch(this.agent)
+    return created.agent
+  }
+
+  /** 订阅 agent 流事件（assistant/reasoning/tool）。 */
+  private watch(agent: Agent): void {
+    this.agent = agent
+    this.ctx.on('agent/assistant-stream', ({ agent: source, frame }) => {
+      if (source !== agent) return
       if (frame.type !== 'chunk') return
       if (frame.chunk.type === 'text-delta') this.buffer += frame.chunk.text
       if (frame.chunk.type === 'reasoning-delta') this.reasoning += frame.chunk.text
     })
     this.ctx.on('session/event', (session, event) => {
-      if (session !== this.agent?.session) return
+      if (session !== agent.session) return
       const data = event.data as { name?: string; callId?: string }
       if (event.type === 'tool/call') this.broadcast('tool', { name: data.name ?? 'tool', state: 'running' })
       if (event.type === 'tool/result') this.broadcast('tool', { name: data.name ?? 'tool', state: 'done' })
     })
-    return this.agent
   }
 
   /** Push one SSE event to every connected browser. */
@@ -143,6 +170,34 @@ export class JarvisWeb extends Service {
         res.writeHead(500, { 'content-type': 'application/json' })
         res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
       }
+      return
+    }
+    if (url.pathname === '/api/sessions') {
+      const persistence = this.ctx.get('sessionPersistence') as { list(): Promise<Array<{ header: { id: string; createdAt: number; cwd?: string } }>> } | undefined
+      const list = persistence === undefined ? [] : await persistence.list()
+      const cwd = process.cwd()
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify(
+        list
+          .filter(entry => entry.header.cwd === cwd)
+          .map(entry => ({ id: entry.header.id, createdAt: entry.header.createdAt, cwd: entry.header.cwd })),
+      ))
+      return
+    }
+    if (url.pathname === '/api/new' && req.method === 'POST') {
+      // 只有用户能开新对话：显式调用才清掉当前 Web 会话。
+      this.agent = undefined
+      this.buffer = ''
+      this.reasoning = ''
+      await rm(SESSION_FILE, { force: true })
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ ok: true }))
+      return
+    }
+    if (url.pathname === '/api/interrupt' && req.method === 'POST') {
+      this.agent?.cancel('user' as never)
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify({ ok: true }))
       return
     }
     if (url.pathname === '/api/input' && req.method === 'POST') {
