@@ -15,7 +15,7 @@
 ## 先分清两类
 
 - **pi skill**：AI 读的“怎么做事”的流程规范；
-- **运行时服务**：语音、detector、手机 APP、ASR/TTS，不是 skill。
+- **运行时服务**：语音、ASR/TTS——在 dshiunx 里是插件（不是 skill）。
 
 ## pi skill 清单
 
@@ -72,12 +72,12 @@
 
 - 何时用：录音/唤醒/ASR/TTS/打断；
 - 职责：开关 → 按键/快捷键触发 → 录音 → ASR → 助手 → TTS；
-- 边界：不全天录音；开关由手机控制；
-- 对应：wetype ASR / Edge-TTS / detector / APP（不是纯 skill）。
+- 边界：不全天录音；由 Shell/快捷键触发；
+- 对应：wetype ASR / Edge-TTS（由 jarvis-voice 插件提供，不是纯 skill）。
 
 ## 不建议做成 skill 的
 
-- 手机开关 APP、tiny detector、语音链路：运行时服务；
+- 语音链路：dshiunx 插件（jarvis-voice）；
 - 人格/语气：初始提示词；
 - 能力清单：工具清单。
 
@@ -85,7 +85,7 @@
 
 - P0：jarvis-notes、jarvis-tasks、jarvis-dispatch、jarvis-system；
 - P1：jarvis-screen、jarvis-memory、jarvis-audit（已写，项目内 skills/）；
-- P2：jarvis-voice（运行时）、手机 APP。
+- P2：jarvis-voice（插件）、UI renderer。
 
 ## 待确认
 
