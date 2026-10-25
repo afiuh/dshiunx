@@ -62,6 +62,11 @@
 - 人格/语气：初始提示词；
 - 工具清单（不是 skill）。
 
+## 状态（2026-10-25）
+
+✅ 4 个 skill 已挂到 `~/.agents/skills/`（notes / tasks / system / dispatch），dshiunx agent 可见。
+✅ 验证：`记事务：明天下午三点买牛奶` → agent 找到 inbox、识别重复、不重复写入（按 skill 规则）。
+
 ## 待确认
 
 - 每个 skill 的独立目录/触发词/工具映射细节。
