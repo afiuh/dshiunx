@@ -18,6 +18,7 @@ sys.path.insert(0, str(ROOT / "asr"))
 
 import jarvis  # noqa: E402
 from wetype_asr import transcribe  # noqa: E402
+from wake_normalize import normalize  # noqa: E402
 
 STATE = Path("/tmp/weiyesha-state.json")
 TEMP_FILES = [Path("/tmp/jarvis-reply.mp3"), Path("/tmp/jarvis-screen.png")]
@@ -155,7 +156,7 @@ def main() -> int:
             if args.once:
                 break
             continue
-        text = transcribe(pcm)
+        text = normalize(transcribe(pcm))
         print(f"[daemon] 识别：{text}", file=sys.stderr)
         if text:
             process(text, not args.no_speak)

@@ -24,7 +24,13 @@
 - 由 detector 启动/停止；心跳超时退出；
 - 产出：`src/daemon.py`（或 Go/Rust 服务）。
 
-### 1.2 触发方式（方案 A：手机按钮）
+### 1.2 唤醒词归一化（前置环节）
+
+- ASR 开头三字若近似“维叶莎”（维叶沙/薇叶莎/维耶莎…），用 `src/wake_normalize.py` 归一化为“维叶莎”；
+- 白名单 + 至少共享 2 字；不误伤普通三字词；
+- 已接入 daemon：`normalize(transcribe(pcm))`。
+
+### 1.3 触发方式（方案 A：手机按钮）
 
 - 手机开关打开 → 手机录音按钮 → `POST /trigger` → daemon 录音；
 - 复用 wetype ASR，不做唤醒词；
