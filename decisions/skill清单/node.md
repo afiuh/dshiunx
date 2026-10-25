@@ -84,7 +84,7 @@
 ## 优先级
 
 - P0：jarvis-notes、jarvis-tasks、jarvis-dispatch、jarvis-system；
-- P1：jarvis-screen、jarvis-memory、jarvis-audit；
+- P1：jarvis-screen、jarvis-memory、jarvis-audit（已写，项目内 skills/）；
 - P2：jarvis-voice（运行时）、手机 APP。
 
 ## 待确认
