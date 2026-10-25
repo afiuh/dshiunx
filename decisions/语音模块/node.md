@@ -23,3 +23,4 @@
 - `输入/node.md`（ASR：wetype 独立抽取）
 - `输出/node.md`（TTS：Edge-TTS）
 - `触发/node.md`（按键 / Shell 命令 / 快捷键）
+- `技术选型/node.md`（ASR/TTS 调研、Fairy 音色）
