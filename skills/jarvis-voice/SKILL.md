@@ -37,6 +37,15 @@ description: 维叶莎语音交互 skill——开关/唤醒/录音/VAD/ASR/TTS/�
 - 检测服务：`src/detector`（Go，8387，60s 心跳）；
 - 开关：手机 APP（最后做）。
 
+## 录音文件策略
+
+- **录音不落盘**：`record_utterance` 在内存 `bytearray` 中，ASR 通过 stdin 直接发送 PCM；
+- 不生成 `.wav/.pcm/.raw` 录音文件；
+- TTS 输出固定 `/tmp/jarvis-reply.mp3`，每次覆盖；
+- 截图固定 `/tmp/jarvis-screen.png`，每次覆盖；
+- 启动/退出清理临时音频/截图；
+- 不把音频写进日志/审计。
+
 ## 边界
 
 - 不全天录音；`armed` 只等待手机 trigger，不监听；
