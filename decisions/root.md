@@ -54,6 +54,7 @@
 
 - `技术选型/node.md`
 - `信息流设计/node.md`
+- `触发方式/node.md`
 - `实现顺序/node.md`
 - `01-语音入口/node.md`
 - `02-笔记库读写/node.md`
