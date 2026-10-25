@@ -372,3 +372,8 @@
 # ── 维叶莎语音插件（Python sidecar）──
 - id: jarvis-voice
   name: '@dshiunx/jarvis-voice'
+
+
+# ── 维叶莎 Web renderer（HTTP + SSE）──
+- id: jarvis-web
+  name: '@dshiunx/jarvis-web'

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>dshiunx · 维叶莎</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #0b0f14; color: #e6edf3; font: 14px/1.6 system-ui, sans-serif; }
+  header { padding: 12px 20px; border-bottom: 1px solid #1f2937; color: #8b949e; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 20px; }
+  #log { display: flex; flex-direction: column; gap: 10px; min-height: 60vh; }
+  .msg { padding: 10px 14px; border-radius: 8px; background: #111827; white-space: pre-wrap; }
+  .user { background: #1f2937; }
+  footer { position: sticky; bottom: 0; background: #0b0f14; padding: 12px 20px; border-top: 1px solid #1f2937; }
+  input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #30363d; background: #0d1117; color: #e6edf3; }
+</style>
+</head>
+<body>
+<header>dshiunx · 维叶莎 <span id="status">connecting…</span></header>
+<main><div id="log"></div></main>
+<footer><input id="input" placeholder="说话或打字（语音主输入，键盘辅助）"></footer>
+<script>
+const log = document.getElementById('log')
+const status = document.getElementById('status')
+const input = document.getElementById('input')
+function add(text, cls) { const d = document.createElement('div'); d.className = 'msg ' + (cls || ''); d.textContent = text; log.appendChild(d); log.scrollTop = log.scrollHeight }
+const es = new EventSource('/events')
+es.onopen = () => { status.textContent = 'connected' }
+es.onerror = () => { status.textContent = 'reconnecting…' }
+es.addEventListener('message', e => add(e.data))
+es.addEventListener('assistant', e => add(JSON.parse(e.data).text))
+input.addEventListener('keydown', async e => {
+  if (e.key !== 'Enter' || e.shiftKey) return
+  const text = input.value.trim(); if (!text) return
+  input.value = ''; add(text, 'user')
+  await fetch('/api/input', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }) })
+})
+</script>
+</body>
+</html>

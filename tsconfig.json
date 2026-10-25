@@ -490,6 +490,9 @@
       ],
       "@dshiunx/jarvis-voice": [
         "packages/jarvis-voice/src/index.ts"
+      ],
+      "@dshiunx/jarvis-web": [
+        "packages/jarvis-web/src/index.ts"
       ]
     }
   }

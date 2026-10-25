@@ -32,6 +32,17 @@
 | 不参考 | `window.__DSH_BOOT__`、10+ ui 包拆分、产品功能（账户/市场/审批/telemetry） |
 | 为什么 | DSH 前端为它的产品设计，数据模型不同；改造成本 ≈ 读懂一个前端框架再拆一半（TUI 的教训） |
 
+## 状态（2026-10-25）
+
+✅ 插件骨架已建并验证：
+- `packages/jarvis-web`：`ctx.jarvisWeb.serve / stop / broadcast`
+- HTTP：`/`（静态）、`/events`（SSE）、`/api/input`（POST）
+- Shell 命令 `web`（`ctx.inject(['dxShell'])` 等 shell 就绪）
+- 最小前端 `web/dist/index.html`
+- 验证：首页 HTML / SSE `: connected` / POST 回执 全通
+
+⏳ 待做：React 前端（对话/工具卡片/状态面板/输入区）、agent 转发。
+
 ## 边界
 
 - 不承载业务（只读状态 + 转发输入）；
