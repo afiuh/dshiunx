@@ -26,7 +26,7 @@
 | 思考过程 | 折叠块（`<details>`） | ✅ |
 | 工具调用 | 折叠卡片（`MessageItem` 内 `<details>`；名称/状态 running·done·error） | ✅ |
 | 执行结果（notes/tasks/system/dispatch 摘要） | 结构化摘要 | ❌ 待做 |
-| 错误 | 一行，不刷屏 | ❌ 待做 |
+| 错误 | 一行，不刷屏（SSE `error`） | ✅ |
 | 公式（`\[ ... \]`） | KaTeX | ❌ 待做（marked 不渲染公式） |
 
 ## 验证

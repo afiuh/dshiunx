@@ -119,3 +119,6 @@ body {
 .md blockquote { margin: 0 0 10px; padding-left: 12px; border-left: 2px solid var(--line); color: var(--muted); }
 .md h1, .md h2, .md h3 { font-size: 15px; margin: 14px 0 8px; }
 .md a { color: var(--accent); }
+
+/* 错误：一行，不刷屏 */
+.error-line { color: var(--err); font-size: 13px; padding: 2px 0; }

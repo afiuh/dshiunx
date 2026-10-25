@@ -25,7 +25,7 @@
 | 品牌 | 静态 | ✅（dshiunx · 维叶莎） |
 | 会话列表 | `conversations.list('jarvis-web')`（按插件分组，新在前） | ✅ |
 | 当前会话 | 固定（`~/.local/share/jarvis/web-session.json`，重启 resume） | ✅ |
-| 任务状态 | dispatch + agent | ❌ 待做 |
+| 任务状态（agent） | `agent/status` → SSE `status`（running/idle） | ✅（部分：dispatch 待做） |
 | 语音状态 | `jarvis-voice` | ❌ 待做（按钮内有录音/识别态） |
 | 写入/回滚点 | git commit | ❌ 待做 |
 

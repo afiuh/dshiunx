@@ -8,6 +8,9 @@ function Markdown({ text }: { text: string }) {
 }
 
 export function MessageItem({ message }: { message: ChatMessage }) {
+  if (message.role === 'error') {
+    return <div className="error-line">{message.text}</div>
+  }
   if (message.role === 'reasoning') {
     return (
       <details className="reasoning">

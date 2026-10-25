@@ -4,7 +4,7 @@ export type ToolState = 'running' | 'done' | 'error'
 
 export interface ChatMessage {
   id: string
-  role: 'user' | 'assistant' | 'tool' | 'reasoning'
+  role: 'user' | 'assistant' | 'tool' | 'reasoning' | 'error'
   streaming?: boolean
   text: string
   tool?: { name: string; state: ToolState; detail?: string }
@@ -16,6 +16,7 @@ const nextId = (): string => `m${++seq}`
 export function useChat() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [status, setStatus] = useState<'connecting' | 'connected' | 'reconnecting'>('connecting')
+  const [agentStatus, setAgentStatus] = useState<string>('idle')
   const source = useRef<EventSource | null>(null)
 
   useEffect(() => {
@@ -46,6 +47,14 @@ export function useChat() {
       const data = JSON.parse((event as MessageEvent).data) as { text: string }
       setMessages(prev => [...prev, { id: nextId(), role: 'reasoning', text: data.text }])
     })
+    es.addEventListener('error', (event) => {
+      const data = JSON.parse((event as MessageEvent).data) as { message: string }
+      setMessages(prev => [...prev, { id: nextId(), role: 'error', text: data.message }])
+    })
+    es.addEventListener('status', (event) => {
+      const data = JSON.parse((event as MessageEvent).data) as { status: string }
+      setAgentStatus(data.status)
+    })
     es.addEventListener('tool', (event) => {
       const data = JSON.parse((event as MessageEvent).data) as { name: string; state: ToolState; detail?: string }
       setMessages(prev => [...prev, { id: nextId(), role: 'tool', text: '', tool: data }])
@@ -64,5 +73,5 @@ export function useChat() {
     })
   }
 
-  return { messages, send, status }
+  return { messages, send, status, agentStatus }
 }

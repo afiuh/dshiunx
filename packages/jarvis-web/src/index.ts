@@ -138,6 +138,10 @@ export class JarvisWeb extends Service {
       }
       if (frame.chunk.type === 'reasoning-delta') this.reasoning += frame.chunk.text
     })
+    this.ctx.on('agent/status', (payload) => {
+      if (payload.agent !== agent) return
+      this.broadcast('status', { status: payload.status })
+    })
     this.ctx.on('session/event', (session, event) => {
       if (session !== agent.session) return
       const data = event.data as { name?: string; callId?: string }
@@ -180,8 +184,10 @@ export class JarvisWeb extends Service {
         res.writeHead(200, { 'content-type': 'application/json' })
         res.end(JSON.stringify({ text }))
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        this.broadcast('error', { message })
         res.writeHead(500, { 'content-type': 'application/json' })
-        res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
+        res.end(JSON.stringify({ error: message }))
       }
       return
     }
@@ -231,8 +237,10 @@ export class JarvisWeb extends Service {
         res.writeHead(202, { 'content-type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))
       } catch (error) {
+        const message = error instanceof Error ? error.message : String(error)
+        this.broadcast('error', { message })
         res.writeHead(500, { 'content-type': 'application/json' })
-        res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
+        res.end(JSON.stringify({ error: message }))
       }
       return
     }

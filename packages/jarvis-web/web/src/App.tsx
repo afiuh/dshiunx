@@ -6,7 +6,7 @@ import { StatusBar } from './components/StatusBar'
 import { useChat } from './lib/useChat'
 
 export function App() {
-  const { messages, send, status } = useChat()
+  const { messages, send, status, agentStatus } = useChat()
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
       if (event.key !== 'Escape') return
@@ -19,7 +19,7 @@ export function App() {
     <div className="app">
       <SessionList />
       <main className="main">
-        <StatusBar status={status} />
+        <StatusBar status={status} agentStatus={agentStatus} />
         <ChatLog messages={messages} />
         <InputBar onSend={send} />
       </main>
