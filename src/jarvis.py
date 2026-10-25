@@ -58,6 +58,14 @@ def record_pcm(seconds: float | None) -> bytes:
 
 def route(text: str) -> tuple[str, str]:
     """阶段 0/1：问答 + 笔记库基础读写。"""
+    if any(k in text for k in ("看屏幕", "截图", "屏幕上", "这个窗口")):
+        sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
+        import screen
+        try:
+            img = screen.capture()
+            return "screen", ask_pi(f"读取图片 {img}，回答用户：{text}")
+        except Exception as exc:
+            return "screen", f"截图失败：{exc}"
     if "记忆" in text:
         sys.path.insert(0, str(Path(__file__).resolve().parent / "skills"))
         import memory
@@ -106,7 +114,7 @@ def route(text: str) -> tuple[str, str]:
 
 def ask_pi(text: str) -> str:
     proc = subprocess.run(
-        [PI, "--no-context-files", "--no-skills",
+        [PI, "--no-context-files",
          "--system-prompt", str(SYSTEM_PROMPT), "-p", text],
         capture_output=True, text=True, timeout=180,
     )

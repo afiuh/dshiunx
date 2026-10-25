@@ -11,10 +11,12 @@
 助手不是编程助手，不能沿用 pi 默认编程上下文。
 
 - 系统提示：`config/jarvis_system.md`（角色/说话方式/行为边界）；
-- 调用：`pi --no-context-files --no-skills --system-prompt config/jarvis_system.md -p ...`；
-- 不加载全局 AGENTS.md、不加载编程技能；
-- 长任务分配（`pi_task.py`）仍用默认/项目上下文，保留编程能力；
-- 测试：“你是谁” → “个人电脑助手贾维斯”；普通问答口语化、简短。
+- 调用：`pi --no-context-files --system-prompt config/jarvis_system.md -p ...`；
+- **保留 pi 全部工具/技能**（不再 `--no-skills`）；
+- `--no-context-files` 只去掉编程 AGENTS.md，不阉割工具；
+- 截图：`grim` 截图 → `read` 图片 → pi 视觉回答；
+- 长任务分配（`pi_task.py`）仍用默认/项目上下文；
+- 测试：截图描述成功；身份“个人电脑助手贾维斯”；普通问答口语化。
 
 ## 已定 TTS
 
