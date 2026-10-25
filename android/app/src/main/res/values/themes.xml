@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Theme.MirrorSync" parent="Theme.AppCompat.DayNight.NoActionBar">
+        <item name="colorPrimary">#2E7D32</item>
+        <item name="colorPrimaryDark">#1B5E20</item>
+        <item name="colorAccent">#546E7A</item>
+        <!-- 启动瞬间窗口底色：纸白（避免闪屏） -->
+        <item name="android:windowBackground">#FAF9F7</item>
+        <!-- Android 12+ 启动画面：纸白背景 + 墨色图标 -->
+        <item name="android:windowSplashScreenBackground">#FAF9F7</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+    </style>
+</resources>

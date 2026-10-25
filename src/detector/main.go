@@ -77,6 +77,20 @@ func (s *state) heartbeat() {
 	s.lastHeartbeat = time.Now()
 }
 
+func daemonState() string {
+	data, err := os.ReadFile("/tmp/weiyesha-state.json")
+	if err != nil {
+		return "unknown"
+	}
+	var v struct {
+		State string `json:"state"`
+	}
+	if json.Unmarshal(data, &v) != nil {
+		return "unknown"
+	}
+	return v.State
+}
+
 func (s *state) status() map[string]any {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -89,6 +103,7 @@ func (s *state) status() map[string]any {
 		"daemon_running": s.daemon != nil,
 		"pid":            pid,
 		"last_heartbeat": s.lastHeartbeat.Format(time.RFC3339),
+		"daemon_state":   daemonState(),
 	}
 }
 
