@@ -17,10 +17,21 @@
 - 不截获隐私/不常驻监听键盘；
 - 不干扰输入法正常使用。
 
-## 待确认
+## 已确认方案（2026-10-25）
 
-- 取文本方式：剪贴板、输入框、活动窗口，还是输入法协议？
-- 触发方式：Alt+Z 后自动取，还是助手主动唤起输入法？
+直接复用 fcitx5-vinput 的 `wetype-stream` 适配器脚本（微信输入法协议），作为独立 ASR：
+
+- 脚本：`src/asr/wetype_streaming.py`（从 `~/.local/share/vinput/providers/wetype/streaming` 复制）；
+- wrapper：`src/asr/wetype_asr.py`；
+- 输入：16k mono s16le WAV/PCM；输出：final 文本；
+- 不经过 fcitx5/daemon，不影响正常 Alt+Z 输入；
+- 实测：“今天下午三点提醒我买牛奶” → “今天下午3点提醒我买牛奶。”
+
+## 边界
+
+- 微信协议非官方，可能失效；
+- 需要网络；
+- 不做本地 ASR、不占显存。
 
 ## 验证
 

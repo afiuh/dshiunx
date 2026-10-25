@@ -26,7 +26,7 @@
 
 | 需求 | local-jarvis 现状 |
 |---|---|
-| 声音/唤醒 | 复用 fcitx5-vinput（线上 ASR）+ TTS；不做本地 ASR |
+| 声音/唤醒 | 复用 wetype-stream 协议脚本做独立 ASR（不经过 fcitx5）+ TTS；不做本地 ASR |
 | 笔记库检索 | `index_docs` RAG（只读索引） |
 | 笔记库写入 | 需新增 skill（std::fs 读写） |
 | 事务录入 | 需新增 skill（调用现有事务系统/脚本） |
