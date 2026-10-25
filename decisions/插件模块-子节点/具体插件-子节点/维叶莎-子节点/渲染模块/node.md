@@ -44,7 +44,8 @@
 ✅ React 前端骨架（2026-10-25）：
 - `web/src/`：`App` / `ChatLog` / `MessageItem` / `ToolCall`（折叠）/ `StatusBar` / `SessionList` / `InputBar` / `useChat`（SSE + 发送）
 - 构建：`esbuild` → `web/dist/app.js`（144KB）+ `app.css`（3KB）
-- 验证：首页 / CSS / JS 全部返回
+- 验证：**截屏确认渲染**（侧栏 SESSIONS / 状态栏 connected / 空对话区 / 输入框 + 发送按钮）
+- 修正：react 19 与 react-dom 18 版本冲突（`ReactCurrentBatchConfig`），统一到 19
 
 ⏳ 待做：agent 转发（`/api/input` → agent）、语音主输入接入、会话列表真实数据。
 
