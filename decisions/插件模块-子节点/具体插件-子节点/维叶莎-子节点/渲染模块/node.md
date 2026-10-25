@@ -53,7 +53,12 @@
 - `session/event` 的 `tool/call` / `tool/result` → SSE `tool`
 - 验证：`say hi` → SSE `assistant: "Hi! 👋 How can I help you today?"`；截屏确认对话渲染
 
-⏳ 待做：会话列表真实数据、Esc 中断、推理/执行结果/错误展示。
+✅ 思考过程 + Markdown（2026-10-25）：
+- `reasoning-delta` → SSE `reasoning` → 折叠块「思考过程」
+- 助手回复用 `marked` 渲染 Markdown（加粗/列表/引用/代码块）
+- 验证：截屏确认加粗、列表、引用渲染
+
+⏳ 待做：会话列表真实数据、Esc 中断、公式（KaTeX）、执行结果/错误展示。
 
 ## 边界
 

@@ -50,6 +50,7 @@ export class JarvisWeb extends Service {
   private readonly clients = new Set<ServerResponse>()
   private agent?: Agent
   private buffer = ''
+  private reasoning = ''
 
   constructor(ctx: Context) {
     super(ctx, 'jarvisWeb')
@@ -92,7 +93,9 @@ export class JarvisWeb extends Service {
     this.agent = created.agent
     this.ctx.on('agent/assistant-stream', ({ agent, frame }) => {
       if (agent !== this.agent) return
-      if (frame.type === 'chunk' && frame.chunk.type === 'text-delta') this.buffer += frame.chunk.text
+      if (frame.type !== 'chunk') return
+      if (frame.chunk.type === 'text-delta') this.buffer += frame.chunk.text
+      if (frame.chunk.type === 'reasoning-delta') this.reasoning += frame.chunk.text
     })
     this.ctx.on('session/event', (session, event) => {
       if (session !== this.agent?.session) return
@@ -154,8 +157,12 @@ export class JarvisWeb extends Service {
         }
         const agent = await this.ensureAgent()
         this.buffer = ''
+        this.reasoning = ''
         agent.followup(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } }))
-        void agent.whenIdle().then(() => { this.broadcast('assistant', { text: this.buffer }) })
+        void agent.whenIdle().then(() => {
+          if (this.reasoning !== '') this.broadcast('reasoning', { text: this.reasoning })
+          this.broadcast('assistant', { text: this.buffer })
+        })
         res.writeHead(202, { 'content-type': 'application/json' })
         res.end(JSON.stringify({ ok: true }))
       } catch (error) {

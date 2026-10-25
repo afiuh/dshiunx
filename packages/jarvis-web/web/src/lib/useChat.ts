@@ -4,7 +4,7 @@ export type ToolState = 'running' | 'done' | 'error'
 
 export interface ChatMessage {
   id: string
-  role: 'user' | 'assistant' | 'tool'
+  role: 'user' | 'assistant' | 'tool' | 'reasoning'
   text: string
   tool?: { name: string; state: ToolState; detail?: string }
 }
@@ -25,6 +25,10 @@ export function useChat() {
     es.addEventListener('assistant', (event) => {
       const data = JSON.parse((event as MessageEvent).data) as { text: string }
       setMessages(prev => [...prev, { id: nextId(), role: 'assistant', text: data.text }])
+    })
+    es.addEventListener('reasoning', (event) => {
+      const data = JSON.parse((event as MessageEvent).data) as { text: string }
+      setMessages(prev => [...prev, { id: nextId(), role: 'reasoning', text: data.text }])
     })
     es.addEventListener('tool', (event) => {
       const data = JSON.parse((event as MessageEvent).data) as { name: string; state: ToolState; detail?: string }
