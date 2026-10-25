@@ -15,7 +15,7 @@
 
 **Web renderer**（浏览器）：
 
-- **前端**：React 18 + CSS Modules（参考 DSH `ui-chat` 的组件结构）
+- **前端**：React 19 + 普通 CSS（参考 DSH `ui-chat` 的组件结构；不用 CSS Modules，构建简单）
 - **传输**：HTTP + SSE（流式）；输入 POST `/api/input`
 - **形态**：单个 `jarvis-web` 插件（不拆 DSH 的 10+ ui 包）
 - **启动**：Shell 命令 `web` → 起本地 HTTP 服务 → 打开浏览器
@@ -86,6 +86,33 @@
 | 语音输入 | `jarvis-voice.transcribe` | ASR 结果直接发送（主输入） |
 | 键盘输入 | 用户 | 多行 / 历史 / 快捷键（辅助） |
 | 中断 | 用户 | Esc 中断当前 turn |
+
+## 验收标准（当…应…）
+
+| # | 当 | 应 |
+|---|---|---|
+| 1 | 启动 `dx` 并输入 `web` | 浏览器打开 `http://127.0.0.1:8787`，显示界面（不是空白） |
+| 2 | 输入文字按 Enter | 消息出现在对话区，`POST /api/input` 被调用 |
+| 3 | 点语音按钮说话 | 按钮变红（录音），再点停止 → 识别（蓝）→ ASR 文本**直接发送** |
+| 4 | agent 推送 `assistant` 事件 | 对话区流式追加助手回复 |
+| 5 | agent 推送 `tool` 事件 | 出现可折叠工具卡片（状态 running/done/error） |
+| 6 | 断开 SSE | 状态栏显示 reconnecting，恢复后自动重连 |
+| 7 | 按 Esc | 中断当前 turn（待实现） |
+
+## 决策 vs 代码对照（2026-10-25）
+
+| 决策条目 | 代码 | 结论 |
+|---|---|---|
+| React 18 + CSS Modules | React 19 + 普通 CSS | ⚠️ 决策已改（以代码为准） |
+| HTTP + SSE | `/events` SSE + `/api/input` | ✅ |
+| 单插件 jarvis-web | `packages/jarvis-web` | ✅ |
+| Shell `web` → HTTP → 浏览器 | `serve()` + `xdg-open` | ✅ |
+| 共享 session/projection | `/api/input` 只回执 | ❌ 未实现 |
+| 对话 6 类（含推理/执行结果/错误） | 3 类（user/assistant/tool） | ⚠️ 部分 |
+| 状态面板 5 类 | 3 类（连接/模型/品牌） | ⚠️ 部分 |
+| 语音直接发送 | `onTranscribed → submitText` | ✅ |
+| 键盘输入 | textarea + Enter/Shift+Enter | ✅ |
+| Esc 中断 | 未实现 | ❌ |
 
 ## 子节点
 
