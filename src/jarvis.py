@@ -20,6 +20,13 @@ LOG_DIR = HOME / ".local/share/jarvis/logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 LOG = LOG_DIR / "stage0.jsonl"
 SYSTEM_PROMPT = Path(__file__).resolve().parent.parent / "config/jarvis_system.md"
+SKILLS_DIR = Path(__file__).resolve().parent.parent / "skills"
+JARVIS_SKILLS = [
+    SKILLS_DIR / name for name in (
+        "jarvis-notes", "jarvis-tasks", "jarvis-dispatch",
+        "jarvis-system", "jarvis-screen", "jarvis-memory", "jarvis-audit",
+    )
+]
 
 sys.path.insert(0, str(Path(__file__).resolve().parent / "asr"))
 from wetype_asr import transcribe  # noqa: E402
@@ -113,11 +120,11 @@ def route(text: str) -> tuple[str, str]:
 
 
 def ask_pi(text: str) -> str:
-    proc = subprocess.run(
-        [PI, "--no-context-files",
-         "--system-prompt", str(SYSTEM_PROMPT), "-p", text],
-        capture_output=True, text=True, timeout=180,
-    )
+    cmd = [PI, "--no-context-files", "--no-skills"]
+    for skill in JARVIS_SKILLS:
+        cmd += ["--skill", str(skill)]
+    cmd += ["--system-prompt", str(SYSTEM_PROMPT), "-p", text]
+    proc = subprocess.run(cmd, capture_output=True, text=True, timeout=180)
     out = (proc.stdout or "").strip()
     if not out:
         out = (proc.stderr or "").strip() or "pi 没有返回内容。"
