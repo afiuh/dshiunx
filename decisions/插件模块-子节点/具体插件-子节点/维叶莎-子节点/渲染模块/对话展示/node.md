@@ -28,6 +28,7 @@
 | 执行结果（notes/tasks/system/dispatch 摘要） | 结构化摘要 | ❌ 待做 |
 | 错误 | 一行，不刷屏（SSE `error`） | ✅ |
 | 公式（`\[ ... \]`） | KaTeX | ❌ 待做（marked 不渲染公式） |
+| 历史回放 | `/api/history`（session 事件 → user/assistant/reasoning/tool；过滤系统注入） | ✅ |
 
 ## 验证
 

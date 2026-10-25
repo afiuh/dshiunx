@@ -45,6 +45,16 @@ function webmToPcm(webm: Buffer): Promise<Buffer> {
   })
 }
 
+/** 从 ContentBlock[] 提取某类文本。 */
+function blocksText(content: unknown, kind: 'text' | 'reasoning' = 'text'): string {
+  if (!Array.isArray(content)) return ''
+  return content
+    .filter((block): block is { type: string; text?: string } => typeof block === 'object' && block !== null)
+    .filter(block => block.type === kind && typeof block.text === 'string')
+    .map(block => block.text as string)
+    .join('')
+}
+
 /** HTTP + SSE surface for the Web renderer. */
 export class JarvisWeb extends Service {
   private server?: Server
@@ -189,6 +199,38 @@ export class JarvisWeb extends Service {
         res.writeHead(500, { 'content-type': 'application/json' })
         res.end(JSON.stringify({ error: message }))
       }
+      return
+    }
+    if (url.pathname === '/api/history') {
+      const agent = await this.ensureAgent()
+      const session = agent.session
+      const history: Array<{ role: string; text?: string; tool?: { name: string; state: string } }> = []
+      if (session !== undefined) {
+        for (let seq = 1; ; seq++) {
+          const event = session.eventAt(seq as never)
+          if (event === undefined) break
+          if (event.type === 'user/message') {
+            const text = blocksText((event.data as { content?: unknown }).content)
+            // 跳过 dshiunx 注入的系统消息（runtime context / system-reminder）
+            const injected = text.startsWith('Current runtime context') || text.startsWith('<system-reminder>')
+            if (text !== '' && !injected) history.push({ role: 'user', text })
+          } else if (event.type === 'assistant/message') {
+            const message = (event.data as { message?: { content?: unknown } }).message
+            const reasoning = blocksText(message?.content, 'reasoning')
+            const text = blocksText(message?.content, 'text')
+            if (reasoning !== '') history.push({ role: 'reasoning', text: reasoning })
+            if (text !== '') history.push({ role: 'assistant', text })
+          } else if (event.type === 'tool/call') {
+            const name = (event.data as { name?: string }).name ?? 'tool'
+            history.push({ role: 'tool', tool: { name, state: 'running' } })
+          } else if (event.type === 'tool/result') {
+            const name = (event.data as { name?: string }).name ?? 'tool'
+            history.push({ role: 'tool', tool: { name, state: 'done' } })
+          }
+        }
+      }
+      res.writeHead(200, { 'content-type': 'application/json' })
+      res.end(JSON.stringify(history))
       return
     }
     if (url.pathname === '/api/sessions') {

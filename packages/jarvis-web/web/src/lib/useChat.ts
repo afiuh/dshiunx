@@ -20,6 +20,9 @@ export function useChat() {
   const source = useRef<EventSource | null>(null)
 
   useEffect(() => {
+    void fetch('/api/history').then(response => response.json()).then((history: ChatMessage[]) => {
+      setMessages(history.map(item => ({ ...item, id: nextId() })))
+    }).catch(() => {})
     const es = new EventSource('/events')
     source.current = es
     es.onopen = () => setStatus('connected')
