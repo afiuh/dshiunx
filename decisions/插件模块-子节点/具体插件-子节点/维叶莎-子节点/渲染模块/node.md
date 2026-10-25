@@ -41,7 +41,12 @@
 - 最小前端 `web/dist/index.html`
 - 验证：首页 HTML / SSE `: connected` / POST 回执 全通
 
-⏳ 待做：React 前端（对话/工具卡片/状态面板/输入区）、agent 转发。
+✅ React 前端骨架（2026-10-25）：
+- `web/src/`：`App` / `ChatLog` / `MessageItem` / `ToolCall`（折叠）/ `StatusBar` / `SessionList` / `InputBar` / `useChat`（SSE + 发送）
+- 构建：`esbuild` → `web/dist/app.js`（144KB）+ `app.css`（3KB）
+- 验证：首页 / CSS / JS 全部返回
+
+⏳ 待做：agent 转发（`/api/input` → agent）、语音主输入接入、会话列表真实数据。
 
 ## 边界
 

@@ -192,6 +192,9 @@ importers:
       dependency-cruiser:
         specifier: ^18.7.0
         version: 18.7.0
+      react-dom:
+        specifier: ^18.3.1
+        version: 18.3.1(react@19.3.1)
       ts-morph:
         specifier: ^28.0.0
         version: 28.0.0
@@ -331,6 +334,8 @@ importers:
 
   packages/dsh-goal-round-driver: {}
 
+  packages/dsh-headless: {}
+
   packages/dsh-home-paths: {}
 
   packages/dsh-host-plugin-inventory: {}
@@ -414,6 +419,8 @@ importers:
 
   packages/dsh-native-command: {}
 
+  packages/dsh-official-bundles: {}
+
   packages/dsh-output-retention: {}
 
   packages/dsh-permission-presets: {}
@@ -467,6 +474,8 @@ importers:
   packages/dsh-session-projection: {}
 
   packages/dsh-session-query: {}
+
+  packages/dsh-session-query-sqlite: {}
 
   packages/dsh-session-title: {}
 
@@ -527,6 +536,10 @@ importers:
   packages/dsh-tool-call-timeout-policy: {}
 
   packages/dsh-tool-cordis: {}
+
+  packages/dsh-tool-executor-native: {}
+
+  packages/dsh-tool-executor-ptc: {}
 
   packages/dsh-tool-fs: {}
 
@@ -605,8 +618,6 @@ importers:
 
   packages/dsh-tools: {}
 
-  packages/dsh-tui: {}
-
   packages/dsh-typert-protocol: {}
 
   packages/dsh-user-approval: {}
@@ -639,33 +650,15 @@ importers:
 
   packages/dsh-workspace: {}
 
+  packages/dx-shell: {}
+
+  packages/jarvis-voice: {}
+
+  packages/jarvis-web: {}
+
   packages/node-addon-system: {}
 
   packages/schemastery: {}
-
-  packages/tui: {}
-
-  packages/tui-actions: {}
-
-  packages/tui-controller: {}
-
-  packages/tui-core: {}
-
-  packages/tui-input: {}
-
-  packages/tui-panels: {}
-
-  packages/tui-protocol: {}
-
-  packages/tui-render: {}
-
-  packages/tui-sessions: {}
-
-  packages/tui-settings: {}
-
-  packages/tui-status: {}
-
-  packages/tui-store: {}
 
 packages:
 
@@ -1487,6 +1480,10 @@ packages:
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
 
+  loose-envify@1.4.0:
+    resolution: {integrity: sha512-lyuxPGr/Wfhrlem2CL/UcnUc1zcqKAImBDzukY7Y5F/yQiNdko6+fRLevlw1HgMySw7f611UIY408EtxRSoK3Q==}
+    hasBin: true
+
   lovely-mermaid@0.3.3:
     resolution: {integrity: sha512-EMLJS934qwt2MLO/a5o+T/89HGbuXZPwmCpHIhHO+DVrm+y5tHlEHgpZzlC2o4yW/rFPHRFO9xSMafzqH4wH5A==}
     engines: {node: '>=18'}
@@ -1655,6 +1652,11 @@ packages:
     resolution: {integrity: sha512-NxNv/kLguCA7p3jE8oL2aEBsrJWgAakBpgmgK6lpPWV+WuOmY6r2/zbAVnP+T8bQlA0nzHXSJSJW0Hq7ylaD2Q==}
     engines: {node: '>= 6'}
 
+  react-dom@18.3.1:
+    resolution: {integrity: sha512-5m4nQKp+rZRb09LNH59GM4BxTh9251/ylbKIbpe7TpGxfJ+9kv6BLkLBXIjjspbgbnIBNqlI23tRnTWT0snUIw==}
+    peerDependencies:
+      react: ^18.3.1
+
   react-reconciler@0.34.0:
     resolution: {integrity: sha512-eVibvB1fc9j5Qf1KRkiM3GzRPBdjg2P6G6QV2f3P6Eb3OGMxRBhdg2rrUwjbV5JrQaJj8nOa8uajmmJA5tJWjQ==}
     engines: {node: '>=0.10.0'}
@@ -1696,6 +1698,9 @@ packages:
 
   safe-regex@2.1.1:
     resolution: {integrity: sha512-rx+x8AMzKb5Q5lQ95Zoi6ZbJqwCLkqi3XuJXp5P3rT8OEc6sZCJG5AE5dU3lsgRr/F4Bs31jSlVN+j5KrsGu9A==}
+
+  scheduler@0.23.2:
+    resolution: {integrity: sha512-UOShsPwz7NrMUqhR6t0hWjFduvOzbtv7toDH1/hIrfRNIDBnnBWd0CwJTGvTpngVlmwGCdP9/Zl/tVrDqcuYzQ==}
 
   scheduler@0.28.0:
     resolution: {integrity: sha512-juorfCmIkIw8tT+p5BXSm6PJjQF/ycEYmKyzURCIt/RaZIhL+PulbQ9Yu2z1HdOJDdqDTlxA1+xKBmHXJsczAw==}
@@ -2602,6 +2607,10 @@ snapshots:
 
   lodash.debounce@4.0.8: {}
 
+  loose-envify@1.4.0:
+    dependencies:
+      js-tokens: 4.0.0
+
   lovely-mermaid@0.3.3: {}
 
   marked-cjk-friendly@0.1.2(marked@18.0.11):
@@ -2741,6 +2750,12 @@ snapshots:
       kleur: 3.0.3
       sisteransi: 1.0.5
 
+  react-dom@18.3.1(react@19.3.1):
+    dependencies:
+      loose-envify: 1.4.0
+      react: 19.3.1
+      scheduler: 0.23.2
+
   react-reconciler@0.34.0(react@19.3.1):
     dependencies:
       react: 19.3.1
@@ -2772,6 +2787,10 @@ snapshots:
   safe-regex@2.1.1:
     dependencies:
       regexp-tree: 0.1.27
+
+  scheduler@0.23.2:
+    dependencies:
+      loose-envify: 1.4.0
 
   scheduler@0.28.0: {}
 
