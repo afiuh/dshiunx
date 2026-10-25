@@ -167,10 +167,13 @@ def main() -> int:
         if is_wake_only(raw):
             # 两阶段：先叫名字，AI 回应后再录任务
             set_state("speaking")
-            if args.no_speak:
-                print("我在，请说", flush=True)
-            else:
-                jarvis.speak("我在，请说")
+            wake_reply = jarvis.ask_pi(
+                "用户只叫了你的名字（维叶莎），表示要开始说话。"
+                "用一句很短的话回应，表示你在听；不要执行任务、不要追问太多。"
+            )
+            print(wake_reply, flush=True)
+            if not args.no_speak:
+                jarvis.speak(wake_reply)
             set_state("recording")
             pcm2 = record_utterance(args.threshold, args.silence, args.max_seconds)
             text2 = transcribe(pcm2)
