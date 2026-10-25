@@ -43,6 +43,7 @@
 | [jarvis-system](./system.md) | 执行能力/系统控制 | `ctx.jarvisSystem.open / exec` |
 | [jarvis-memory](./memory.md) | 数据信息管理/记忆存储 | `ctx.jarvisMemory.add / search` |
 | [jarvis-audit](./audit.md) | 数据信息管理/审核追溯 | `ctx.jarvisAudit.record / backup` |
+| [参考插件](./参考插件.md) | — | 民间插件清单（记忆/桌面控制/审核），优先复用 |
 
 ## 依赖关系
 
