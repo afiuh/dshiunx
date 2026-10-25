@@ -22,32 +22,33 @@
 
 | 需求 | local-jarvis 现状 |
 |---|---|
-| 声音/唤醒 | openWakeWord + Whisper + Kokoro |
+| 声音/唤醒 | 复用 fcitx5-vinput（线上 ASR）+ TTS；不做本地 ASR |
 | 笔记库检索 | `index_docs` RAG（只读索引） |
 | 笔记库写入 | 需新增 skill（std::fs 读写） |
 | 事务录入 | 需新增 skill（调用现有事务系统/脚本） |
 | 任务分配 | 需新增 skill（调用 `pi -p` / `pi --session`） |
 | 系统控制 | 已有 launch/focus/notify/screenshot/volume/brightness；无任意 shell |
 | 长期记忆 | SQLite interactions/facts；可扩展 |
-| 中文 | Whisper 支持中文；Kokoro 中文需确认/替换 |
+| 中文 | 输入法已处理中文/纠错/降噪；TTS 需选中文方案 |
 
 ## 扩展点
 
-1. **笔记库读写 skill**：Rust trait，读/写/追加/搜索；路径限制在笔记库根；写入记录 git 或备份。
-2. **事务 skill**：调用现有事务系统的脚本/TOML；语音 → 结构化 → 写入。
-3. **pi 分配 skill**：`tokio::process::Command` 调用 `pi -p` 或 `pi --session <id>`；同步等待或后台；返回结果给 TTS。
-4. **系统控制扩展**：在 system skills 增加“执行命令”或“打开文件”；用户负责，不做二次确认。
-5. **长期记忆扩展**：把笔记库/事务/项目状态写入 `facts`；用 embedding 检索；定期清理/遗忘。
-6. **中文 TTS**：Kokoro 中文不支持则换 edge-tts/Piper 中文 backend（TTS trait 可替换）。
+1. **语音输入接入**：复用 fcitx5-vinput（Alt+Z 说话出字），助手从输入框/剪贴板/活动窗口取文本；不接本地 ASR。
+2. **笔记库读写 skill**：Rust trait，读/写/追加/搜索；路径限制在笔记库根；写入记录 git 或备份。
+3. **事务 skill**：调用现有事务系统的脚本/TOML；语音 → 结构化 → 写入。
+4. **pi 分配 skill**：`tokio::process::Command` 调用 `pi -p` 或 `pi --session <id>`；同步等待或后台；返回结果给 TTS。
+5. **系统控制扩展**：在 system skills 增加“执行命令”或“打开文件”；用户负责，不做二次确认。
+6. **长期记忆扩展**：把笔记库/事务/项目状态写入 `facts`；用 embedding 检索；定期清理/遗忘。
+7. **中文 TTS**：Kokoro 中文不支持则换 edge-tts/Piper 中文 backend（TTS trait 可替换）。
 
 ## 实现路径
 
 ### P0：跑通底座（先验证）
 
 - 克隆/编译 local-jarvis（Rust stable，`cargo build --release --features cuda`）；
-- 下载模型（Whisper/Qwen2.5/Kokoro/openWakeWord/Silero VAD）；
+- 下载模型（Qwen2.5/Kokoro/openWakeWord/Silero VAD；不做本地 ASR）；
 - 配置 `~/.config/jarvis/config.toml`；
-- 验证：唤醒/按键 → 中文 ASR → Qwen 回答 → TTS；麦克风/GPU/PipeWire 正常。
+- 验证：按键/唤醒 → fcitx5-vinput 出字 → 取文本 → Qwen 回答 → TTS；麦克风/GPU/PipeWire 正常。
 
 ### P1：笔记库（RAG + 读写）
 
@@ -76,8 +77,9 @@
 ## 风险 / 待确认
 
 - local-jarvis 是 alpha；Rust 开发成本；
+- 语音输入法接入方式：输入框/剪贴板/活动窗口取文本，需确认 fcitx5-vinput 的输出路径；
 - MCP transport 未接通，不能直接接 Obsidian MCP/pi MCP；需要写 Rust skill 或等 v1.1；
-- Kokoro 中文支持不确定；备选 edge-tts/Piper；
+- TTS 中文：Kokoro 中文支持不确定；备选 edge-tts（在线不占显存）/Piper/CosyVoice；
 - 系统命令 skill 需要权限/审计；用户说不二次确认，但要有记录；
 - pi 分配是同步等待还是后台，需要按任务定；
 - 笔记库写入范围/格式需与现有笔记库规范对齐。
