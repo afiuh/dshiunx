@@ -1,6 +1,6 @@
 ---
 name: jarvis-voice
-description: 贾维斯语音交互 skill——开关/唤醒/录音/VAD/ASR/TTS/打断的状态机与边界；不全天录音，开关由手机控制，失败如实报告。
+description: 维叶莎语音交互 skill——开关/唤醒/录音/VAD/ASR/TTS/打断的状态机与边界；不全天录音，开关由手机控制，失败如实报告。
 ---
 
 # jarvis-voice（语音交互）

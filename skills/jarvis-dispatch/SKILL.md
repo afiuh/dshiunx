@@ -1,6 +1,6 @@
 ---
 name: jarvis-dispatch
-description: 贾维斯任务分配 skill——长任务/编程/完整项目/多步实现，从活跃项目台账找负责对话，用 pi --session 拉起或继续；不自己执行长任务。
+description: 维叶莎任务分配 skill——长任务/编程/完整项目/多步实现，从活跃项目台账找负责对话，用 pi --session 拉起或继续；不自己执行长任务。
 ---
 
 # jarvis-dispatch（任务分配）

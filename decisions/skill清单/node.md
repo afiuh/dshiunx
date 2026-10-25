@@ -1,14 +1,14 @@
-# Skill 清单（贾维斯工作 skill）
+# Skill 清单（维叶莎工作 skill）
 
 **父模块**：`../root.md`
 
 ## 隔离规则（必须）
 
-贾维斯工作 skill **不能**放在 `~/.pi/agent/skills/`，否则正常使用 pi 时会被自动发现/乱触发。
+维叶莎工作 skill **不能**放在 `~/.pi/agent/skills/`，否则正常使用 pi 时会被自动发现/乱触发。
 
-- 位置：`/mnt/data/AI自由工作区/贾维斯/skills/`（项目内，不是全局 skills，也不是 `.pi/skills`）；
+- 位置：`/mnt/data/AI自由工作区/维叶莎/skills/`（项目内，不是全局 skills，也不是 `.pi/skills`）；
 - 加载：只有 jarvis 调用 pi 时显式 `--skill <path>`；正常 pi 不加载；
-- 可配合 `--no-skills` 禁用自动发现，再显式加载贾维斯 skill；
+- 可配合 `--no-skills` 禁用自动发现，再显式加载维叶莎 skill；
 - 每个 skill 独立目录 + `SKILL.md`；
 - 验证：正常 pi 的技能列表里不出现 jarvis-*；jarvis 会话里能加载。
 

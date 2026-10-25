@@ -1,6 +1,6 @@
 ---
 name: jarvis-memory
-description: 贾维斯长期记忆 skill——跨会话记住项目/偏好/事务/决策；检索 SQLite 与归档 L0-L3；不记隐私、不主动翻旧账、不把记忆当事实。
+description: 维叶莎长期记忆 skill——跨会话记住项目/偏好/事务/决策；检索 SQLite 与归档 L0-L3；不记隐私、不主动翻旧账、不把记忆当事实。
 ---
 
 # jarvis-memory（长期记忆）

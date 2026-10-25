@@ -1,6 +1,6 @@
 ---
 name: jarvis-screen
-description: 贾维斯屏幕/视觉 skill——按需截图、读取图片、回答屏幕内容；不常驻截屏，不截敏感内容，不确定就查 grim/slurp/系统档案。
+description: 维叶莎屏幕/视觉 skill——按需截图、读取图片、回答屏幕内容；不常驻截屏，不截敏感内容，不确定就查 grim/slurp/系统档案。
 ---
 
 # jarvis-screen（屏幕/视觉）

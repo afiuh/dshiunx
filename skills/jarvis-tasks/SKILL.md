@@ -1,6 +1,6 @@
 ---
 name: jarvis-tasks
-description: 贾维斯事务工作 skill——把用户说的事捕获到事务 inbox，结构化时间/动作/优先级；不自动归档、不静默改正式事务表。
+description: 维叶莎事务工作 skill——把用户说的事捕获到事务 inbox，结构化时间/动作/优先级；不自动归档、不静默改正式事务表。
 ---
 
 # jarvis-tasks（事务）

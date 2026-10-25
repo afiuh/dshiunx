@@ -1,6 +1,6 @@
 ---
 name: jarvis-core
-description: 贾维斯意图路由 skill——判断用户输入该走问答/笔记/事务/任务分配/系统/记忆/屏幕/语音；简单直接做，长任务交 dispatch，不确定就问。
+description: 维叶莎意图路由 skill——判断用户输入该走问答/笔记/事务/任务分配/系统/记忆/屏幕/语音；简单直接做，长任务交 dispatch，不确定就问。
 ---
 
 # jarvis-core（意图路由）

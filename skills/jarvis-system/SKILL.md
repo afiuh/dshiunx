@@ -1,6 +1,6 @@
 ---
 name: jarvis-system
-description: 贾维斯系统控制 skill——打开应用/文件、执行命令、窗口/媒体/音量、截图；本机 Arch+Hyprland；按用户指令执行，不物理移动系统目录，敏感文件红线。
+description: 维叶莎系统控制 skill——打开应用/文件、执行命令、窗口/媒体/音量、截图；本机 Arch+Hyprland；按用户指令执行，不物理移动系统目录，敏感文件红线。
 ---
 
 # jarvis-system（系统控制）

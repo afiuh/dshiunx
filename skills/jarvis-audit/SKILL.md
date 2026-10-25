@@ -1,6 +1,6 @@
 ---
 name: jarvis-audit
-description: 贾维斯审核/追溯 skill——记录写入/修改/系统操作，写入前备份，支持回滚；不替代用户审核，不静默改历史。
+description: 维叶莎审核/追溯 skill——记录写入/修改/系统操作，写入前备份，支持回滚；不替代用户审核，不静默改历史。
 ---
 
 # jarvis-audit（审核/追溯）
