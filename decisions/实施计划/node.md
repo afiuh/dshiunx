@@ -20,15 +20,15 @@
 ### 1.1 jarvis-daemon
 
 - 状态机：`disarmed → armed → recording → processing → speaking`；
-- 常驻进程：等待按键/快捷键触发、录音、VAD、ASR、助手、TTS；
+- 常驻进程：等待手机 trigger、录音、VAD、ASR、助手、TTS；
 - 由 detector 启动/停止；心跳超时退出；
 - 产出：`src/daemon.py`（或 Go/Rust 服务）。
 
-### 1.2 触发方式（方案 A）
+### 1.2 触发方式（方案 A：手机按钮）
 
-- 手机开关打开 → 按键/快捷键/信号触发录音；
+- 手机开关打开 → 手机录音按钮 → `POST /trigger` → daemon 录音；
 - 复用 wetype ASR，不做唤醒词；
-- P0 触发键：Alt+Z（输入法）或 Super+J（助手）；
+- **电脑端不放按钮/快捷键**；
 - 唤醒词移到可选阶段 5，不做进 P0。
 
 ### 1.3 detector 联调
@@ -39,7 +39,7 @@
 
 ### 验收
 
-开关开 → 按键说话 → 录音 → ASR → 助手 → TTS；关 → 停止；断网/心跳超时 → 停止。
+开关开 → 手机录音按钮 → 录音 → ASR → 助手 → TTS；关 → 停止；断网/心跳超时 → 停止。
 
 ## 阶段 2：功能 skill 实战（P1）
 
@@ -114,7 +114,7 @@
 
 ## 风险
 
-- 按键触发/信号与输入法冲突；
+- 手机 trigger 延迟/网络；
 - daemon 与 detector 进程管理/权限；
 - ASR/TTS 网络依赖；
 - APP 构建环境/配对安全；

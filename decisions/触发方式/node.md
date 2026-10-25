@@ -9,15 +9,16 @@
 ## 架构
 
 ```
-手机 APP（开关 armed/disarmed）
+手机 APP（开关 armed/disarmed + 录音按钮）
   │ 局域网 HTTP/WS（token）
   ▼
 电脑端 tiny detector（常驻，极低内存）
   ├─ armed → 拉起完整服务 jarvis-daemon
+  ├─ trigger → 通知 daemon 开始录音
   └─ disarmed / 心跳超时 → 停止完整服务
         │
         ▼
-完整服务（不常驻）：等待按键/快捷键触发 → 录音 → ASR → 助手 → TTS
+完整服务（不常驻）：收到 trigger → 录音 → ASR → 助手 → TTS
 ```
 
 ## 核心原则
@@ -26,7 +27,7 @@
 2. **完整服务不常驻**：只有开关打开时运行；关闭后退出，释放内存/麦克风；
 3. **手机断开/心跳超时 → 停止完整服务**（fail-safe）；
 4. **token 配对**：只接受手机 APP；局域网；
-5. **不全天录音**：disarmed 不采集；armed 只等待触发（按键/快捷键/信号），不监听唤醒词；recording 才录音；
+5. **不全天录音**：disarmed 不采集；armed 只等待手机 trigger；recording 才录音；
 6. **内存优先**：tiny detector 用低内存实现（Go/Rust 单二进制优先；Python 可接受但内存更高）。
 
 ## 子节点
@@ -35,8 +36,10 @@
 
 - 配对：电脑 IP/端口/token（技术细节以后再说）；
 - 开关：armed/disarmed；
+- **录音按钮**：点击 → `POST /trigger` → daemon 开始录音；
 - 状态：detector/完整服务状态（armed/recording/processing/speaking）；
 - 心跳：定期上报；断联 fail-safe。
+- **录音按钮只在手机**；电脑端不放快捷键/按钮。
 
 ### tiny detector（常驻）
 
@@ -51,7 +54,7 @@
 ### 完整服务生命周期
 
 - 启动：detector 收到 armed；
-- 运行：等待按键/快捷键触发；录音/ASR/助手/TTS；
+- 运行：等待手机 trigger；录音/ASR/助手/TTS；
 - 停止：detector 收到 disarmed/心跳超时/手机关；
 - 退出：停止监听/录音，释放麦克风，进程退出。
 
