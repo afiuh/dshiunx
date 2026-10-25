@@ -29,7 +29,7 @@
   - 敏感文件（`~/.git-credentials`、`~/.dev-sidecar/*.key.pem`、`/etc/shadow`）不读不写；
   - 引用用户原话一字不改。
 
-### 对 jarvis-notes 的约束
+### 对 jarvis-notes skill 的约束
 
 - 搜索用 `rg`；读取按相对路径；
 - 写入默认草稿/inbox，指定路径要限制在笔记库内；
@@ -71,7 +71,7 @@
 - L3 原始 `.jsonl`：完整对话；
 - 调回：`pi --session <ID>`。
 
-### 对 jarvis-dispatch 的约束
+### 对 jarvis-dispatch skill 的约束
 
 - 长任务从台账找负责对话，用 `pi --session <ID>` 拉起/继续；
 - 不自己执行长任务；不替用户决定分配；

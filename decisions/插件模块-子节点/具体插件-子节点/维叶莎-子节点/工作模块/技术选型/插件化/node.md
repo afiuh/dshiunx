@@ -2,73 +2,46 @@
 
 **父模块**：`../node.md`
 
-## 为什么需要
+## 状态：除渲染外已拍板（2026-10-25）
 
-把贾维斯现有 Python 代码解耦成 dshiunx 插件组。不先定切分/边界/语言，执行时会滑回"一个包塞全部"或"跨进程乱调"。
+用户指出：AI 本来就有文件/命令能力，很多插件设计可能多余。
+插件/skill 的划分已拍板；渲染模块形态待确认。
 
-## 切分原则（引用 dshiunx 插件干净度）
+## 已拍板（用户明确说过）
 
-每个插件必须过 8 条判据（dshiunx `decisions/插件模块-子节点/插件干净度.md`）：
+| 决策 | 依据 |
+|---|---|
+| 一切皆插件（P2） | 用户："那我们一切皆插件在搞什么" |
+| 插件是契约，不是语言 | 用户："都是插件" |
+| `jarvis-voice` 接口 `transcribe(pcm)` + `speak(text)` | 用户："3.可以" |
+| `jarvis-dispatch` 依赖 `ctx.agent` | 用户："这个插件到时候肯定是依赖DSHiunx本身的智能体的" |
+| 不做 `jarvis-chat` | 用户："当时还没考虑到做插件，那应该就是重复的了" |
+| 记忆暂缓（民间插件） | 用户："记忆插件不是官方插件，是民间自己做的插件" |
+| 回滚用 git | 用户："回滚功能那就用git" |
 
-1. 单一能力
-2. 显式依赖（`inject`）
-3. 无全局状态
-4. 可独立卸载（`ctx.effect`）
-5. 可替换
-6. 无版本元数据
-7. 可裁剪（不装仍启动）
-8. 不预设用法
+## skill 分组与可见性（2026-10-25 用户定）
 
-## 语言边界
+**skill 要分组，不同对话能看到的 skill 不同。**
 
-| 插件 | 语言 | 理由 |
-|---|---|---|
-| `jarvis-voice` | TS 插件 + Python sidecar | wetype ASR / Edge-TTS 的 Python 生态；sidecar 可替换 |
-| `jarvis-notes` | TS | `rg` + `fs`，逻辑简单 |
-| `jarvis-tasks` | TS | `fs` |
-| `jarvis-dispatch` | TS | 与 dshiunx agent/session 集成 |
-| `jarvis-system` | TS | `hyprctl` / `child_process` |
-| `jarvis-memory` | TS | `node:sqlite` |
-| `jarvis-audit` | TS | `fs` + jsonl |
-| `jarvis-chat` | 待定 | 见「待确认」 |
+- **分组**：按功能分组（`notes` / `tasks` / `system` / `audit` / `dispatch`），每组一个 provider 或一组 runtime skill。
+- **可见性**：在 **agent scope** 上注册（`agentCtx.skills.register`）——不同对话/agent 只看到自己 scope 的 skill。
+- **机制**：`ctx.skills.register()` 自动按 `scopeOf(this.ctx)` 分层；读取时 `SkillViewOptions.scope` 选层（`dsh-skill/src/index.ts:439-459`）。
+- **默认**：全局层放通用 skill；agent 层放该对话专属 skill。
 
-## 插件清单
+## 已拍板（2026-10-25 补充）
 
-| 插件 | 对应决策节点 | 提供 |
-|---|---|---|
-| [jarvis-voice](./voice.md) | 语音模块 | `ctx.jarvisVoice.transcribe / speak` |
-| [jarvis-notes](./notes.md) | 数据信息管理/笔记库读写 | `ctx.jarvisNotes.search / read / write` |
-| [jarvis-tasks](./tasks.md) | 数据信息管理/事务录入 | `ctx.jarvisTasks.add` |
-| [jarvis-dispatch](./dispatch.md) | 执行能力/任务分配 | `ctx.jarvisDispatch.run` |
-| [jarvis-system](./system.md) | 执行能力/系统控制 | `ctx.jarvisSystem.open / exec` |
-| [jarvis-memory](./memory.md) | 数据信息管理/记忆存储 | `ctx.jarvisMemory.add / search` |
-| [jarvis-audit](./audit.md) | 数据信息管理/审核追溯 | `ctx.jarvisAudit.record / backup` |
-| [参考插件](./参考插件.md) | — | 民间插件清单（记忆/桌面控制/审核），优先复用 |
+| 决策 | 用户原话 |
+|---|---|
+| **插件只有 `jarvis-voice` 一个** | "1.是" |
+| **`notes` / `tasks` / `system` / `dispatch` 改为 skill**（audit/screen 合并，core/voice/memory 删除） | "2.要" |
+| **意图路由由 agent 承担**（不单独做插件） | "3.是" |
+| **skill 的详细清单见 [执行能力/skill](../../../执行能力/skill/node.md)**（不另问） | "这个能力清单还要问吗，合着之前我们做能力清单白做了吗" |
 
-## 依赖关系
+## 待确认（未拍板）
 
-```
-jarvis-voice   → 无（sidecar）
-jarvis-notes   → ctx.fs? / 直接 fs
-jarvis-tasks   → 无
-jarvis-dispatch→ ctx.agent / ctx.sessions（dshiunx）
-jarvis-system  → 无（child_process）
-jarvis-memory  → 无（node:sqlite）
-jarvis-audit   → 无（fs）
-jarvis-chat    → ctx.agent（dshiunx）
-```
+1. 渲染模块形态（TUI / Web / Shell 内 / 暂不做）？
 
-## 验证
+## 已实现（事实，不是决策）
 
-- 每个插件：一条真实任务走通
-- 卸载任一插件，`dx` 仍启动（判据 7）
-- `dx -p` 仍能跑（可裁剪）
-- 插件之间不 import（判据 2）
-
-## 已定（2026-10-25 用户拍板）
-
-1. **不单独做 `jarvis-chat`**：与 dshiunx 自身的智能体/对话重复；对话由 dshiunx agent 提供，渲染模块只负责展示。
-2. **`jarvis-dispatch` 依赖 dshiunx 自身的智能体**（`ctx.agent`），不 spawn `pi`。
-3. **`jarvis-voice` 接口粒度**：`transcribe(pcm)` + `speak(text)`；录音/触发归调用方。
-4. **`jarvis-memory` 暂不做**：DSH 可能已有专门的记忆插件，先查源码再定。
-5. **笔记写入**：写入即记录 + 可回滚（不另做审核队列）；DSH 源码里有此功能，待抽取。
+- `jarvis-voice` 插件：`packages/jarvis-voice/`（TS + Python sidecar）
+- 验证：`transcribe` 闭环 + `speak` 出声（`scripts/test-jarvis-voice.ts`）

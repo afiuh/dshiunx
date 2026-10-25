@@ -13,7 +13,7 @@
 | wetype ASR 独立抽取 | `src/asr/` | 语音 → 文本（在线、不占显存） |
 | TTS（Edge-TTS 晓晓） | `src/jarvis.py` 的 `speak` | 文本 → 语音 |
 | daemon 状态机 | `src/daemon.py` | 录音 / ASR / 助手 / TTS 流程（旧触发已废弃） |
-| 9 个 skill | `skills/` | notes / tasks / dispatch / system / screen / memory / audit / voice / core |
+| 4 个 skill | `skills/` | notes / tasks / system / dispatch（audit/screen 合并，core/voice/memory 删除） |
 | 极简提示词 | `config/jarvis_system.md` | 不是编程助手、语音不要 Markdown、重要操作先确认 |
 | 配置 | `config/weiyesha.env` | 端口 / token（若保留 HTTP） |
 

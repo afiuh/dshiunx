@@ -26,6 +26,15 @@
 - `speak("你好")` → 听到语音
 - 卸载插件 → `dx` 仍启动
 
-## 现有代码
+## 状态（2026-10-25 已实现并验证）
 
-`src/asr/`、`src/jarvis.py` 的 `speak`、`config/weiyesha.env`（若需要）。
+- `transcribe(pcm)` → **"今天下午3点提醒我买牛奶。"**（闭环：edge-tts 生成 → ffmpeg 转 16k PCM → wetype ASR）
+- `speak(text)` → Edge-TTS 晓晓 → mp3 → mpv/pw-play（**出声 ok**）
+- 验证脚本：`dshiunx/scripts/test-jarvis-voice.ts`
+- 插件加载：`cat jarvis-voice` → `disabled: false`；`dx -p` 正常
+
+## 代码位置
+
+- 插件：`dshiunx/packages/jarvis-voice/`
+- Python sidecar：`packages/jarvis-voice/python/`（`asr/`、`transcribe.py`、`speak.py`）
+- 原样参考：`vendor/jarvis/src/asr/`、`vendor/jarvis/src/jarvis.py` 的 `speak`
