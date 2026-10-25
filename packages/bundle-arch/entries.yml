@@ -375,6 +375,11 @@
 - id: shell
   name: '@dshiunx/shell'
   disabled: !!js "ctx.get('profileContext').headless"
+
+
+# ── 维叶莎语音插件（Python sidecar）──
+- id: jarvis-voice
+  name: '@dshiunx/jarvis-voice'
 - id: preset-standard
   name: '@deepseek-ai/dsh-agent-preset'
   config:

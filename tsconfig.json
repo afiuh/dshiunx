@@ -487,6 +487,9 @@
       ],
       "@dshiunx/shell": [
         "packages/dx-shell/src/index.ts"
+      ],
+      "@dshiunx/jarvis-voice": [
+        "packages/jarvis-voice/src/index.ts"
       ]
     }
   }
