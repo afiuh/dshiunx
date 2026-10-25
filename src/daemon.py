@@ -18,12 +18,12 @@ sys.path.insert(0, str(ROOT / "asr"))
 
 import jarvis  # noqa: E402
 from wetype_asr import transcribe  # noqa: E402
-from wake_normalize import normalize, is_wake_only  # noqa: E402
 
 STATE = Path("/tmp/weiyesha-state.json")
 _last_state = None
 TEMP_FILES = [Path("/tmp/jarvis-reply.mp3"), Path("/tmp/jarvis-screen.png")]
 TRIGGER = threading.Event()
+WAKE = threading.Event()
 STOP = threading.Event()
 
 
@@ -57,7 +57,10 @@ def set_state(state: str) -> None:
 
 
 def on_signal(signum, frame) -> None:
-    TRIGGER.set()
+    if signum == signal.SIGUSR2:
+        WAKE.set()
+    else:
+        TRIGGER.set()
 
 
 def rms(pcm: bytes) -> float:
@@ -157,6 +160,7 @@ def main() -> int:
     args = ap.parse_args()
 
     signal.signal(signal.SIGUSR1, on_signal)
+    signal.signal(signal.SIGUSR2, on_signal)
     signal.signal(signal.SIGTERM, lambda *_: STOP.set())
     cleanup_temp()
     set_state("armed")
@@ -168,11 +172,35 @@ def main() -> int:
     if not args.no_heartbeat:
         threading.Thread(target=heartbeat_loop, args=(args.detector_url, args.token), daemon=True).start()
 
-    print("[daemon] armed; 发送 SIGUSR1 触发录音", flush=True)
+    print("[daemon] armed; SIGUSR1=直接录音，SIGUSR2=唤醒", flush=True)
     while not STOP.is_set():
         if args.once:
             TRIGGER.set()
-        if not TRIGGER.wait(0.5):
+        if WAKE.is_set():
+            WAKE.clear()
+            set_state("speaking")
+            wake_reply = jarvis.ask_pi(
+                "用户点击了唤醒按钮，表示要开始说话。"
+                "用一句很短的话回应，表示你在听；不要执行任务、不要追问太多。"
+            )
+            print(wake_reply, flush=True)
+            notify(wake_reply[:100])
+            if not args.no_speak:
+                try:
+                    jarvis.speak(wake_reply)
+                except Exception as exc:
+                    print(f"[daemon] 唤醒回应失败：{exc}", file=sys.stderr)
+                    notify(f"唤醒回应失败：{exc}")
+            set_state("recording")
+            pcm = record_utterance(args.threshold, args.silence, args.max_seconds)
+            text = transcribe(pcm)
+            print(f"[daemon] 任务：{text}", file=sys.stderr)
+            if text:
+                process(text, not args.no_speak)
+            else:
+                set_state("armed")
+            continue
+        if not TRIGGER.wait(0.2):
             continue
         TRIGGER.clear()
         set_state("recording")
@@ -180,40 +208,13 @@ def main() -> int:
         if not pcm:
             print("[daemon] 没有录音", file=sys.stderr)
             set_state("armed")
-            if args.once:
-                break
             continue
-        raw = transcribe(pcm)
-        text = normalize(raw)  # 仅唤醒词阶段使用；任务文本保持原样
-        print(f"[daemon] 识别：{raw}", file=sys.stderr)
-        if not raw:
-            set_state("armed")
-            if args.once:
-                break
-            continue
-        if is_wake_only(raw):
-            # 两阶段：先叫名字，AI 回应后再录任务
-            set_state("speaking")
-            wake_reply = jarvis.ask_pi(
-                "用户只叫了你的名字（维叶莎），表示要开始说话。"
-                "用一句很短的话回应，表示你在听；不要执行任务、不要追问太多。"
-            )
-            print(wake_reply, flush=True)
-            notify(wake_reply[:100])
-            if not args.no_speak:
-                jarvis.speak(wake_reply)
-            set_state("recording")
-            pcm2 = record_utterance(args.threshold, args.silence, args.max_seconds)
-            text2 = transcribe(pcm2)
-            print(f"[daemon] 任务：{text2}", file=sys.stderr)
-            if text2:
-                process(text2, not args.no_speak)
-            else:
-                set_state("armed")
+        text = transcribe(pcm)
+        print(f"[daemon] 识别：{text}", file=sys.stderr)
+        if text:
+            process(text, not args.no_speak)
         else:
-            process(raw, not args.no_speak)
-        if args.once:
-            break
+            set_state("armed")
 
     cleanup_temp()
     set_state("disarmed")

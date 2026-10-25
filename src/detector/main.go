@@ -151,6 +151,20 @@ func main() {
 	mux.HandleFunc("/status", auth(func(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(s.status())
 	}, *token))
+	mux.HandleFunc("/wake", auth(func(w http.ResponseWriter, r *http.Request) {
+		s.mu.Lock()
+		cmd := s.daemon
+		s.mu.Unlock()
+		if cmd == nil || cmd.Process == nil {
+			http.Error(w, "daemon not running", http.StatusServiceUnavailable)
+			return
+		}
+		if err := cmd.Process.Signal(syscall.SIGUSR2); err != nil {
+			http.Error(w, "wake failed: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		json.NewEncoder(w).Encode(map[string]any{"ok": true, "pid": cmd.Process.Pid})
+	}, *token))
 	mux.HandleFunc("/trigger", auth(func(w http.ResponseWriter, r *http.Request) {
 		s.mu.Lock()
 		cmd := s.daemon

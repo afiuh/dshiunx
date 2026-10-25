@@ -98,6 +98,22 @@ fun WeiyeshaApp() {
                 busy = true
                 scope.launch {
                     try {
+                        call(baseUrl, token, "POST", "/wake")
+                        message = "已唤醒，听 AI 回应后说任务"
+                    } catch (e: Exception) {
+                        message = "唤醒失败：${e.message}"
+                    } finally { busy = false }
+                }
+            },
+            enabled = armed && !busy,
+            modifier = Modifier.fillMaxWidth(),
+        ) { Text("唤醒维叶莎") }
+
+        Button(
+            onClick = {
+                busy = true
+                scope.launch {
+                    try {
                         call(baseUrl, token, "POST", "/trigger")
                         message = "开始录音"
                     } catch (e: Exception) {
@@ -107,7 +123,7 @@ fun WeiyeshaApp() {
             },
             enabled = armed && !busy,
             modifier = Modifier.fillMaxWidth(),
-        ) { Text("录音") }
+        ) { Text("直接说话") }
 
         Text("状态：$daemonState", style = MaterialTheme.typography.bodyLarge)
         if (message.isNotBlank()) Text(message, style = MaterialTheme.typography.bodySmall)

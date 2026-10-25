@@ -9,12 +9,13 @@
 ## 架构
 
 ```
-手机 APP（开关 armed/disarmed + 录音按钮）
+手机 APP（开关 armed/disarmed + 唤醒按钮 + 直接说话按钮）
   │ 局域网 HTTP/WS（token）
   ▼
 电脑端 tiny detector（常驻，极低内存）
   ├─ armed → 拉起完整服务 jarvis-daemon
-  ├─ trigger → 通知 daemon 开始录音
+  ├─ wake → 通知 daemon 进入唤醒（AI 回应后录音）
+  ├─ trigger → 通知 daemon 直接录音
   └─ disarmed / 心跳超时 → 停止完整服务
         │
         ▼
@@ -36,10 +37,11 @@
 
 - 配对：电脑 IP/端口/token（技术细节以后再说）；
 - 开关：armed/disarmed；
-- **录音按钮**：点击 → `POST /trigger` → daemon 开始录音；
+- **唤醒按钮**：点击 → `POST /wake` → daemon 由 AI 回应“我在听” → 录音任务；
+- **直接说话按钮**：点击 → `POST /trigger` → 直接录音任务；
 - 状态：detector/完整服务状态（armed/recording/processing/speaking）；
 - 心跳：定期上报；断联 fail-safe。
-- **录音按钮只在手机**；电脑端不放快捷键/按钮。
+- 唤醒/录音按钮只在手机；电脑端不放快捷键/按钮；不做唤醒词。
 
 ### tiny detector（常驻）
 
