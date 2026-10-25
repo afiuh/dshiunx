@@ -98,6 +98,7 @@ export class JarvisWeb extends Service {
         const { agent } = await registry.resume({ resumeSessionId: brandString<SessionId>(saved.trim()), agentOptions })
         this.agent = agent
         this.watch(this.agent)
+        await this.register(agent.session.id)
         return agent
       } catch {
         // 会话失效（被删/格式不符）→ 创建新的
@@ -113,7 +114,16 @@ export class JarvisWeb extends Service {
     await writeFile(SESSION_FILE, created.agent.session.id)
     this.agent = created.agent
     this.watch(this.agent)
+    await this.register(created.agent.session.id)
     return created.agent
+  }
+
+  /** 登记到对话管理插件（按插件分组）。 */
+  private async register(id: string): Promise<void> {
+    const sessions = this.ctx.get('conversations') as {
+      register(entry: { id: string; group: string; createdAt: number; title?: string }): Promise<void>
+    } | undefined
+    await sessions?.register({ id, group: 'jarvis-web', createdAt: Date.now(), title: 'Web 对话' })
   }
 
   /** 订阅 agent 流事件（assistant/reasoning/tool）。 */
@@ -173,15 +183,12 @@ export class JarvisWeb extends Service {
       return
     }
     if (url.pathname === '/api/sessions') {
-      const persistence = this.ctx.get('sessionPersistence') as { list(): Promise<Array<{ header: { id: string; createdAt: number; cwd?: string } }>> } | undefined
-      const list = persistence === undefined ? [] : await persistence.list()
-      const cwd = process.cwd()
+      const sessions = this.ctx.get('conversations') as {
+        list(group?: string): Array<{ id: string; group: string; createdAt: number; title?: string }>
+        groups(): Record<string, Array<{ id: string; group: string; createdAt: number; title?: string }>>
+      } | undefined
       res.writeHead(200, { 'content-type': 'application/json' })
-      res.end(JSON.stringify(
-        list
-          .filter(entry => entry.header.cwd === cwd)
-          .map(entry => ({ id: entry.header.id, createdAt: entry.header.createdAt, cwd: entry.header.cwd })),
-      ))
+      res.end(JSON.stringify(sessions === undefined ? [] : sessions.list('jarvis-web')))
       return
     }
     if (url.pathname === '/api/new' && req.method === 'POST') {

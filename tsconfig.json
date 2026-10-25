@@ -493,6 +493,9 @@
       ],
       "@dshiunx/jarvis-web": [
         "packages/jarvis-web/src/index.ts"
+      ],
+      "@dshiunx/conversations": [
+        "packages/dshiunx-conversations/src/index.ts"
       ]
     }
   }

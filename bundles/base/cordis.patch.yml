@@ -377,3 +377,8 @@
 # ── 维叶莎 Web renderer（HTTP + SSE）──
 - id: jarvis-web
   name: '@dshiunx/jarvis-web'
+
+
+# ── 维叶莎对话管理（按插件分组）──
+- id: conversations
+  name: '@dshiunx/conversations'
