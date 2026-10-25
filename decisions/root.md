@@ -57,6 +57,7 @@
 - `触发方式/node.md`
 - `实现顺序/node.md`
 - `命名决策/node.md`
+- `实施计划/node.md`
 - `01-语音入口/node.md`
 - `02-笔记库读写/node.md`
 - `03-事务录入/node.md`
