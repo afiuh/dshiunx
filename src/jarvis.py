@@ -25,6 +25,7 @@ JARVIS_SKILLS = [
     SKILLS_DIR / name for name in (
         "jarvis-notes", "jarvis-tasks", "jarvis-dispatch",
         "jarvis-system", "jarvis-screen", "jarvis-memory", "jarvis-audit",
+        "jarvis-voice", "jarvis-core",
     )
 ]
 
