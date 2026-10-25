@@ -47,7 +47,13 @@
 - 验证：**截屏确认渲染**（侧栏 SESSIONS / 状态栏 connected / 空对话区 / 输入框 + 发送按钮）
 - 修正：react 19 与 react-dom 18 版本冲突（`ReactCurrentBatchConfig`），统一到 19
 
-⏳ 待做：agent 转发（`/api/input` → agent）、语音主输入接入、会话列表真实数据。
+✅ agent 已接（2026-10-25）：
+- 服务名是 `agents`（不是 `agent`）；`ctx.get('agents').create()` 懒创建 Web 会话
+- `/api/input` → `agent.followup()` → `whenIdle` → SSE `assistant`
+- `session/event` 的 `tool/call` / `tool/result` → SSE `tool`
+- 验证：`say hi` → SSE `assistant: "Hi! 👋 How can I help you today?"`；截屏确认对话渲染
+
+⏳ 待做：会话列表真实数据、Esc 中断、推理/执行结果/错误展示。
 
 ## 边界
 
@@ -107,7 +113,7 @@
 | HTTP + SSE | `/events` SSE + `/api/input` | ✅ |
 | 单插件 jarvis-web | `packages/jarvis-web` | ✅ |
 | Shell `web` → HTTP → 浏览器 | `serve()` + `xdg-open` | ✅ |
-| 共享 session/projection | `/api/input` 只回执 | ❌ 未实现 |
+| 共享 session/projection | `/api/input` → `ctx.agents` → agent → SSE | ✅ 已接 |
 | 对话 6 类（含推理/执行结果/错误） | 3 类（user/assistant/tool） | ⚠️ 部分 |
 | 状态面板 5 类 | 3 类（连接/模型/品牌） | ⚠️ 部分 |
 | 语音直接发送 | `onTranscribed → submitText` | ✅ |

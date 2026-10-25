@@ -5,6 +5,11 @@
  * 前端在 ./web/dist（React 构建产物）。
  */
 import { Service, type Context } from '@deepseek-ai/cordis'
+import { brandString } from '@deepseek-ai/dsh-brand'
+import { createUserMessage } from '@deepseek-ai/dsh-llm'
+import type { Agent } from '@deepseek-ai/dsh-agent'
+import type { SessionId } from '@deepseek-ai/dsh-session'
+import { randomUUID } from 'node:crypto'
 import { createServer, type IncomingMessage, type Server, type ServerResponse } from 'node:http'
 import { readFile } from 'node:fs/promises'
 import { dirname, extname, join } from 'node:path'
@@ -43,6 +48,8 @@ function webmToPcm(webm: Buffer): Promise<Buffer> {
 export class JarvisWeb extends Service {
   private server?: Server
   private readonly clients = new Set<ServerResponse>()
+  private agent?: Agent
+  private buffer = ''
 
   constructor(ctx: Context) {
     super(ctx, 'jarvisWeb')
@@ -69,6 +76,31 @@ export class JarvisWeb extends Service {
     const server = this.server
     this.server = undefined
     if (server !== undefined) await new Promise<void>(resolve => server.close(() => resolve()))
+  }
+
+  /** 懒创建 Web 会话的 agent，并把流事件推到浏览器。 */
+  private async ensureAgent(): Promise<Agent> {
+    if (this.agent !== undefined) return this.agent
+    const registry = this.ctx.get('agents') as { create(options: unknown): Promise<{ agent: Agent }> } | undefined
+    if (registry === undefined) throw new Error('agent service is not available')
+    const defaultModel = this.ctx.get('agentDefaultModel') as { currentSelection(): object } | undefined
+    const created = await registry.create({
+      sessionId: brandString<SessionId>(`session-${randomUUID()}`),
+      meta: { cwd: process.cwd() },
+      agentOptions: { ...(defaultModel?.currentSelection() ?? {}) } as never,
+    })
+    this.agent = created.agent
+    this.ctx.on('agent/assistant-stream', ({ agent, frame }) => {
+      if (agent !== this.agent) return
+      if (frame.type === 'chunk' && frame.chunk.type === 'text-delta') this.buffer += frame.chunk.text
+    })
+    this.ctx.on('session/event', (session, event) => {
+      if (session !== this.agent?.session) return
+      const data = event.data as { name?: string; callId?: string }
+      if (event.type === 'tool/call') this.broadcast('tool', { name: data.name ?? 'tool', state: 'running' })
+      if (event.type === 'tool/result') this.broadcast('tool', { name: data.name ?? 'tool', state: 'done' })
+    })
+    return this.agent
   }
 
   /** Push one SSE event to every connected browser. */
@@ -113,10 +145,23 @@ export class JarvisWeb extends Service {
     if (url.pathname === '/api/input' && req.method === 'POST') {
       const chunks: Buffer[] = []
       for await (const chunk of req) chunks.push(chunk as Buffer)
-      const body = Buffer.concat(chunks).toString('utf8')
-      // 业务转发（agent）后续接入；当前只回执。
-      res.writeHead(200, { 'content-type': 'application/json' })
-      res.end(JSON.stringify({ ok: true, received: body }))
+      try {
+        const { text } = JSON.parse(Buffer.concat(chunks).toString('utf8')) as { text?: string }
+        if (typeof text !== 'string' || text.trim() === '') {
+          res.writeHead(400, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ error: 'text is required' }))
+          return
+        }
+        const agent = await this.ensureAgent()
+        this.buffer = ''
+        agent.followup(createUserMessage({ content: [{ type: 'text', text }], source: { kind: 'user' } }))
+        void agent.whenIdle().then(() => { this.broadcast('assistant', { text: this.buffer }) })
+        res.writeHead(202, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ ok: true }))
+      } catch (error) {
+        res.writeHead(500, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
+      }
       return
     }
     const path = url.pathname === '/' ? '/index.html' : url.pathname
