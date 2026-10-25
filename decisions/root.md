@@ -56,7 +56,6 @@
 
 - `技术选型/node.md`
 - `信息流设计/node.md`
-- `触发方式/node.md`
 - `实现顺序/node.md`
 - `命名决策/node.md`
 - `实施计划/node.md`
