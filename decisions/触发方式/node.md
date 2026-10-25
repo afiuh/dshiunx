@@ -33,17 +33,20 @@
 
 ### 手机 APP
 
-- 配对：电脑 IP/端口/token（或二维码）；
+- 配对：电脑 IP/端口/token（技术细节以后再说）；
 - 开关：armed/disarmed；
 - 状态：detector/完整服务状态（armed/recording/processing/speaking）；
 - 心跳：定期上报；断联 fail-safe。
 
 ### tiny detector（常驻）
 
+- **实现：Go 单二进制**（`src/detector/main.go`，仅标准库）；
+- 端口：**8387**（8386 已被 mirror-sync 占用）；
+- 端点：`GET /health`、`GET /status`、`POST /arm`、`POST /heartbeat`；
+- 鉴权：`X-Token`；
+- 心跳超时：**60 秒**；
 - 职责：接收开关、维护心跳、启动/停止完整服务；
-- 不负责：语音/ASR/助手/TTS/文件操作；
-- 内存目标：尽量低（Go/Rust 单二进制 ~5–20MB；Python ~30MB+）；
-- 只监听局域网端口；token 鉴权。
+- 不负责：语音/ASR/助手/TTS/文件操作。
 
 ### 完整服务生命周期
 
