@@ -58,7 +58,14 @@
 - 助手回复用 `marked` 渲染 Markdown（加粗/列表/引用/代码块）
 - 验证：截屏确认加粗、列表、引用渲染
 
-⏳ 待做：会话列表真实数据、Esc 中断、公式（KaTeX）、执行结果/错误展示。
+✅ 会话固定 + 列表（2026-10-25）：
+- Web 会话固定一个（`~/.local/share/jarvis/web-session.json`，重启 `resume`，不新开）
+- 只有用户显式 `POST /api/new` 才开新对话（前端无按钮）
+- 会话列表：`sessionPersistence.list()` 按 cwd 过滤、新在前
+- Esc → `POST /api/interrupt` → `agent.cancel('user')`
+- 验证：重启两次 → 同一 session id
+
+⏳ 待做：公式（KaTeX）、执行结果/错误展示。
 
 ## 边界
 

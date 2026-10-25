@@ -23,7 +23,8 @@
 | 连接状态 | SSE | ✅（connected / reconnecting） |
 | 模型名 | 静态 | ✅（deepseek-flash，暂硬编码） |
 | 品牌 | 静态 | ✅（dshiunx · 维叶莎） |
-| 会话列表 | `ctx.sessions` | ❌ 占位（只有「当前对话」） |
+| 会话列表 | `sessionPersistence.list()`（按 cwd 过滤，新在前） | ✅ |
+| 当前会话 | 固定（`~/.local/share/jarvis/web-session.json`，重启 resume） | ✅ |
 | 任务状态 | dispatch + agent | ❌ 待做 |
 | 语音状态 | `jarvis-voice` | ❌ 待做（按钮内有录音/识别态） |
 | 写入/回滚点 | git commit | ❌ 待做 |
