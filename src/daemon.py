@@ -20,8 +20,14 @@ import jarvis  # noqa: E402
 from wetype_asr import transcribe  # noqa: E402
 
 STATE = Path("/tmp/weiyesha-state.json")
+TEMP_FILES = [Path("/tmp/jarvis-reply.mp3"), Path("/tmp/jarvis-screen.png")]
 TRIGGER = threading.Event()
 STOP = threading.Event()
+
+
+def cleanup_temp() -> None:
+    for p in TEMP_FILES:
+        p.unlink(missing_ok=True)
 
 
 def set_state(state: str) -> None:
@@ -124,6 +130,7 @@ def main() -> int:
 
     signal.signal(signal.SIGUSR1, on_signal)
     signal.signal(signal.SIGTERM, lambda *_: STOP.set())
+    cleanup_temp()
     set_state("armed")
 
     if args.text:
@@ -157,6 +164,7 @@ def main() -> int:
         if args.once:
             break
 
+    cleanup_temp()
     set_state("disarmed")
     return 0
 
