@@ -15,7 +15,7 @@ description: 维叶莎语音交互 skill——开关/唤醒/录音/VAD/ASR/TTS/�
 
 ```
 手机开关 → tiny detector → 完整服务
-  → armed：监听唤醒词
+  → armed：等待按键/快捷键触发（不做唤醒词）
   → 唤醒：录音 → VAD → ASR（wetype）
   → 助手 → TTS（Edge-TTS 晓晓）→ 播放
   → 回到 armed/disarmed
@@ -24,7 +24,7 @@ description: 维叶莎语音交互 skill——开关/唤醒/录音/VAD/ASR/TTS/�
 ## 状态机
 
 - `disarmed`：不采集、不监听、不送 ASR；
-- `armed`：只监听唤醒词，不存音频；
+- `armed`：只等待触发（按键/快捷键/信号），不监听、不存音频；
 - `recording`：唤醒后录音，VAD 静音截断；
 - `processing`：ASR/助手处理；
 - `speaking`：TTS 播放，可打断；
@@ -39,7 +39,7 @@ description: 维叶莎语音交互 skill——开关/唤醒/录音/VAD/ASR/TTS/�
 
 ## 边界
 
-- 不全天录音；`armed` 只跑唤醒词；
+- 不全天录音；`armed` 只等待触发，不监听；
 - 不做本地 ASR；不占显存；
 - 失败就报告（麦克风/网络/ASR/TTS）；
 - 不假装听到/看到；

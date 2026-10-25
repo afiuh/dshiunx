@@ -71,7 +71,7 @@
 ### 8. jarvis-voice（语音交互，运行时为主）
 
 - 何时用：录音/唤醒/ASR/TTS/打断；
-- 职责：开关 → 唤醒词 → 录音 → ASR → 助手 → TTS；
+- 职责：开关 → 按键/快捷键触发 → 录音 → ASR → 助手 → TTS；
 - 边界：不全天录音；开关由手机控制；
 - 对应：wetype ASR / Edge-TTS / detector / APP（不是纯 skill）。
 
