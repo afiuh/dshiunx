@@ -43,7 +43,6 @@
 | [jarvis-system](./system.md) | 执行能力/系统控制 | `ctx.jarvisSystem.open / exec` |
 | [jarvis-memory](./memory.md) | 数据信息管理/记忆存储 | `ctx.jarvisMemory.add / search` |
 | [jarvis-audit](./audit.md) | 数据信息管理/审核追溯 | `ctx.jarvisAudit.record / backup` |
-| [jarvis-chat](./chat.md) | 渲染模块/对话展示 | 待定 |
 
 ## 依赖关系
 
@@ -65,10 +64,10 @@ jarvis-chat    → ctx.agent（dshiunx）
 - `dx -p` 仍能跑（可裁剪）
 - 插件之间不 import（判据 2）
 
-## 待确认（问用户）
+## 已定（2026-10-25 用户拍板）
 
-1. `jarvis-chat` 是插件还是 Shell 命令？和渲染模块的"对话展示"什么关系？
-2. `jarvis-dispatch` 用 dshiunx 的 `ctx.agent` 创建 agent，还是 spawn `pi` 子进程？
-3. `jarvis-voice` 的接口粒度：`transcribe(pcm)`（底层）还是 `listen()`（录音+ASR）？触发（按键/命令）放哪？
-4. `jarvis-memory` 和 dshiunx 的 session/projection 什么关系？长期记忆只记"跨会话摘要"？
-5. 笔记写入的"用户审核"在 dshiunx 里怎么体现（没有审核 UI）？
+1. **不单独做 `jarvis-chat`**：与 dshiunx 自身的智能体/对话重复；对话由 dshiunx agent 提供，渲染模块只负责展示。
+2. **`jarvis-dispatch` 依赖 dshiunx 自身的智能体**（`ctx.agent`），不 spawn `pi`。
+3. **`jarvis-voice` 接口粒度**：`transcribe(pcm)` + `speak(text)`；录音/触发归调用方。
+4. **`jarvis-memory` 暂不做**：DSH 可能已有专门的记忆插件，先查源码再定。
+5. **笔记写入**：写入即记录 + 可回滚（不另做审核队列）；DSH 源码里有此功能，待抽取。

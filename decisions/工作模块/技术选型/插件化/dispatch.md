@@ -8,7 +8,7 @@
 
 ## 依赖
 
-- dshiunx：`ctx.agent` / `ctx.sessions`（**待确认**：还是 spawn `pi`）
+- dshiunx：`ctx.agent` / `ctx.sessions`（**已定：依赖 dshiunx 自身的智能体，不 spawn `pi`**）
 - 活跃项目台账：`工具的使用/活跃项目台账.md`
 
 ## 边界
@@ -24,4 +24,4 @@
 
 ## 现有代码
 
-`src/skills/pi_task.py`（`pi -p` / `pi --session`）。
+`src/skills/pi_task.py`（`pi -p` / `pi --session`）——仅作行为参考；新实现走 `ctx.agent`。
