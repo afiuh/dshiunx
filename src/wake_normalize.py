@@ -19,9 +19,19 @@ def clean_chars(text: str) -> str:
     return "".join(c for c in text if "\u4e00" <= c <= "\u9fff")
 
 
+def _is_sha(ch: str) -> bool:
+    return lazy_pinyin(ch, style=Style.NORMAL)[0].startswith("sha")
+
+
 def is_wake_only(text: str) -> bool:
     chars = clean_chars(text)
-    return len(chars) == 3 and first_letters(chars) == "wys"
+    if not chars or len(chars) > 8:
+        return False
+    for i in range(len(chars) - 2):
+        window = chars[i:i + 3]
+        if first_letters(window) == "wys" and _is_sha(window[2]):
+            return True
+    return False
 
 
 def normalize(text: str) -> str:

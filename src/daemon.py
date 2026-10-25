@@ -129,13 +129,18 @@ def heartbeat_loop(url: str, token: str) -> None:
 
 def process(text: str, speak: bool) -> None:
     set_state("processing")
-    reply = jarvis.ask_pi(text)
-    print(reply, flush=True)
-    notify(reply[:100])
-    if speak:
-        set_state("speaking")
-        jarvis.speak(reply)
-    set_state("armed")
+    try:
+        reply = jarvis.ask_pi(text)
+        print(reply, flush=True)
+        notify(reply[:100])
+        if speak:
+            set_state("speaking")
+            jarvis.speak(reply)
+    except Exception as exc:
+        print(f"[daemon] 处理失败：{exc}", file=sys.stderr)
+        notify(f"处理失败：{exc}")
+    finally:
+        set_state("armed")
 
 
 def main() -> int:
