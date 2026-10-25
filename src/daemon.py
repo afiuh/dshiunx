@@ -18,7 +18,7 @@ sys.path.insert(0, str(ROOT / "asr"))
 
 import jarvis  # noqa: E402
 from wetype_asr import transcribe  # noqa: E402
-from wake_normalize import normalize  # noqa: E402
+from wake_normalize import normalize, is_wake_only  # noqa: E402
 
 STATE = Path("/tmp/weiyesha-state.json")
 TEMP_FILES = [Path("/tmp/jarvis-reply.mp3"), Path("/tmp/jarvis-screen.png")]
@@ -158,10 +158,28 @@ def main() -> int:
             continue
         text = normalize(transcribe(pcm))
         print(f"[daemon] 识别：{text}", file=sys.stderr)
-        if text:
-            process(text, not args.no_speak)
-        else:
+        if not text:
             set_state("armed")
+            if args.once:
+                break
+            continue
+        if is_wake_only(text):
+            # 两阶段：先叫名字，AI 回应后再录任务
+            set_state("speaking")
+            if args.no_speak:
+                print("我在，请说", flush=True)
+            else:
+                jarvis.speak("我在，请说")
+            set_state("recording")
+            pcm2 = record_utterance(args.threshold, args.silence, args.max_seconds)
+            text2 = normalize(transcribe(pcm2))
+            print(f"[daemon] 任务：{text2}", file=sys.stderr)
+            if text2:
+                process(text2, not args.no_speak)
+            else:
+                set_state("armed")
+        else:
+            process(text, not args.no_speak)
         if args.once:
             break
 

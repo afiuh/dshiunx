@@ -15,6 +15,15 @@ def first_letters(text: str) -> str:
     return "".join(lazy_pinyin(text, style=Style.FIRST_LETTER))
 
 
+def clean_chars(text: str) -> str:
+    return "".join(c for c in text if "\u4e00" <= c <= "\u9fff")
+
+
+def is_wake_only(text: str) -> bool:
+    chars = clean_chars(text)
+    return len(chars) == 3 and first_letters(chars) == "wys"
+
+
 def normalize(text: str) -> str:
     text = text.strip()
     if len(text) < 3:
