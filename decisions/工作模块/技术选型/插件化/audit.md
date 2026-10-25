@@ -16,11 +16,8 @@
 
 写入即记录 + 可回滚，**不另做审核队列**。
 
-已查 DSH 源码：没有独立的"审核/回滚"插件；相关能力是：
-- `session-checkpoint-policy`：崩溃恢复检查点（语义检查点，不是用户回滚）
-- `session-persistence-jsonl` 的 `rollbackAppend`：追加失败的原子回滚（不是历史回滚）
-
-结论：维叶莎的 audit 自建（`audit.jsonl` + `backups/`），参考 DSH 的 checkpoint 思路；不依赖 DSH 插件。
+**回滚用 git**（用户 2026-10-25 定）：笔记库/事务系统本身是 git 仓库，回滚 = `git revert` / `git checkout`，不另建 backups。
+audit 只负责**记录**（谁/何时/什么/结果），回滚路径指向 git。
 
 ## 边界
 
