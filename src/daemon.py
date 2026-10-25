@@ -21,6 +21,7 @@ from wetype_asr import transcribe  # noqa: E402
 from wake_normalize import normalize, is_wake_only  # noqa: E402
 
 STATE = Path("/tmp/weiyesha-state.json")
+_last_state = None
 TEMP_FILES = [Path("/tmp/jarvis-reply.mp3"), Path("/tmp/jarvis-screen.png")]
 TRIGGER = threading.Event()
 STOP = threading.Event()
@@ -31,8 +32,28 @@ def cleanup_temp() -> None:
         p.unlink(missing_ok=True)
 
 
+def notify(msg: str) -> None:
+    try:
+        subprocess.run(
+            ["hyprctl", "notify", "-1", "2500", "0", f"维叶莎：{msg}"],
+            capture_output=True, timeout=2,
+        )
+    except Exception:
+        pass
+
+
 def set_state(state: str) -> None:
+    global _last_state
     STATE.write_text(json.dumps({"state": state, "ts": time.time()}, ensure_ascii=False))
+    if state != _last_state:
+        _last_state = state
+        label = {
+            "recording": "正在听…",
+            "processing": "处理中…",
+            "speaking": "回复中…",
+        }.get(state)
+        if label:
+            notify(label)
 
 
 def on_signal(signum, frame) -> None:
@@ -110,6 +131,7 @@ def process(text: str, speak: bool) -> None:
     set_state("processing")
     reply = jarvis.ask_pi(text)
     print(reply, flush=True)
+    notify(reply[:100])
     if speak:
         set_state("speaking")
         jarvis.speak(reply)
@@ -172,6 +194,7 @@ def main() -> int:
                 "用一句很短的话回应，表示你在听；不要执行任务、不要追问太多。"
             )
             print(wake_reply, flush=True)
+            notify(wake_reply[:100])
             if not args.no_speak:
                 jarvis.speak(wake_reply)
             set_state("recording")

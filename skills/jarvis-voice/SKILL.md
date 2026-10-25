@@ -44,6 +44,12 @@ description: 维叶莎语音交互 skill——开关/唤醒/录音/VAD/ASR/TTS/�
 - 检测服务：`src/detector`（Go，8387，60s 心跳）；
 - 开关：手机 APP（最后做）。
 
+## 电脑端反馈
+
+- 状态变化用 Hyprland 通知：正在听 / 处理中 / 回复中；
+- 识别文本/回复摘要显示在通知；
+- 不频繁弹 armed/disarmed 通知。
+
 ## 录音文件策略
 
 - **录音不落盘**：`record_utterance` 在内存 `bytearray` 中，ASR 通过 stdin 直接发送 PCM；
