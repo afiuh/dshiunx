@@ -4,6 +4,8 @@
 
 ## 结论
 
+**当前决定（2026-10-25）**：TTS 先定为 Edge-TTS 晓晓（Xiaoxiao），Fairy 音色暂缓；后续需要再走 GPT-SoVITS/RVC。
+
 有现成的 Fairy 音色资源，分三类：
 
 1. **GPT-SoVITS 模型包**（本地 TTS，最合适）；

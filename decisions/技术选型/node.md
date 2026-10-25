@@ -6,6 +6,10 @@
 
 根要求：声音、笔记库读写、事务录入、任务分配（拉起 pi 对话）、系统控制、长期记忆、本地优先。需要确定一个可落地的技术底座和扩展路径。
 
+## 已定 TTS
+
+**Edge-TTS `zh-CN-XiaoxiaoNeural`（晓晓，女）**：清晰、通用、免费、不占显存。Fairy 音色暂缓，后续需要再换 GPT-SoVITS/RVC。
+
 ## 选型结论
 
 以 **Sycatle/local-jarvis** 为底座：
