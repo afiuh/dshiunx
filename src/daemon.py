@@ -156,14 +156,15 @@ def main() -> int:
             if args.once:
                 break
             continue
-        text = normalize(transcribe(pcm))
-        print(f"[daemon] 识别：{text}", file=sys.stderr)
-        if not text:
+        raw = transcribe(pcm)
+        text = normalize(raw)  # 仅唤醒词阶段使用；任务文本保持原样
+        print(f"[daemon] 识别：{raw}", file=sys.stderr)
+        if not raw:
             set_state("armed")
             if args.once:
                 break
             continue
-        if is_wake_only(text):
+        if is_wake_only(raw):
             # 两阶段：先叫名字，AI 回应后再录任务
             set_state("speaking")
             if args.no_speak:
@@ -172,14 +173,14 @@ def main() -> int:
                 jarvis.speak("我在，请说")
             set_state("recording")
             pcm2 = record_utterance(args.threshold, args.silence, args.max_seconds)
-            text2 = normalize(transcribe(pcm2))
+            text2 = transcribe(pcm2)
             print(f"[daemon] 任务：{text2}", file=sys.stderr)
             if text2:
                 process(text2, not args.no_speak)
             else:
                 set_state("armed")
         else:
-            process(text, not args.no_speak)
+            process(raw, not args.no_speak)
         if args.once:
             break
 
