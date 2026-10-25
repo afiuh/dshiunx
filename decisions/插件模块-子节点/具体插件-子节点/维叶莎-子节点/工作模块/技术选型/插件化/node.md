@@ -35,7 +35,7 @@
 | **插件只有 `jarvis-voice` 一个** | "1.是" |
 | **`notes` / `tasks` / `system` / `dispatch` 改为 skill**（audit/screen 合并，core/voice/memory 删除） | "2.要" |
 | **意图路由由 agent 承担**（不单独做插件） | "3.是" |
-| **skill 的详细清单见 [执行能力/skill](../../../执行能力/skill/node.md)**（不另问） | "这个能力清单还要问吗，合着之前我们做能力清单白做了吗" |
+| **skill 的详细清单见 [执行能力/skill](../../执行能力/skill/node.md)**（不另问） | "这个能力清单还要问吗，合着之前我们做能力清单白做了吗" |
 
 ## 待确认（未拍板）
 
