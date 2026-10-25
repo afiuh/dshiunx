@@ -1,19 +1,23 @@
 import { useRef, useState } from 'react'
+import { VoiceButton } from './VoiceButton'
 
 export function InputBar({ onSend }: { onSend: (text: string) => Promise<void> }) {
   const [text, setText] = useState('')
   const [busy, setBusy] = useState(false)
   const area = useRef<HTMLTextAreaElement>(null)
 
-  const submit = async (): Promise<void> => {
-    if (busy || text.trim() === '') return
+  const submitText = async (value: string): Promise<void> => {
+    if (busy || value.trim() === '') return
     setBusy(true)
-    try { await onSend(text); setText('') } finally { setBusy(false) }
+    try { await onSend(value); setText('') } finally { setBusy(false) }
   }
+
+  const submit = async (): Promise<void> => submitText(text)
 
   return (
     <div className="inputbar">
       <div className="inner">
+        <VoiceButton onTranscribed={(text) => { void submitText(text) }} />
         <textarea
           ref={area}
           value={text}

@@ -22,6 +22,23 @@ const MIME: Record<string, string> = {
   '.svg': 'image/svg+xml',
 }
 
+/** webm/opus → 16k mono s16le PCM（ffmpeg）。 */
+function webmToPcm(webm: Buffer): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const child = spawn('ffmpeg', ['-i', 'pipe:0', '-f', 's16le', '-ac', '1', '-ar', '16000', 'pipe:1'], { stdio: ['pipe', 'pipe', 'pipe'] })
+    const out: Buffer[] = []
+    const err: Buffer[] = []
+    child.stdout.on('data', chunk => out.push(chunk as Buffer))
+    child.stderr.on('data', chunk => err.push(chunk as Buffer))
+    child.on('error', reject)
+    child.on('close', code => {
+      if (code === 0) resolve(Buffer.concat(out))
+      else reject(new Error(`ffmpeg exited ${code}: ${Buffer.concat(err).toString('utf8').slice(-300)}`))
+    })
+    child.stdin.end(webm)
+  })
+}
+
 /** HTTP + SSE surface for the Web renderer. */
 export class JarvisWeb extends Service {
   private server?: Server
@@ -71,6 +88,26 @@ export class JarvisWeb extends Service {
       res.write(': connected\n\n')
       this.clients.add(res)
       req.on('close', () => this.clients.delete(res))
+      return
+    }
+    if (url.pathname === '/api/voice' && req.method === 'POST') {
+      const chunks: Buffer[] = []
+      for await (const chunk of req) chunks.push(chunk as Buffer)
+      try {
+        const pcm = await webmToPcm(Buffer.concat(chunks))
+        const voice = ctx.get('jarvisVoice') as { transcribe(pcm: Buffer): Promise<string> } | undefined
+        if (voice === undefined) {
+          res.writeHead(503, { 'content-type': 'application/json' })
+          res.end(JSON.stringify({ error: 'jarvis-voice plugin is not loaded' }))
+          return
+        }
+        const text = await voice.transcribe(pcm)
+        res.writeHead(200, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ text }))
+      } catch (error) {
+        res.writeHead(500, { 'content-type': 'application/json' })
+        res.end(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }))
+      }
       return
     }
     if (url.pathname === '/api/input' && req.method === 'POST') {
