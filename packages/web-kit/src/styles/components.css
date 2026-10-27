@@ -47,11 +47,13 @@
 .wb-side > .wb-collapse-edge { right: -8px; top: 50%; transform: translateY(-50%); }
 .wb-actions > .wb-collapse-edge { top: -8px; left: 50%; transform: translateX(-50%); }
 /* 收起时隐藏内容（保留按钮） */
-.wb-top[data-collapsed="true"] > :not(.wb-collapse):not(.wb-grip),
-.wb-side[data-collapsed="true"] > :not(.wb-side-title):not(.wb-grip),
-.wb-actions[data-collapsed="true"] > :not(.wb-collapse):not(.wb-grip) { display: none; }
+.wb-top[data-collapsed="true"] > :not(.wb-collapse-edge):not(.wb-grip),
+.wb-side[data-collapsed="true"] > :not(.wb-side-scroll):not(.wb-collapse-edge):not(.wb-grip),
+.wb-actions[data-collapsed="true"] > :not(.wb-collapse-edge):not(.wb-grip) { display: none; }
 
 /* 收起时只留箭头，隐藏标题文字 */
 .wb-side[data-collapsed="true"] .wb-side-title span { display: none; }
 .wb-side[data-collapsed="true"] .wb-side-title { justify-content: center; padding: 4px 0; }
 .wb-top[data-collapsed="true"] .wb-status { display: none; }
+
+.wb-side[data-collapsed="true"] .wb-side-scroll { display: none; }
