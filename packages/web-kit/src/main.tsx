@@ -16,7 +16,7 @@ createRoot(document.getElementById('root')!).render(
     groups={groups}
     itemsOf={itemsOf}
     renderContent={item => <><h2>{item.label}</h2><p>内容区（占位）—— A 展示 C 里选中的条目</p></>}
-    renderActions={item => <span>操作区：{item.label}（占位）—— B 对 A 操作</span>}
+    renderActions={item => <span>操作区（占位）—— 全局操作：对话框 / 命令 / 搜索（目标由应用决定）</span>}
     renderPanel={item => <span>并行内容（占位）—— {item.label}</span>}
   />,
 )
