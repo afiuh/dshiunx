@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import type { WorkbenchProps } from '../types'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { useResize } from '../hooks/useResize'
@@ -10,6 +10,8 @@ import { Actions } from './Actions'
 import { Parallel } from './Parallel'
 import { DropZone } from './DropZone'
 import { Arrow } from './Arrow'
+import type { RunAction } from '../actions'
+import { useKeybindings } from '../hooks/useKeybindings'
 
 /** 四区 + 按需并行区（E）工作台。 */
 export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderContent, renderActions, renderPanel, theme = 'light' }: WorkbenchProps) {
@@ -19,9 +21,18 @@ export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderCo
     { top: [40, 240], side: [140, 480], bottom: [40, 360], parallel: [220, 720] },
   )
   const [collapsed, setCollapsed] = useState({ top: false, side: false, bottom: false })
-  const toggle = (key: 'top' | 'side' | 'bottom') => (): void => {
-    setCollapsed(prev => ({ ...prev, [key]: !prev[key] }))
-  }
+  // 所有非拖动行为走 run（快捷键与组件共用同一套）
+  const run: RunAction = useCallback((name, payload) => {
+    if (name === 'toggle-top') setCollapsed(prev => ({ ...prev, top: !prev.top }))
+    if (name === 'toggle-side') setCollapsed(prev => ({ ...prev, side: !prev.side }))
+    if (name === 'toggle-bottom') setCollapsed(prev => ({ ...prev, bottom: !prev.bottom }))
+    if (name === 'open-parallel' && payload?.item !== undefined) wb.open(payload.item)
+    if (name === 'close-parallel' && payload?.id !== undefined) wb.close(payload.id)
+    if (name === 'select-group' && payload?.group !== undefined) wb.setActiveGroup(payload.group)
+    if (name === 'select-item' && payload?.id !== undefined) wb.setActiveItem(payload.id)
+    if (name === 'close-window') { console.log('[web-kit] close-window'); window.close() }
+  }, [wb])
+  useKeybindings(run)
   const dims = {
     top: collapsed.top ? 26 : sizes.top,
     side: collapsed.side ? 26 : sizes.side,
@@ -36,8 +47,8 @@ export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderCo
   return (
     <div className={`wb ${theme === 'dark' ? 'dark' : ''}`}>
       <header className="wb-top" data-collapsed={collapsed.top} style={{ height: dims.top }}>
-        <Groups groups={groups} active={wb.activeGroup} onSelect={wb.setActiveGroup} onResize={start('top', 'y', 1)} render={renderGroups} />
-        <button className="wb-collapse-edge" title={collapsed.top ? '展开' : '收起'} onClick={toggle('top')}><Arrow direction={collapsed.top ? 'down' : 'up'} /></button>
+        <Groups groups={groups} active={wb.activeGroup} onSelect={id => run('select-group', { group: id })} onResize={start('top', 'y', 1)} render={renderGroups} />
+        <button className="wb-collapse-edge" title={collapsed.top ? '展开' : '收起'} onClick={() => run('toggle-top')}><Arrow direction={collapsed.top ? 'down' : 'up'} /></button>
         <div className="wb-status">status · 全局状态</div>
       </header>
       <div className="wb-body">
@@ -45,21 +56,21 @@ export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderCo
           title={wb.group?.label ?? ''}
           items={wb.items}
           active={wb.activeItem}
-          onSelect={wb.setActiveItem}
-          onOpen={wb.open}
+          onSelect={id => run('select-item', { id })}
+          onOpen={item => run('open-parallel', { item })}
           dragHandlers={drop.dragHandlers}
           onResize={start('side', 'x', 1)}
           width={dims.side}
           render={renderItems}
           collapsed={collapsed.side}
-          onToggle={toggle('side')}
+          onToggle={() => run('toggle-side')}
         />
         <main className="wb-main">
           {drop.dragging !== null && wb.parallel.length === 0 && (
             <DropZone active={drop.active} zoneHandlers={drop.zoneHandlers} />
           )}
           <Content>{wb.item === undefined ? null : renderContent(wb.item)}</Content>
-          <Actions onResize={start('bottom', 'y', -1)} height={dims.bottom} collapsed={collapsed.bottom} onToggle={toggle('bottom')}>
+          <Actions onResize={start('bottom', 'y', -1)} height={dims.bottom} collapsed={collapsed.bottom} onToggle={() => run('toggle-bottom')}>
             {wb.item === undefined ? null : renderActions?.(wb.item)}
           </Actions>
         </main>
@@ -67,7 +78,7 @@ export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderCo
           <Parallel
             panels={wb.parallel}
             renderPanel={render}
-            onClose={wb.close}
+            onClose={id => run('close-parallel', { id })}
             onResizeStart={start('parallel', 'x', -1)}
             zoneHandlers={drop.zoneHandlers}
             active={drop.active}

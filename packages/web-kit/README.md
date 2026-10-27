@@ -57,6 +57,30 @@ const itemsOf = (group) => [{ id: 'i1', label: '条目 1' }]
 | 关面板 × | 面板消失；空了 → **E 消失** |
 | 点边界圆钮 | 收起/展开（展开时箭头指向区域内部，收起时指向外部） |
 
+## 快捷键（行为解耦）
+
+除拖动外的所有行为都走 `run(name, payload)`——组件点击和快捷键共用同一套：
+
+```ts
+// src/actions.ts
+type ActionName = 'toggle-top' | 'toggle-side' | 'toggle-bottom'
+  | 'open-parallel' | 'close-parallel' | 'select-group' | 'select-item' | 'close-window'
+```
+
+```ts
+// src/keybindings.ts（默认只有测试用的 Ctrl+W）
+export const KEYBINDINGS = {
+  'ctrl+w': 'close-window',
+}
+```
+
+组合键格式：`ctrl+shift+k` / `meta+w` / `escape`。应用按需追加，例如：
+
+```ts
+'ctrl+k': 'open-parallel'
+'escape': 'close-window'
+```
+
 ## 主题（按情境现做）
 
 框架**不提供预设主题**。默认是黑白极简（不丑）。要风格，改 `theme.css` 的变量：
