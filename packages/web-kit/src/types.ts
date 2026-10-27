@@ -52,4 +52,8 @@ export interface WorkbenchProps {
   readonly theme?: 'light' | 'dark'
   /** 快捷键映射（默认用 keybindings.ts；应用可按情境覆盖）。 */
   readonly keybindings?: Record<string, string>
+  /** 初始状态（仅首次生效；应用从内存/存储/URL 读出来后传入）。 */
+  readonly initialState?: Partial<WorkbenchState>
+  /** 关闭/刷新前回调一次（应用在这里把状态存起来）。 */
+  readonly onStateChange?: (state: WorkbenchState) => void
 }

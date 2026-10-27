@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { WorkbenchProps } from '../types'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { useResize } from '../hooks/useResize'
@@ -14,16 +14,25 @@ import { useActions } from '../hooks/useActions'
 import { useKeybindings } from '../hooks/useKeybindings'
 
 /** 四区 + 按需并行区（E）工作台。 */
-export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderContent, renderActions, renderPanel, theme = 'light', keybindings }: WorkbenchProps) {
-  const wb = useWorkbench(groups, itemsOf)
+export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderContent, renderActions, renderPanel, theme = 'light', keybindings, initialState, onStateChange }: WorkbenchProps) {
+  const wb = useWorkbench(groups, itemsOf, initialState?.parallel ?? [])
   const { sizes, start } = useResize(
-    { top: 56, side: 220, bottom: 76, parallel: 320 },
+    { top: 56, side: 220, bottom: 76, parallel: 320, ...initialState?.sizes },
     { top: [40, 240], side: [140, 480], bottom: [40, 360], parallel: [220, 720] },
   )
   const [collapsed, setCollapsed] = useState({ top: false, side: false, bottom: false })
   // 焦点：鼠标在哪个区，哪个区就是焦点
   const [focused, setFocused] = useState<'top' | 'side' | 'content' | 'actions' | 'parallel' | null>(null)
   const run = useActions(wb, collapsed, setCollapsed, focused)
+  // 关闭/刷新前回调一次（应用在这里存）
+  useEffect(() => {
+    if (onStateChange === undefined) return
+    const handler = (): void => {
+      onStateChange({ sizes, collapsed, parallel: wb.parallel.map(panel => panel.item.id) })
+    }
+    window.addEventListener('beforeunload', handler)
+    return () => window.removeEventListener('beforeunload', handler)
+  }, [sizes, collapsed, wb.parallel, onStateChange])
   useKeybindings(run, keybindings)
   const dims = {
     top: collapsed.top ? 26 : sizes.top,
