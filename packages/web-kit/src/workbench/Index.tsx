@@ -17,10 +17,8 @@ export function Index({ title, items, active, onSelect, onOpen, dragHandlers, on
 }) {
   return (
     <aside className="wb-side" data-collapsed={collapsed} style={{ width }}>
-      <div className="wb-side-title">
-        <span>{title}</span>
-        <button className="wb-collapse" title={collapsed ? '展开' : '收起'} onClick={onToggle}><Arrow direction={collapsed ? 'left' : 'right'} /></button>
-      </div>
+      <div className="wb-side-scroll">
+      <div className="wb-side-title">{title}</div>
       {items.map(item => (
         <div
           key={item.id}
@@ -32,6 +30,8 @@ export function Index({ title, items, active, onSelect, onOpen, dragHandlers, on
           <button className="wb-open" title="并行打开" onClick={event => { event.stopPropagation(); onOpen(item) }}>→</button>
         </div>
       ))}
+      </div>
+      <button className="wb-collapse-edge" title={collapsed ? '展开' : '收起'} onClick={onToggle}><Arrow direction={collapsed ? 'left' : 'right'} /></button>
       <Grip kind="h" onPointerDown={onResize} />
     </aside>
   )

@@ -9,6 +9,7 @@ import { Content } from './Content'
 import { Actions } from './Actions'
 import { Parallel } from './Parallel'
 import { DropZone } from './DropZone'
+import { Arrow } from './Arrow'
 
 /** 四区 + 按需并行区（E）工作台。 */
 export function Workbench({ groups, itemsOf, renderContent, renderActions, renderPanel, theme = 'light' }: WorkbenchProps) {
@@ -35,7 +36,8 @@ export function Workbench({ groups, itemsOf, renderContent, renderActions, rende
   return (
     <div className={`wb ${theme === 'dark' ? 'dark' : ''}`}>
       <header className="wb-top" data-collapsed={collapsed.top} style={{ height: dims.top }}>
-        <Groups groups={groups} active={wb.activeGroup} onSelect={wb.setActiveGroup} onResize={start('top', 'y', 1)} collapsed={collapsed.top} onToggle={toggle('top')} />
+        <Groups groups={groups} active={wb.activeGroup} onSelect={wb.setActiveGroup} onResize={start('top', 'y', 1)} />
+        <button className="wb-collapse-edge" title={collapsed.top ? '展开' : '收起'} onClick={toggle('top')}><Arrow direction={collapsed.top ? 'up' : 'down'} /></button>
         <div className="wb-status">status · 全局状态</div>
       </header>
       <div className="wb-body">
