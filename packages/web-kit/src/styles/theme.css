@@ -1,9 +1,28 @@
-/* 极简黑白：默认白底黑字；深色用 .wb.dark 显式开启。 */
+/* 极简黑白：默认白底黑字；深色用 .wb.dark 显式开启。
+   风格适配：所有视觉值都在这里，组件不硬编码。 */
 :root {
+  /* 颜色 */
   --wb-bg: #ffffff;
   --wb-fg: #000000;
   --wb-line: #d0d0d0;
   --wb-muted: #6b6b6b;
+  --wb-accent: #000000;
+
+  /* 形状 */
+  --wb-radius: 0px;        /* 0 = 极简；4-12 = 圆润；999 = 胶囊 */
+  --wb-gap: 8px;           /* 间距基准 */
+  --wb-shadow: none;       /* none / 0 8px 24px rgba(0,0,0,.08) */
+
+  /* 字体 */
+  --wb-font: system-ui, "PingFang SC", "Noto Sans SC", sans-serif;
+  --wb-font-size: 14px;
+  --wb-font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* 尺寸 */
+  --wb-grip: 6px;          /* 拖拽手柄厚度 */
+  --wb-edge: 16px;         /* 收起按钮直径 */
+  --wb-drop: 160px;        /* 检测区宽度 */
+
   color-scheme: light;
 }
 .wb.dark {
@@ -11,5 +30,6 @@
   --wb-fg: #ffffff;
   --wb-line: #333333;
   --wb-muted: #999999;
+  --wb-accent: #ffffff;
   color-scheme: dark;
 }
