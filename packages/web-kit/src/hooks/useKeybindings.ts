@@ -14,15 +14,16 @@ function comboOf(event: KeyboardEvent): string {
 }
 
 /** 监听 keydown，按 KEYBINDINGS 分发行为。 */
-export function useKeybindings(run: RunAction, bindings: Record<string, string> = KEYBINDINGS): void {
+export function useKeybindings(run: RunAction, bindings?: Record<string, string>): void {
+  const map = bindings ?? KEYBINDINGS
   useEffect(() => {
     const onKey = (event: KeyboardEvent): void => {
-      const action = bindings[comboOf(event)]
+      const action = map[comboOf(event)]
       if (action === undefined) return
       event.preventDefault()
       run(action as Parameters<RunAction>[0])
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [run, bindings])
+  }, [run, map])
 }

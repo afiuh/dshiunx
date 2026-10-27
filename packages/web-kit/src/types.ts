@@ -50,4 +50,6 @@ export interface WorkbenchProps {
   readonly renderPanel?: (item: Item) => ReactNode
   /** 主题（默认 light）。 */
   readonly theme?: 'light' | 'dark'
+  /** 快捷键映射（默认用 keybindings.ts；应用可按情境覆盖）。 */
+  readonly keybindings?: Record<string, string>
 }

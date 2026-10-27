@@ -14,7 +14,7 @@ import { useActions } from '../hooks/useActions'
 import { useKeybindings } from '../hooks/useKeybindings'
 
 /** 四区 + 按需并行区（E）工作台。 */
-export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderContent, renderActions, renderPanel, theme = 'light' }: WorkbenchProps) {
+export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderContent, renderActions, renderPanel, theme = 'light', keybindings }: WorkbenchProps) {
   const wb = useWorkbench(groups, itemsOf)
   const { sizes, start } = useResize(
     { top: 56, side: 220, bottom: 76, parallel: 320 },
@@ -24,7 +24,7 @@ export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderCo
   // 焦点：鼠标在哪个区，哪个区就是焦点
   const [focused, setFocused] = useState<'top' | 'side' | 'content' | 'actions' | 'parallel' | null>(null)
   const run = useActions(wb, collapsed, setCollapsed, focused)
-  useKeybindings(run)
+  useKeybindings(run, keybindings)
   const dims = {
     top: collapsed.top ? 26 : sizes.top,
     side: collapsed.side ? 26 : sizes.side,
