@@ -36,7 +36,7 @@ body { background: var(--bg); color: var(--text); font: 14px/1.6 system-ui, "Pin
 
 /* E */
 .wb-parallel { position: relative; flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--line); background: var(--panel); overflow-y: auto; }
-.wb-panel { position: relative; display: flex; flex-direction: column; border-bottom: 1px solid var(--line); flex: none; }
+.wb-panel { position: relative; display: flex; flex-direction: column; border-bottom: 1px solid var(--line); flex: 1 1 0; min-height: 80px; }
 .wb-panel-head { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; font-size: 12px; color: var(--muted); border-bottom: 1px solid var(--line); }
 .wb-panel-head button { background: transparent; border: 0; color: var(--dim); cursor: pointer; font-size: 14px; }
 .wb-panel-head button:hover { color: #f85149; }
