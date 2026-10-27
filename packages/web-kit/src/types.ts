@@ -18,17 +18,20 @@ export interface Panel {
   readonly item: Item
 }
 
-/** 框架契约：只负责布局/拖拽，内容由调用方提供。 */
+/**
+ * 框架契约：只负责容器和交互（布局 / 拖拽 / 收起 / E 按需出现），
+ * 不规定内容语义——每个区放什么、操作谁、A/E 关系，全部由应用决定。
+ */
 export interface WorkbenchProps {
   /** D：分组。 */
   readonly groups: readonly Group[]
   /** C：某分组下的条目。 */
   readonly itemsOf: (group: Group) => readonly Item[]
-  /** A：内容渲染。 */
+  /** A：内容渲染（可以自带操作，比如设置页/表单）。 */
   readonly renderContent: (item: Item) => ReactNode
-  /** B：操作渲染。 */
+  /** B：独立交互区渲染（对话框/终端/输入；不需要时可以不放）。 */
   readonly renderActions?: (item: Item) => ReactNode
-  /** E：并行面板渲染（默认同 A）。 */
+  /** E：并行面板渲染（默认同 A；面板自带操作，不需要 B）。 */
   readonly renderPanel?: (item: Item) => ReactNode
   /** 主题（默认 light）。 */
   readonly theme?: 'light' | 'dark'
