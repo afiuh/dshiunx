@@ -1,0 +1,15 @@
+/* 四区布局 */
+* { box-sizing: border-box; }
+html, body, #root { height: 100%; margin: 0; }
+body { background: var(--wb-bg); color: var(--wb-fg); font: 14px/1.6 system-ui, "PingFang SC", sans-serif; }
+button { font: inherit; color: inherit; }
+
+.wb { display: flex; flex-direction: column; height: 100%; background: var(--wb-bg); color: var(--wb-fg); }
+.wb-top { position: relative; display: flex; align-items: center; gap: 16px; padding: 0 16px; border-bottom: 1px solid var(--wb-line); flex: none; }
+.wb-body { flex: 1; display: flex; min-height: 0; }
+.wb-main { position: relative; flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.wb-content { flex: 1; padding: 24px 20px; overflow-y: auto; }
+.wb-actions { position: relative; flex: none; border-top: 1px solid var(--wb-line); padding: 10px 16px; color: var(--wb-muted); display: flex; align-items: center; }
+.wb-parallel { position: relative; flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--wb-line); overflow-y: auto; }
+.wb-parallel.active { box-shadow: inset 2px 0 0 var(--wb-fg); }
+.wb-panel-wrap { display: flex; flex-direction: column; min-height: 80px; }

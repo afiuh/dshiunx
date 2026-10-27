@@ -1,0 +1,15 @@
+/* 极简黑白：默认白底黑字；深色用 .wb.dark 显式开启。 */
+:root {
+  --wb-bg: #ffffff;
+  --wb-fg: #000000;
+  --wb-line: #d0d0d0;
+  --wb-muted: #6b6b6b;
+  color-scheme: light;
+}
+.wb.dark {
+  --wb-bg: #000000;
+  --wb-fg: #ffffff;
+  --wb-line: #333333;
+  --wb-muted: #999999;
+  color-scheme: dark;
+}

@@ -1,0 +1,49 @@
+/* 组件样式 */
+.wb-groups { display: flex; gap: 2px; }
+.wb-groups button { background: transparent; border: 0; padding: 6px 10px; cursor: pointer; color: var(--wb-muted); }
+.wb-groups button.active { color: var(--wb-fg); font-weight: 600; }
+.wb-status { margin-left: auto; font-size: 12px; color: var(--wb-muted); }
+
+.wb-side { position: relative; flex: none; border-right: 1px solid var(--wb-line); padding: 8px 6px; overflow-y: auto; }
+.wb-side-title { font-size: 11px; color: var(--wb-muted); letter-spacing: .06em; text-transform: uppercase; padding: 4px 6px 8px; }
+.wb-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px; color: var(--wb-muted); cursor: default; }
+.wb-item:hover { color: var(--wb-fg); }
+.wb-item.active { color: var(--wb-fg); font-weight: 600; }
+.wb-open { background: transparent; border: 0; color: var(--wb-muted); cursor: pointer; padding: 0 4px; }
+.wb-open:hover { color: var(--wb-fg); }
+
+.wb-panel { position: relative; display: flex; flex-direction: column; flex: 1 1 0; min-height: 0; border-bottom: 1px solid var(--wb-line); }
+.wb-panel-head { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; font-size: 12px; color: var(--wb-muted); border-bottom: 1px solid var(--wb-line); }
+.wb-panel-head button { background: transparent; border: 0; cursor: pointer; padding: 0 4px; }
+.wb-panel-body { flex: 1; padding: 12px; color: var(--wb-muted); font-size: 13px; overflow-y: auto; }
+
+.wb-drop {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 160px; z-index: 15;
+  display: flex; align-items: center; justify-content: center;
+  border-left: 1px dashed var(--wb-line); background: var(--wb-bg);
+  color: var(--wb-muted); font-size: 12px;
+}
+.wb-drop.active { border-left: 2px solid var(--wb-fg); color: var(--wb-fg); }
+.wb-drop span { writing-mode: vertical-rl; letter-spacing: .06em; }
+
+.wb-grip { position: absolute; z-index: 20; touch-action: none; pointer-events: auto; }
+.wb-grip-v { left: 0; right: 0; bottom: 0; height: 6px; cursor: row-resize; }
+.wb-grip-h { top: 0; bottom: 0; right: 0; width: 6px; cursor: col-resize; }
+.wb-grip-top { top: 0; left: 0; right: 0; height: 6px; cursor: row-resize; }
+.wb-grip-left { left: 0; top: 0; bottom: 0; width: 6px; cursor: col-resize; }
+.wb-grip:hover { background: var(--wb-fg); opacity: .25; }
+
+/* 收起/展开按钮 */
+.wb-collapse { display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 0; color: var(--wb-fg); cursor: pointer; padding: 2px 6px; }
+.wb-collapse:hover { color: var(--wb-fg); }
+.wb-collapse-right { margin-left: auto; }
+.wb-side-title { display: flex; align-items: center; justify-content: space-between; }
+/* 收起时隐藏内容（保留按钮） */
+.wb-top[data-collapsed="true"] > :not(.wb-collapse):not(.wb-grip),
+.wb-side[data-collapsed="true"] > :not(.wb-side-title):not(.wb-grip),
+.wb-actions[data-collapsed="true"] > :not(.wb-collapse):not(.wb-grip) { display: none; }
+
+/* 收起时只留箭头，隐藏标题文字 */
+.wb-side[data-collapsed="true"] .wb-side-title span { display: none; }
+.wb-side[data-collapsed="true"] .wb-side-title { justify-content: center; padding: 4px 0; }
+.wb-top[data-collapsed="true"] .wb-status { display: none; }
