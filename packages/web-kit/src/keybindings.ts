@@ -8,5 +8,5 @@ import type { ActionName } from './actions'
  *   'escape': 'close-window'
  */
 export const KEYBINDINGS: Record<string, ActionName> = {
-  'alt+k': 'close-window',
+  'alt+a': 'close-window',
 }

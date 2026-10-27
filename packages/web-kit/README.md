@@ -68,9 +68,9 @@ type ActionName = 'toggle-top' | 'toggle-side' | 'toggle-bottom'
 ```
 
 ```ts
-// src/keybindings.ts（默认只有测试用的 Alt+K）
+// src/keybindings.ts（默认只有测试用的 Alt+A）
 export const KEYBINDINGS = {
-  'alt+k': 'close-window',
+  'alt+a': 'close-window',
 }
 ```
 
