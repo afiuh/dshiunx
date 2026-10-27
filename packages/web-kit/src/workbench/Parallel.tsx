@@ -7,7 +7,7 @@ import { Grip } from './Grip'
 const clamp = (value: number, lo: number, hi: number): number => Math.min(hi, Math.max(lo, value))
 
 /** E：并行区（面板容器；空则不渲染，由 Workbench 控制）。 */
-export function Parallel({ panels, renderPanel, onClose, onResizeStart, zoneHandlers, active, width }: {
+export function Parallel({ panels, renderPanel, onClose, onResizeStart, zoneHandlers, active, width, onFocus, onBlur }: {
   panels: readonly PanelModel[]
   renderPanel: (item: Item) => ReactNode
   onClose: (id: string) => void
@@ -15,6 +15,8 @@ export function Parallel({ panels, renderPanel, onClose, onResizeStart, zoneHand
   zoneHandlers: object
   active: boolean
   width: number
+  onFocus?: () => void
+  onBlur?: () => void
 }) {
   const [flexes, setFlexes] = useState<number[]>([])
 
@@ -49,7 +51,7 @@ export function Parallel({ panels, renderPanel, onClose, onResizeStart, zoneHand
   }
 
   return (
-    <section className={`wb-parallel ${active ? 'active' : ''}`} style={{ width }} {...zoneHandlers}>
+    <section className={`wb-parallel ${active ? 'active' : ''}`} style={{ width }} {...zoneHandlers} onMouseEnter={onFocus} onMouseLeave={onBlur}>
       <Grip kind="left" onPointerDown={onResizeStart} />
       {panels.map((panel, index) => (
         <div className="wb-panel-wrap" key={panel.id} style={{ flex: `${flexes[index] ?? 1} 1 0` }}>

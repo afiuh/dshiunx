@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 
 /** A：内容。 */
-export function Content({ children }: { children: ReactNode }) {
-  return <section className="wb-content">{children}</section>
+export function Content({ children, onFocus, onBlur }: { children: ReactNode; onFocus?: () => void; onBlur?: () => void }) {
+  return <section className="wb-content" onMouseEnter={onFocus} onMouseLeave={onBlur}>{children}</section>
 }

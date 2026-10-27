@@ -4,7 +4,7 @@ import { Grip } from './Grip'
 import { Arrow } from './Arrow'
 
 /** C：索引列表（可选拖拽 + 并行打开）。 */
-export function Index({ title, items, active, onSelect, onOpen, dragHandlers, onResize, width, collapsed, onToggle, render }: {
+export function Index({ title, items, active, onSelect, onOpen, dragHandlers, onResize, width, collapsed, onToggle, render, onFocus, onBlur }: {
   title: string
   items: readonly Item[]
   active: string
@@ -16,9 +16,11 @@ export function Index({ title, items, active, onSelect, onOpen, dragHandlers, on
   collapsed: boolean
   onToggle: () => void
   render?: (props: { items: readonly Item[]; active: string; onSelect: (id: string) => void; onOpen: (item: Item) => void; dragHandlers: (id: string) => object }) => ReactNode
+  onFocus?: () => void
+  onBlur?: () => void
 }) {
   return (
-    <aside className="wb-side" data-collapsed={collapsed} style={{ width }}>
+    <aside className="wb-side" data-collapsed={collapsed} style={{ width }} onMouseEnter={onFocus} onMouseLeave={onBlur}>
       <div className="wb-side-scroll">
       <div className="wb-side-title">{title}</div>
       {render !== undefined
