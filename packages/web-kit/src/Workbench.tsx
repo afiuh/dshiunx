@@ -11,6 +11,7 @@ export function Workbench() {
   const [items] = useState(['条目 1', '条目 2', '条目 3', '条目 4', '条目 5'])
   const [activeItem, setActiveItem] = useState(0)
   const [parallel, setParallel] = useState<Panel[]>([])
+  const [heights, setHeights] = useState<number[]>([])
   const [dragging, setDragging] = useState<string | null>(null)
   const [dropActive, setDropActive] = useState(false)
 
@@ -41,12 +42,38 @@ export function Workbench() {
     window.addEventListener('pointerup', up)
   }
 
+  const startPanelDrag = (index: number, e: React.PointerEvent): void => {
+    e.preventDefault()
+    e.stopPropagation()
+    const startY = e.clientY
+    const startA = heights[index] ?? 200
+    const startB = heights[index + 1] ?? 200
+    const move = (ev: PointerEvent): void => {
+      const dy = ev.clientY - startY
+      setHeights(prev => {
+        const next = [...prev]
+        next[index] = clamp(startA + dy, 80, 700)
+        next[index + 1] = clamp(startB - dy, 80, 700)
+        return next
+      })
+    }
+    const up = (): void => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
   const openParallel = (item: string): void => {
     setParallel(prev => [...prev, { id: `p${Date.now()}`, item }])
+    setHeights(prev => [...prev, 200])
   }
 
   const closeParallel = (id: string): void => {
+    const index = parallel.findIndex(p => p.id === id)
     setParallel(prev => prev.filter(p => p.id !== id))
+    setHeights(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -127,13 +154,16 @@ export function Workbench() {
             }}
           >
             <div className="wb-grip wb-grip-left" onPointerDown={e => startDrag('parallel', e)} />
-            {parallel.map(panel => (
-              <div className="wb-panel" key={panel.id}>
+            {parallel.map((panel, index) => (
+              <div className="wb-panel" key={panel.id} style={{ height: heights[index] ?? 200 }}>
                 <div className="wb-panel-head">
                   <span>{panel.item}</span>
                   <button onClick={() => closeParallel(panel.id)}>×</button>
                 </div>
                 <div className="wb-panel-body">并行内容（占位）—— 同时操作多个</div>
+                {index < parallel.length - 1 && (
+                  <div className="wb-grip wb-grip-v" onPointerDown={e => startPanelDrag(index, e)} />
+                )}
               </div>
             ))}
           </section>
