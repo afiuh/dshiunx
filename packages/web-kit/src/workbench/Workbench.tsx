@@ -30,7 +30,11 @@ export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderCo
     if (name === 'close-parallel' && payload?.id !== undefined) wb.close(payload.id)
     if (name === 'select-group' && payload?.group !== undefined) wb.setActiveGroup(payload.group)
     if (name === 'select-item' && payload?.id !== undefined) wb.setActiveItem(payload.id)
-    if (name === 'close-window') { console.log('[web-kit] close-window'); window.close() }
+    if (name === 'close-window') {
+      // 平铺式：关闭最后一个面板（窗口）；没有面板则无操作
+      const last = wb.parallel[wb.parallel.length - 1]
+      if (last !== undefined) wb.close(last.id)
+    }
   }, [wb])
   useKeybindings(run)
   const dims = {
