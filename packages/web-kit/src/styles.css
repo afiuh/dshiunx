@@ -1,4 +1,4 @@
-/* 极简黑白：无强调色、无圆角、无阴影。跟随系统深浅。 */
+/* 极简黑白：默认白底黑字（不跟随系统）；需要深色时给 <body> 加 .dark。 */
 :root {
   --bg: #ffffff;
   --fg: #000000;
@@ -6,14 +6,12 @@
   --muted: #6b6b6b;
   color-scheme: light;
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #000000;
-    --fg: #ffffff;
-    --line: #333333;
-    --muted: #999999;
-    color-scheme: dark;
-  }
+body.dark {
+  --bg: #000000;
+  --fg: #ffffff;
+  --line: #333333;
+  --muted: #999999;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 html, body, #root { height: 100%; margin: 0; }
