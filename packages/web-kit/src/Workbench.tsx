@@ -85,7 +85,7 @@ export function Workbench() {
         {/* A + B：内容 + 操作 */}
         <main className="wb-main">
           {/* A 右侧检测区：拖拽经过时出现，松开即并行打开 */}
-          {dragging !== null && (
+          {dragging !== null && parallel.length === 0 && (
             <div
               className={`wb-drop ${dropActive ? 'active' : ''}`}
               onDragOver={e => { e.preventDefault(); setDropActive(true) }}
