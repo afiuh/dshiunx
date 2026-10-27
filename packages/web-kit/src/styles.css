@@ -64,3 +64,6 @@ body { background: var(--bg); color: var(--text); font: 14px/1.6 system-ui, "Pin
 }
 .wb-drop.active { border-left-color: var(--accent); background: rgba(88, 166, 255, .1); color: var(--accent); }
 .wb-drop span { writing-mode: vertical-rl; letter-spacing: .08em; }
+
+/* E 作为放置区时高亮 */
+.wb-parallel.active { box-shadow: inset 2px 0 0 var(--accent); background: rgba(88, 166, 255, .06); }

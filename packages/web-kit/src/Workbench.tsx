@@ -113,7 +113,19 @@ export function Workbench() {
 
         {/* E：按需并行区（空则不渲染） */}
         {parallel.length > 0 && (
-          <section className="wb-parallel" style={{ width: parallelW }}>
+          <section
+            className={`wb-parallel ${dropActive ? 'active' : ''}`}
+            style={{ width: parallelW }}
+            onDragOver={e => { e.preventDefault(); setDropActive(true) }}
+            onDragLeave={() => setDropActive(false)}
+            onDrop={e => {
+              e.preventDefault()
+              setDropActive(false)
+              setDragging(null)
+              const item = e.dataTransfer.getData('text/plain')
+              if (item !== '') openParallel(item)
+            }}
+          >
             <div className="wb-grip wb-grip-left" onPointerDown={e => startDrag('parallel', e)} />
             {parallel.map(panel => (
               <div className="wb-panel" key={panel.id}>
