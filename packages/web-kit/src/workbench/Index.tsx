@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react'
 import type { Item } from '../types'
 import { Grip } from './Grip'
 import { Arrow } from './Arrow'
 
 /** C：索引列表（可选拖拽 + 并行打开）。 */
-export function Index({ title, items, active, onSelect, onOpen, dragHandlers, onResize, width, collapsed, onToggle }: {
+export function Index({ title, items, active, onSelect, onOpen, dragHandlers, onResize, width, collapsed, onToggle, render }: {
   title: string
   items: readonly Item[]
   active: string
@@ -14,12 +15,15 @@ export function Index({ title, items, active, onSelect, onOpen, dragHandlers, on
   width: number
   collapsed: boolean
   onToggle: () => void
+  render?: (props: { items: readonly Item[]; active: string; onSelect: (id: string) => void; onOpen: (item: Item) => void; dragHandlers: (id: string) => object }) => ReactNode
 }) {
   return (
     <aside className="wb-side" data-collapsed={collapsed} style={{ width }}>
       <div className="wb-side-scroll">
       <div className="wb-side-title">{title}</div>
-      {items.map(item => (
+      {render !== undefined
+        ? render({ items, active, onSelect, onOpen, dragHandlers })
+        : items.map(item => (
         <div
           key={item.id}
           className={`wb-item ${item.id === active ? 'active' : ''}`}

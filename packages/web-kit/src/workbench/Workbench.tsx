@@ -12,7 +12,7 @@ import { DropZone } from './DropZone'
 import { Arrow } from './Arrow'
 
 /** 四区 + 按需并行区（E）工作台。 */
-export function Workbench({ groups, itemsOf, renderContent, renderActions, renderPanel, theme = 'light' }: WorkbenchProps) {
+export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderContent, renderActions, renderPanel, theme = 'light' }: WorkbenchProps) {
   const wb = useWorkbench(groups, itemsOf)
   const { sizes, start } = useResize(
     { top: 56, side: 220, bottom: 76, parallel: 320 },
@@ -36,7 +36,7 @@ export function Workbench({ groups, itemsOf, renderContent, renderActions, rende
   return (
     <div className={`wb ${theme === 'dark' ? 'dark' : ''}`}>
       <header className="wb-top" data-collapsed={collapsed.top} style={{ height: dims.top }}>
-        <Groups groups={groups} active={wb.activeGroup} onSelect={wb.setActiveGroup} onResize={start('top', 'y', 1)} />
+        <Groups groups={groups} active={wb.activeGroup} onSelect={wb.setActiveGroup} onResize={start('top', 'y', 1)} render={renderGroups} />
         <button className="wb-collapse-edge" title={collapsed.top ? '展开' : '收起'} onClick={toggle('top')}><Arrow direction={collapsed.top ? 'down' : 'up'} /></button>
         <div className="wb-status">status · 全局状态</div>
       </header>
@@ -50,6 +50,7 @@ export function Workbench({ groups, itemsOf, renderContent, renderActions, rende
           dragHandlers={drop.dragHandlers}
           onResize={start('side', 'x', 1)}
           width={dims.side}
+          render={renderItems}
           collapsed={collapsed.side}
           onToggle={toggle('side')}
         />

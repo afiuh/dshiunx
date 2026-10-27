@@ -34,10 +34,14 @@ const itemsOf = (group) => [{ id: 'i1', label: '条目 1' }]
 
 ## 契约
 
+**区域是边界，内容是渲染函数。** 五个区各有默认渲染，都可以被 render 函数覆盖。
+
 | Prop | 说明 |
 |---|---|
 | `groups` | D 的分组数据 |
 | `itemsOf(group)` | C 的条目（按分组返回） |
+| `renderGroups?({ groups, active, onSelect })` | D 的内容（默认 tabs；可换树/下拉） |
+| `renderItems?({ items, active, onSelect, onOpen, dragHandlers })` | C 的内容（默认列表；可换树/网格，拖拽用 `dragHandlers`） |
 | `renderContent(item)` | A 的内容（可以自带操作） |
 | `renderActions(item)` | B 的区域操作（可选；只读日志不放这里） |
 | `renderPanel(item)` | E 的面板内容（可选，默认同 A） |
@@ -74,6 +78,7 @@ const itemsOf = (group) => [{ id: 'i1', label: '条目 1' }]
 
 | # | 坑 | 正确做法 |
 |---|---|---|
+| 0 | **把区域当内容** | 错。区域是边界（框架固定），内容是渲染函数（应用提供） |
 | 1 | **日志/输出放 B** | 错。B 只放"需要区域的操作"；只读的看放 A 或 E |
 | 2 | **把 A 当纯展示** | 错。A 可以自带操作（设置页/表单） |
 | 3 | **E 常驻** | 错。`panels.length > 0` 才渲染，空了自动消失 |
