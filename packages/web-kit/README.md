@@ -68,9 +68,9 @@ type ActionName = 'toggle-top' | 'toggle-side' | 'toggle-bottom'
 ```
 
 ```ts
-// src/keybindings.ts（默认只有测试用的 Ctrl+W）
+// src/keybindings.ts（默认只有测试用的 Ctrl+D）
 export const KEYBINDINGS = {
-  'ctrl+w': 'close-window',
+  'ctrl+d': 'close-window',
 }
 ```
 
