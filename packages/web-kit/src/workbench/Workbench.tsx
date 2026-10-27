@@ -37,7 +37,7 @@ export function Workbench({ groups, itemsOf, renderContent, renderActions, rende
     <div className={`wb ${theme === 'dark' ? 'dark' : ''}`}>
       <header className="wb-top" data-collapsed={collapsed.top} style={{ height: dims.top }}>
         <Groups groups={groups} active={wb.activeGroup} onSelect={wb.setActiveGroup} onResize={start('top', 'y', 1)} />
-        <button className="wb-collapse-edge" title={collapsed.top ? '展开' : '收起'} onClick={toggle('top')}><Arrow direction={collapsed.top ? 'up' : 'down'} /></button>
+        <button className="wb-collapse-edge" title={collapsed.top ? '展开' : '收起'} onClick={toggle('top')}><Arrow direction={collapsed.top ? 'down' : 'up'} /></button>
         <div className="wb-status">status · 全局状态</div>
       </header>
       <div className="wb-body">

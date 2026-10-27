@@ -7,7 +7,7 @@ export function Actions({ children, onResize, height, collapsed, onToggle }: { c
   return (
     <footer className="wb-actions" data-collapsed={collapsed} style={{ height }}>
       <Grip kind="top" onPointerDown={onResize} />
-      <button className="wb-collapse-edge" title={collapsed ? '展开' : '收起'} onClick={onToggle}><Arrow direction={collapsed ? 'down' : 'up'} /></button>
+      <button className="wb-collapse-edge" title={collapsed ? '展开' : '收起'} onClick={onToggle}><Arrow direction={collapsed ? 'up' : 'down'} /></button>
       {children}
     </footer>
   )

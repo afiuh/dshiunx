@@ -31,7 +31,7 @@ export function Index({ title, items, active, onSelect, onOpen, dragHandlers, on
         </div>
       ))}
       </div>
-      <button className="wb-collapse-edge" title={collapsed ? '展开' : '收起'} onClick={onToggle}><Arrow direction={collapsed ? 'left' : 'right'} /></button>
+      <button className="wb-collapse-edge" title={collapsed ? '展开' : '收起'} onClick={onToggle}><Arrow direction={collapsed ? 'right' : 'left'} /></button>
       <Grip kind="h" onPointerDown={onResize} />
     </aside>
   )
