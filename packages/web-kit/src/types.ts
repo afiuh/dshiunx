@@ -42,7 +42,7 @@ export interface WorkbenchProps {
     readonly onOpen: (item: Item) => void
     readonly dragHandlers: (id: string) => object
   }) => ReactNode
-  /** A：内容渲染（可以自带操作，比如设置页/表单）。 */
+  /** A：内容渲染（可以自带操作，比如设置页/表单）。A 免疫关闭——永远存在，没有收起/关闭。 */
   readonly renderContent: (item: Item) => ReactNode
   /** B：需要区域的操作渲染（对话框/终端/输入/命令）；只读日志不放这里。 */
   readonly renderActions?: (item: Item) => ReactNode
