@@ -59,27 +59,55 @@ const itemsOf = (group) => [{ id: 'i1', label: '条目 1' }]
 
 ## 快捷键（行为解耦）
 
-除拖动外的所有行为都走 `run(name, payload)`——组件点击和快捷键共用同一套：
+除拖动外，所有行为都走 `run(name, payload)`——组件点击和快捷键共用同一套。
+
+### 行为表
+
+| 行为 | 点击 | 快捷键（默认） |
+|---|---|---|
+| `toggle-top` / `toggle-side` / `toggle-bottom` | 边界圆钮 | 按焦点 Alt+A |
+| `open-parallel` | 条目 `→` / 拖到检测区 | — |
+| `close-parallel` | 面板 `×` | — |
+| `select-group` / `select-item` | 点击 | — |
+| `close-window` | — | **Alt+A**（按焦点） |
+
+### 焦点
+
+**鼠标在哪个区，哪个区就是焦点。**
+
+| 焦点 | Alt+A（`close-window`） |
+|---|---|
+| D（`top`） | 收起/展开 D |
+| C（`side`） | 收起/展开 C |
+| A（`content`） | **无操作（免疫）** |
+| B（`actions`） | 收起/展开 B |
+| E（`parallel`） | 关闭最后一个面板 |
+
+### 快捷键映射
+
+默认在 `src/keybindings.ts`（空，只有 `alt+a` 测试）：
 
 ```ts
-// src/actions.ts
-type ActionName = 'toggle-top' | 'toggle-side' | 'toggle-bottom'
-  | 'open-parallel' | 'close-parallel' | 'select-group' | 'select-item' | 'close-window'
-```
-
-```ts
-// src/keybindings.ts（默认只有测试用的 Alt+A）
 export const KEYBINDINGS = {
   'alt+a': 'close-window',
 }
 ```
 
-组合键格式：`ctrl+shift+k` / `meta+w` / `escape`。应用按需追加，例如：
+应用可按情境覆盖（`WorkbenchProps.keybindings`）：
 
-```ts
-'ctrl+k': 'open-parallel'
-'escape': 'close-window'
+```tsx
+<Workbench
+  keybindings={{
+    'alt+a': 'close-window',
+    'ctrl+k': 'open-parallel',
+    'escape': 'close-window',
+  }}
+/>
 ```
+
+组合键格式：`ctrl+shift+k` / `meta+w` / `escape` / 单键 `j`。
+
+**行为是框架的，快捷键是应用的。**
 
 ## 主题（按情境现做）
 
@@ -111,6 +139,8 @@ export const KEYBINDINGS = {
 | 6 | **props 三处不一致** | 类型 / 解构 / 使用，改一处要三处同步 |
 | 7 | **业务词写进框架** | `Workbench` 里不该出现"会话/笔记/文件" |
 | 8 | **给框架预设主题** | 不要。主题按具体情境现做；不想做就用默认黑白 |
+| 9 | **把 `close-window` 当关浏览器** | 错。它是关 E 面板；焦点在 B/C/D 时收起；A 免疫 |
+| 10 | **在 `wb-groups` 上挂焦点** | 错。D 的焦点是整个 `header`，不是 tabs 小块 |
 
 ## 边界（框架不做的）
 
@@ -123,13 +153,17 @@ export const KEYBINDINGS = {
 
 ```
 src/
+├── actions.ts              行为类型（ActionName / Payload）
+├── keybindings.ts          快捷键映射（默认空 + alt+a）
 ├── types.ts                契约
 ├── hooks/
 │   ├── useWorkbench.ts     数据状态
 │   ├── useResize.ts        尺寸 + 拖拽
-│   └── useDropTarget.ts    拖放
+│   ├── useDropTarget.ts    拖放
+│   ├── useActions.ts       行为实现（8 个 + 焦点分发）
+│   └── useKeybindings.ts   keydown → 分发
 ├── workbench/
-│   ├── Workbench.tsx       组装
+│   ├── Workbench.tsx       组装（87 行）
 │   ├── Groups.tsx D / Index.tsx C / Content.tsx A / Actions.tsx B / Parallel.tsx E
 │   ├── Panel.tsx F/G / DropZone.tsx / Grip.tsx / Arrow.tsx
 └── styles/                 theme / layout / components
