@@ -29,7 +29,7 @@ export interface WorkbenchProps {
   readonly itemsOf: (group: Group) => readonly Item[]
   /** A：内容渲染（可以自带操作，比如设置页/表单）。 */
   readonly renderContent: (item: Item) => ReactNode
-  /** B：独立交互区渲染（对话框/终端/输入；不需要时可以不放）。 */
+  /** B：需要区域的操作渲染（对话框/终端/输入/命令）；只读日志不放这里。 */
   readonly renderActions?: (item: Item) => ReactNode
   /** E：并行面板渲染（默认同 A；面板自带操作，不需要 B）。 */
   readonly renderPanel?: (item: Item) => ReactNode
