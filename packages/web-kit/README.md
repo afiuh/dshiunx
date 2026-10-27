@@ -109,6 +109,26 @@ export const KEYBINDINGS = {
 
 **行为是框架的，快捷键是应用的。**
 
+## 状态（最轻）
+
+母体只做两件事：
+
+| 时机 | 行为 |
+|---|---|
+| 首次渲染 | 接受 `initialState`（sizes / collapsed / parallel id 列表） |
+| 关闭/刷新前 | `onStateChange(state)` 回调**一次** |
+
+**不预设**：不碰 localStorage、不 debounce、不存选中（分组/条目）、不做版本迁移。
+
+```tsx
+<Workbench
+  initialState={saved}                    // 应用从哪读都行
+  onStateChange={state => save(state)}    // 应用存哪都行
+/>
+```
+
+**具体要用的时候按应用需求分析**：存哪（localStorage / 后端 / URL）、存什么（要不要选中）、要不要迁移——都是应用的事。
+
 ## 主题（按情境现做）
 
 框架**不提供预设主题**。默认是黑白极简（不丑）。要风格，改 `theme.css` 的变量：

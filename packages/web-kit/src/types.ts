@@ -52,8 +52,18 @@ export interface WorkbenchProps {
   readonly theme?: 'light' | 'dark'
   /** 快捷键映射（默认用 keybindings.ts；应用可按情境覆盖）。 */
   readonly keybindings?: Record<string, string>
-  /** 初始状态（仅首次生效；应用从内存/存储/URL 读出来后传入）。 */
+  /**
+   * 初始状态（**仅首次生效**）。
+   *
+   * 母体做最轻：只接受初始值，**不预设存储**（localStorage / 后端 / URL / 内存都行）。
+   * 应用怎么读、要不要版本迁移、要不要校验，由应用按需决定。
+   */
   readonly initialState?: Partial<WorkbenchState>
-  /** 关闭/刷新前回调一次（应用在这里把状态存起来）。 */
+  /**
+   * 关闭/刷新前回调**一次**（`beforeunload`）。
+   *
+   * 母体做最轻：不 debounce、不写存储、不存选中。
+   * 应用在这里决定：存哪、存什么、下次怎么恢复。
+   */
   readonly onStateChange?: (state: WorkbenchState) => void
 }

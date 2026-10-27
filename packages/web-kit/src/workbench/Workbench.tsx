@@ -24,7 +24,8 @@ export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderCo
   // 焦点：鼠标在哪个区，哪个区就是焦点
   const [focused, setFocused] = useState<'top' | 'side' | 'content' | 'actions' | 'parallel' | null>(null)
   const run = useActions(wb, collapsed, setCollapsed, focused)
-  // 关闭/刷新前回调一次（应用在这里存）
+  // 母体做最轻：只在关闭/刷新前回调一次（拖拽过程中零回调、不写存储）。
+  // 应用按需决定存 localStorage / 后端 / URL，或干脆不存。
   useEffect(() => {
     if (onStateChange === undefined) return
     const handler = (): void => {
