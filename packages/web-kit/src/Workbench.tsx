@@ -11,6 +11,8 @@ export function Workbench() {
   const [items] = useState(['条目 1', '条目 2', '条目 3', '条目 4', '条目 5'])
   const [activeItem, setActiveItem] = useState(0)
   const [parallel, setParallel] = useState<Panel[]>([])
+  const [dragging, setDragging] = useState<string | null>(null)
+  const [dropActive, setDropActive] = useState(false)
 
   const [topH, setTopH] = useState(56)
   const [sideW, setSideW] = useState(220)
@@ -65,7 +67,14 @@ export function Workbench() {
         <aside className="wb-side" style={{ width: sideW }}>
           <div className="wb-side-title">{groups[activeGroup]}</div>
           {items.map((item, index) => (
-            <div key={item} className={`wb-item ${index === activeItem ? 'active' : ''}`} onClick={() => setActiveItem(index)}>
+            <div
+              key={item}
+              className={`wb-item ${index === activeItem ? 'active' : ''}`}
+              draggable
+              onDragStart={e => { setDragging(item); e.dataTransfer.setData('text/plain', item) }}
+              onDragEnd={() => { setDragging(null); setDropActive(false) }}
+              onClick={() => setActiveItem(index)}
+            >
               <span>{item}</span>
               <button className="wb-open" title="在右侧打开（并行）" onClick={e => { e.stopPropagation(); openParallel(item) }}>→</button>
             </div>
@@ -75,12 +84,29 @@ export function Workbench() {
 
         {/* A + B：内容 + 操作 */}
         <main className="wb-main">
+          {/* A 右侧检测区：拖拽经过时出现，松开即并行打开 */}
+          {dragging !== null && (
+            <div
+              className={`wb-drop ${dropActive ? 'active' : ''}`}
+              onDragOver={e => { e.preventDefault(); setDropActive(true) }}
+              onDragLeave={() => setDropActive(false)}
+              onDrop={e => {
+                e.preventDefault()
+                setDropActive(false)
+                setDragging(null)
+                const item = e.dataTransfer.getData('text/plain')
+                if (item !== '') openParallel(item)
+              }}
+            >
+              <span>松开 → 并行打开</span>
+            </div>
+          )}
           <section className="wb-content">
             <h2>{items[activeItem]}</h2>
             <p>内容区（占位）—— A 展示 C 里选中的条目</p>
           </section>
           <footer className="wb-actions" style={{ height: bottomH }}>
-            <div className="wb-grip wb-grip-v" onPointerDown={e => startDrag('bottom', e)} />
+            <div className="wb-grip wb-grip-top" onPointerDown={e => startDrag('bottom', e)} />
             <div>操作区：{items[activeItem]}（占位）—— B 对 A 操作</div>
           </footer>
         </main>
@@ -88,7 +114,7 @@ export function Workbench() {
         {/* E：按需并行区（空则不渲染） */}
         {parallel.length > 0 && (
           <section className="wb-parallel" style={{ width: parallelW }}>
-            <div className="wb-grip wb-grip-h" onPointerDown={e => startDrag('parallel', e)} />
+            <div className="wb-grip wb-grip-left" onPointerDown={e => startDrag('parallel', e)} />
             {parallel.map(panel => (
               <div className="wb-panel" key={panel.id}>
                 <div className="wb-panel-head">
