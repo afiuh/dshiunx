@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useState } from 'react'
 import type { WorkbenchProps } from '../types'
 import { useWorkbench } from '../hooks/useWorkbench'
 import { useResize } from '../hooks/useResize'
@@ -10,7 +10,7 @@ import { Actions } from './Actions'
 import { Parallel } from './Parallel'
 import { DropZone } from './DropZone'
 import { Arrow } from './Arrow'
-import type { RunAction } from '../actions'
+import { useActions } from '../hooks/useActions'
 import { useKeybindings } from '../hooks/useKeybindings'
 
 /** 四区 + 按需并行区（E）工作台。 */
@@ -23,27 +23,7 @@ export function Workbench({ groups, itemsOf, renderGroups, renderItems, renderCo
   const [collapsed, setCollapsed] = useState({ top: false, side: false, bottom: false })
   // 焦点：鼠标在哪个区，哪个区就是焦点
   const [focused, setFocused] = useState<'top' | 'side' | 'content' | 'actions' | 'parallel' | null>(null)
-  // 所有非拖动行为走 run（快捷键与组件共用同一套）
-  const run: RunAction = useCallback((name, payload) => {
-    if (name === 'toggle-top') setCollapsed(prev => ({ ...prev, top: !prev.top }))
-    if (name === 'toggle-side') setCollapsed(prev => ({ ...prev, side: !prev.side }))
-    if (name === 'toggle-bottom') setCollapsed(prev => ({ ...prev, bottom: !prev.bottom }))
-    if (name === 'open-parallel' && payload?.item !== undefined) wb.open(payload.item)
-    if (name === 'close-parallel' && payload?.id !== undefined) wb.close(payload.id)
-    if (name === 'select-group' && payload?.group !== undefined) wb.setActiveGroup(payload.group)
-    if (name === 'select-item' && payload?.id !== undefined) wb.setActiveItem(payload.id)
-    if (name === 'close-window') {
-      // 平铺式：按焦点关闭/收起——E 关面板，B/C/D 收起，A 免疫
-      if (focused === 'top') setCollapsed(prev => ({ ...prev, top: !prev.top }))
-      else if (focused === 'side') setCollapsed(prev => ({ ...prev, side: !prev.side }))
-      else if (focused === 'actions') setCollapsed(prev => ({ ...prev, bottom: !prev.bottom }))
-      else if (focused === 'parallel') {
-        const last = wb.parallel[wb.parallel.length - 1]
-        if (last !== undefined) wb.close(last.id)
-      }
-      // focused === 'content'（A）→ 免疫，无操作
-    }
-  }, [wb, focused])
+  const run = useActions(wb, collapsed, setCollapsed, focused)
   useKeybindings(run)
   const dims = {
     top: collapsed.top ? 26 : sizes.top,
