@@ -2,3 +2,10 @@ node_modules/
 *.log
 .DS_Store
 .env
+
+# 开源排除
+_archive/
+dshHomePath('sessions')/
+.dshiunx/
+.pi/
+decisions/.layout.json
