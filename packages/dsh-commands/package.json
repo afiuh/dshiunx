@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-commands",
-  "private": true,
+  "description": "Plugin-owned human command registry for DeepSeek Harness UIs",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/interaction/commands"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -28,5 +33,6 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

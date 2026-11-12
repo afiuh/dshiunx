@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-session-format",
-  "private": true,
+  "description": "Streaming adjacent Session format migration machinery",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/session/session-format"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -11,5 +16,6 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
-  }
+  },
+  "license": "MIT"
 }

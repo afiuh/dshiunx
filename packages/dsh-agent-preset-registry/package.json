@@ -6,24 +6,24 @@
   "types": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./lib/types/index.d.ts",
-      "default": "./lib/index.js"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     },
     "./types": {
-      "types": "./lib/types/types.d.ts",
-      "default": "./lib/types/types.js"
+      "types": "./src/types.ts",
+      "default": "./src/types.ts"
     },
     "./display": {
-      "types": "./lib/types/display.d.ts",
-      "default": "./lib/types/display.js"
+      "types": "./src/display.ts",
+      "default": "./src/display.ts"
     },
     "./typert": {
-      "types": "./lib/typert.host.d.ts",
-      "default": "./lib/typert.host.js"
+      "types": "./src/typert.host.ts",
+      "default": "./src/typert.host.ts"
     },
     "./remote": {
-      "types": "./lib/typert.remote-client.d.ts",
-      "default": "./lib/typert.remote-client.js"
+      "types": "./src/typert.remote-client.ts",
+      "default": "./src/typert.remote-client.ts"
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json",

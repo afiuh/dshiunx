@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-skill-filesystem",
-  "private": true,
+  "description": "Local filesystem skill provider for the DeepSeek Harness",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/skill/skill-filesystem"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -12,5 +17,6 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

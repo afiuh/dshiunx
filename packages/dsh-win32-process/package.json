@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-win32-process",
-  "private": true,
+  "description": "Shared low-level Win32 process, stdio, and Job Object primitives",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/subprocess/win32-process"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -11,5 +16,6 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
-  }
+  },
+  "license": "MIT"
 }

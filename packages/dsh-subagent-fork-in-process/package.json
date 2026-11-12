@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-subagent-fork-in-process",
-  "private": true,
+  "description": "In-process fork subagent backend: runs a child agent seeded with a prefix of the parent's log",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/subagent/subagent-fork-in-process"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -12,5 +17,6 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-tool-bash-persistent",
-  "private": true,
+  "description": "Model-facing owner-scoped persistent Bash tool backed by the Harness PTY service",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/shell/tool-bash-persistent"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -11,5 +16,6 @@
     },
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

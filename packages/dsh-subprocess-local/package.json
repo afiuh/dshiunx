@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-subprocess-local",
-  "private": true,
+  "description": "Local-subprocess implementation of the DeepSeek Harness subprocess seam",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/subprocess/subprocess-local"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -20,5 +25,6 @@
       "default": "./src/output.ts"
     },
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

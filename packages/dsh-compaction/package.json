@@ -6,16 +6,16 @@
   "types": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./lib/types/index.d.ts",
-      "default": "./lib/index.js"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     },
     "./types": {
-      "types": "./lib/types/types.d.ts",
-      "default": "./lib/types/types.js"
+      "types": "./src/types.ts",
+      "default": "./src/types.ts"
     },
     "./checkpoint": {
-      "types": "./lib/types/checkpoint.d.ts",
-      "default": "./lib/types/checkpoint.js"
+      "types": "./src/checkpoint.ts",
+      "default": "./src/checkpoint.ts"
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"

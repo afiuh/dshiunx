@@ -1,7 +1,0 @@
-# 默认发行版：选择 bundle 组合（顺序即加载顺序）
-bundles:
-  - base
-  - presets/standard
-  - presets/ptc
-  - presets/minimal
-  - presets/creator

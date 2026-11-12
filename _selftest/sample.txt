@@ -1,4 +1,0 @@
-line one: hello
-line two: 中文测试
-line three: EDITED OK
-line four: tail

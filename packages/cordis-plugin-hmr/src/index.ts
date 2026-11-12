@@ -27,9 +27,8 @@ declare module '@deepseek-ai/cordis' {
  * Recursively collect all module dependencies from a ModuleJob.
  * Skips node: builtins and node_modules to focus on user code.
  */
-async function loadDependencies(job: ModuleJob, ignored = new Set<string>(), extra?: Set<string>) {
+async function loadDependencies(job: ModuleJob, ignored = new Set<string>()) {
   const dependencies = new Set<string>()
-  if (extra) for (const url of extra) dependencies.add(url)
   async function traverse(job: ModuleJob) {
     if (ignored.has(job.url) || dependencies.has(job.url)) return
     if (job.url.startsWith('node:') || job.url.includes('/node_modules/')) return
@@ -98,12 +97,11 @@ class Hmr extends Service {
     yield () => this.watcher?.close()
 
     const { loader } = this.ctx
-    const root = this.config.root ?? ['.']
-    const ignored = this.config.ignored ?? []
+    const { root, ignored } = this.config
     if (!this.config.base) {
-      this.ctx.logger.debug('watching %o', root)
+      this.ctx.logger.info('watching %o', root)
     } else {
-      this.ctx.logger.debug('watching %o in %s', root, this.baseDir)
+      this.ctx.logger.info('watching %o in %s', root, this.baseDir)
     }
 
     const match = picomatch(ignored)
@@ -119,17 +117,16 @@ class Hmr extends Service {
       this.externals = new Set()
     }
 
-    // dshiunx: 不展开 ...this.config（它的 root/ignored/base/debounce 会覆盖
-    // chokidar 的选项，导致 watch 收不到 change）。
     this.watcher = watch(root, {
-      ignored: path => match(path),
+      ...this.config,
+      cwd: watchBaseDir,
+      ignored: path => match(relative(watchBaseDir, path)),
       ignoreInitial: true,
     })
 
-    const partialReload = this.ctx.debounce(() => this.partialReload(), this.config.debounce ?? 100)
+    const partialReload = this.ctx.debounce(() => this.partialReload(), this.config.debounce)
 
     this.watcher.on('change', async (path) => {
-      process.stderr.write(`[hmr] change: ${path}\n`)
       this.ctx.logger.debug('change detected at %C', path)
       const filename = resolve(watchBaseDir, path)
       const configuredFilename = resolve(this.baseDir, path)
@@ -149,7 +146,8 @@ class Hmr extends Service {
       for (const entry of loader.entries()) {
         const include = entry.subtree as Include | undefined
         if (include?.filename !== filename && include?.filename !== configuredFilename) continue
-        await include.refresh()
+        // A rejected refresh reports unsaved runtime changes; Include keeps its running tree.
+        try { await include.refresh() } catch (error) { this.ctx.logger.warn(error) }
         return
       }
 
@@ -284,16 +282,16 @@ class Hmr extends Service {
     // Check each pending plugin's dependency tree for accepted files
     for (const [job, plugin] of pending) {
       this.declined.delete(job.url)
-      const runtime = this.ctx.registry.get(plugin)
-      const fiber = runtime ? [...runtime.fibers][0] : undefined
-      const dynamic = fiber?.entry ? this.ctx.loader.dynamicDeps.get(fiber.entry.id) : undefined
-      const dependencies = [...await loadDependencies(job, this.declined, dynamic)]
+      const dependencies = [...await loadDependencies(job, this.declined)]
       this.declined.add(job.url)
 
       if (!dependencies.some(dep => this.accepted.has(dep))) continue
       dependencies.forEach(dep => this.accepted.add(dep))
 
-      reloads.set(plugin, { filename: job.url, runtime })
+      reloads.set(plugin, {
+        filename: job.url,
+        runtime: this.ctx.registry.get(plugin),
+      })
     }
 
     /**
@@ -353,25 +351,12 @@ class Hmr extends Service {
       return rollback()
     }
 
-    const reload = (newPlugin: any, oldPlugin: any, runtime: Plugin.Runtime) => {
+    const reload = (plugin: any, runtime: Plugin.Runtime) => {
       if (!runtime) return
       for (const oldFiber of runtime.fibers) {
-        // State migration: serialize the OLD plugin, restore into the NEW one.
-        let state: any
-        try {
-          state = (oldPlugin as any).serialize?.()
-        } catch (error) {
-          this.ctx.logger.warn(error)
-        }
-        const fiber = oldFiber.parent.registry.plugin(newPlugin, oldFiber._config, this.getOuterStack)
+        const fiber = oldFiber.parent.registry.plugin(plugin, oldFiber.rawConfig, this.getOuterStack)
         fiber.entry = oldFiber.entry
         if (fiber.entry) fiber.entry.fiber = fiber
-        if (state !== undefined) {
-          fiber.await().then(
-            () => { try { (newPlugin as any).restore?.(state) } catch (error) { this.ctx.logger.warn(error) } },
-            () => {},
-          )
-        }
       }
     }
 
@@ -388,8 +373,7 @@ class Hmr extends Service {
         }
 
         try {
-          reload(attempts[filename], plugin, runtime)
-          process.stderr.write(`[hmr] reloaded ${path}\n`)
+          reload(attempts[filename], runtime)
           this.ctx.logger.info('reload plugin at %C', path)
         } catch (err) {
           this.ctx.logger.warn('failed to reload plugin at %C', path)
@@ -404,7 +388,7 @@ class Hmr extends Service {
         if (!runtime) continue
         try {
           this.ctx.registry.delete(attempts[filename])
-          reload(plugin, plugin, runtime)
+          reload(plugin, runtime)
         } catch (err) {
           this.ctx.logger.warn(err)
         }
@@ -418,11 +402,11 @@ class Hmr extends Service {
 }
 
 namespace Hmr {
-  export interface Config extends Omit<ChokidarOptions, 'ignored'> {
+  export interface Config extends ChokidarOptions {
     base?: string
-    root?: string[]
-    debounce?: number
-    ignored?: string[]
+    root: string[]
+    debounce: number
+    ignored: string[]
   }
 
   export const Config: z<Config> = z.object({

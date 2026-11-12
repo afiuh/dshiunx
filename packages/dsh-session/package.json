@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-session",
-  "private": true,
+  "description": "Event-sourced session store for the DeepSeek Harness",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/core/session"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -24,5 +29,6 @@
       "default": "./src/surface.ts"
     },
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

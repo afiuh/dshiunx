@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-fs-local",
-  "private": true,
+  "description": "Local-filesystem implementation of the DeepSeek Harness filesystem seam (ctx.fs)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/fs/fs-local"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -11,5 +16,6 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
-  }
+  },
+  "license": "MIT"
 }

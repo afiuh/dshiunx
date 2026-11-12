@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-tools",
-  "private": true,
+  "description": "Tool registry and execution pipeline for the DeepSeek Harness",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/core/tools"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -20,5 +25,6 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

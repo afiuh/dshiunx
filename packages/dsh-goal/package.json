@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-goal",
-  "private": true,
+  "description": "Event-sourced same-session goal state and lifecycle service for the DeepSeek Harness",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/goal/goal"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -28,5 +33,6 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

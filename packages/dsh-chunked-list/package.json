@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-chunked-list",
-  "private": true,
+  "description": "Persistent append-only chunked lists with bounded copying and JSON checkpoint validation",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/util/chunked-list"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -11,5 +16,6 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
-  }
+  },
+  "license": "MIT"
 }

@@ -71,7 +71,7 @@ export interface ModuleRequest {
 }
 
 /** @see https://github.com/nodejs/node/blob/main/src/module_wrap.h */
-export const enum ModulePhase {
+export enum ModulePhase {
   Source = 1,
   Evaluation = 2,
 }

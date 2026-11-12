@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-terminal",
-  "private": true,
+  "description": "Persistent PTY session seam for the DeepSeek Harness — owner-scoped ids, backend registry, interactive sends, reads, signals, and awaited cleanup",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/terminal/terminal"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -12,5 +17,6 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
-  }
+  },
+  "license": "MIT"
 }

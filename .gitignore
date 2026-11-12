@@ -3,9 +3,9 @@ node_modules/
 .DS_Store
 .env
 
-# 开源排除
+# 本地归档/运行时
 _archive/
-dshHomePath('sessions')/
+_attic/
 .dshiunx/
 .pi/
-decisions/.layout.json
+decisions-recovered/

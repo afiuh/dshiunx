@@ -6,12 +6,12 @@
   "types": "src/index.ts",
   "exports": {
     ".": {
-      "types": "./lib/types/index.d.ts",
-      "default": "./lib/index.js"
+      "types": "./src/index.ts",
+      "default": "./src/index.ts"
     },
     "./worker/profile-resolution-bootstrap": {
-      "types": "./lib/types/profile-resolution/worker-bootstrap.d.ts",
-      "default": "./lib/worker/profile-resolution-bootstrap.js"
+      "types": "./src/profile-resolution/worker-bootstrap.ts",
+      "default": "./src/worker/profile-resolution-bootstrap.ts"
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"

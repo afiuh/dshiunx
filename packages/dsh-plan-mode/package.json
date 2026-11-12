@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-plan-mode",
-  "private": true,
+  "description": "Logged per-agent plan mode with deployment guidance, a direct slash command, and a user-reviewed exit",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/plan/plan-mode"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -20,5 +25,11 @@
     "./src/*": "./src/*",
     "./package.json": "./package.json",
     "./locale/*.json": "./locale/*.json"
+  },
+  "license": "MIT",
+  "peerDependenciesMeta": {
+    "@deepseek-ai/dsh-commands": {
+      "optional": true
+    }
   }
 }

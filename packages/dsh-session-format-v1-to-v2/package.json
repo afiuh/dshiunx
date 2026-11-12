@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-session-format-v1-to-v2",
-  "private": true,
+  "description": "Frozen released-v1 Session codec and assistant-stream migration to v2",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/session/session-format-v1-to-v2"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -11,5 +16,18 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
+  },
+  "license": "MIT",
+  "dsh": {
+    "sessionFormatMigration": {
+      "from": 1,
+      "to": 2,
+      "export": ".",
+      "migration": "sessionFormatV1ToV2",
+      "sourceCodec": "releasedV1SessionFormatCodec",
+      "targetCodec": "releasedV2SessionFormatCodec",
+      "targetHeaderValidator": "assertReleasedV2Header",
+      "targetRestorer": "restoreReleasedV2Artifact"
+    }
   }
 }

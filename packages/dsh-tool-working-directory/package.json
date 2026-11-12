@@ -1,6 +1,11 @@
 {
   "name": "@deepseek-ai/dsh-tool-working-directory",
-  "private": true,
+  "description": "Read and change the active Session working directory",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/deepseek-ai/deepseek-harness.git",
+    "directory": "packages/session/tool-working-directory"
+  },
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
@@ -11,5 +16,6 @@
     },
     "./src/*": "./src/*",
     "./package.json": "./package.json"
-  }
+  },
+  "license": "MIT"
 }

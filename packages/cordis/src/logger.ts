@@ -19,10 +19,10 @@ export type LoggerMethod = (format: any, ...param: any[]) => void
 export type Formatter = (value: any, exporter: Exporter, message: Message) => any
 
 /** Numeric severity used when exporters decide whether to emit a message. */
-export const enum LoggerLevel {
+export enum LoggerLevel {
   ERROR = 0,
-  INFO = 1,
-  WARN = 2,
+  WARN = 1,
+  INFO = 2,
   DEBUG = 3,
 }
 
@@ -76,7 +76,7 @@ export interface Logger extends LoggerOptions {}
 export interface Logger extends Record<LoggerType, LoggerMethod> {}
 
 function isAggregateError(error: any): error is Error & { errors: Error[] } {
-  return error instanceof Error && Array.isArray((error as any)['errors'])
+  return error instanceof Error && Array.isArray(error['errors'])
 }
 
 /** Logger facade for one named subsystem. */
@@ -214,8 +214,12 @@ export class LoggerService {
       colors: 3,
       export: (message) => {
         self.buffer.push(message)
-        if (self.buffer.length > self.bufferSize) {
-          self.buffer = self.buffer.slice(-self.bufferSize)
+        // for better performance
+        const overflow = self.buffer.length - self.bufferSize
+        if (overflow === 1) {
+          self.buffer.shift()
+        } else if (overflow > 1) {
+          self.buffer.splice(0, overflow)
         }
       },
     })
@@ -251,7 +255,8 @@ export class LoggerService {
 
   [symbols.invoke](name?: string): Logger {
     const config = this._resolveConfig()
-    const fiber = ((this.ctx as any)[symbols.shadow] ?? this.ctx).fiber
+    const caller = (this as any)[symbols.caller] as Context | undefined
+    const fiber = (caller ?? this.ctx).fiber
     name ??= config.name
     name ??= hyphenate(fiber.name)
     return new Logger({
