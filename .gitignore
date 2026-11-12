@@ -9,3 +9,6 @@ _attic/
 .dshiunx/
 .pi/
 decisions-recovered/
+
+# 运行时会话数据（本地保留，不入库）
+dshHomePath('sessions')/
