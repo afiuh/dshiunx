@@ -85,6 +85,35 @@
 | C2 | 所有产品功能包 | 与内核无关 |
 | C3 | **整个 `dsh-agent-loop`** | dshiunx 不采用常规智能体循环（README），要等决策网络驱动的循环落地 |
 
+### 边界审查（2026-11-13，按内核准入判据逐项）
+
+DSH 往内核里加了什么、是否该由内核负责：
+
+| rc.12 改动 | 属于内核职责？ | 判断 |
+|---|---|---|
+| `symbols.config` → `metadata` 重命名 | DI 元数据 | ✅ 跟 |
+| `resolveConfig` → `mergeIntercept` + `resolveIntercept` | DI 元数据合并/解析 | ✅ 跟 |
+| `ctx.root` → `ctx[Context.root]` | 上下文根 | ✅ 跟 |
+| 新增 `locate()` | 服务解析 | ✅ 跟（**仅内部使用，未进 index.ts 公共导出**） |
+| `ValidationError` 增强 | 配置校验错误 | ✅ 跟 |
+| `events.parallel` 的 AggregateError 带事件名 | 事件分发诊断 | ✅ 跟（价值低，但零成本） |
+| `ctx.isolate` 不回退 | DI 隔离语义 | ✅ 跟（**需验证 D40**） |
+| `inject` 优先级变化 | DI 元数据优先级 | ✅ 跟（**需验证 D40**） |
+| `FiberState` 改 `const enum` | 编译优化 | ✅ 跟（改回 `enum`） |
+
+**边界验证**：
+
+- `grep -rniE "session|tool|llm|ui|agent|workspace" packages/cordis/src` → 仅命中一处注释里的 “tooling”（指插件注册表工具，非业务概念）
+- `index.ts` 导出清单与 rc.11 **完全一致**（无新增公共 API）
+- 新增代码只涉及 `Context` / `Fiber` / `Impl` / `Service` / `StandardSchemaV1.Issue` —— 全是 DI 原语
+
+**结论：rc.12 没有往内核里塞产品功能，全部改动都在内核职责内。可以跟。**
+
+两个需要留意的“变重”迹象（不是边界问题，是代价）：
+
+1. **`resolveIntercept()` 多了 `locate()` 调用**：`logger.ts` 每次 `[symbols.invoke]`（创建 Logger）都走一次 fiber 链遍历。rc.11 的 `_resolveConfig` 只遍历 intercept 原型链。不是热路径（每插件建 Logger 一次），可接受。
+2. **`reflect.get()` 每次服务访问都走 `locate()`**：热路径。rc.11 是内联 while，rc.12 增加了 isolate 原型链遍历（`while (table !== fiber.ctx[symbols.isolate])`）。语义更精确，但开销略增。若后续发现性能问题，这是第一个排查点。
+
 ### D40 专节：preset 子树服务可见性
 
 **依据**：[discussion.md D40](file:///home/ufuish/obsidian-笔记/计算机与编程类/编程记录/dshiunx/discussion.md)（2026-10-21，核心架构修复）
